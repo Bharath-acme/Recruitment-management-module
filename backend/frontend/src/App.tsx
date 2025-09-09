@@ -1,0 +1,88 @@
+import React from "react";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { Navigation } from "./components/Navigation";
+import { RequisitionManager } from "./components/RequisitionManager";
+import { CandidateManager } from "./components/CandidateManager";
+import { InterviewManager } from "./components/InterviewManager";
+import { OfferManager } from "./components/OfferManager";
+import { AnalyticsDashboard } from "./components/AnalyticsDashboard";
+import { VendorManager } from "./components/VendorManager";
+import { AdminPanel } from "./components/AdminPanel";
+import OpenPositions from "./components/OpenPositions";
+import { AuthProvider, useAuth } from "./components/AuthProvider";
+import { LoginForm } from "./components/LoginForm";
+import { Toaster } from "./components/ui/sonner";
+import { Card } from "./components/ui/card";
+import { Dashboard } from "./components/Dashboard";
+import CandidateProfile from "./components/CandidateProfile";
+import PositionPage from "./components/PositionDetails";
+
+function AppContent() {
+  const { user, loading, userRole } = useAuth();
+  const [selectedCompany, setSelectedCompany] = React.useState<string>("");
+  const [selectedCountry, setSelectedCountry] = React.useState<string>("");
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <Card className="p-8">
+          <div className="flex items-center space-x-2">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+            <span>Loading...</span>
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <LoginForm />;
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-50">
+      {/* ✅ Navigation is always visible */}
+      <Navigation
+        selectedCompany={selectedCompany}
+        selectedCountry={selectedCountry}
+        onCompanyChange={setSelectedCompany}
+        onCountryChange={setSelectedCountry}
+        userRole={userRole}
+      />
+
+      {/* ✅ Main content controlled by routes */}
+      <main className="pt-16">
+        <Routes>
+          <Route path="/" element={<Dashboard selectedCompany={selectedCompany} selectedCountry={selectedCountry}  />} />
+          <Route path="/requisitions" element={<RequisitionManager selectedCompany={selectedCompany} selectedCountry={selectedCountry} />} />
+          <Route path="/candidates" element={<CandidateManager selectedCompany={selectedCompany} selectedCountry={selectedCountry} />} />
+          <Route path="/interviews" element={<InterviewManager selectedCompany={selectedCompany} selectedCountry={selectedCountry} />} />
+          <Route path="/offers" element={<OfferManager selectedCompany={selectedCompany} selectedCountry={selectedCountry} />} />
+          <Route path="/analytics" element={<AnalyticsDashboard selectedCompany={selectedCompany} selectedCountry={selectedCountry} />} />
+          <Route path="/vendors" element={<VendorManager selectedCompany={selectedCompany} selectedCountry={selectedCountry} />} />
+          {userRole === "admin" && (
+            <Route path="/admin" element={<AdminPanel />} />
+          )}
+          <Route path="/open-positions" element={<OpenPositions />} />
+          <Route path="/candidates/cd-profile" element={<CandidateProfile />} />
+           <Route path="/requisitions/position" element={<PositionPage />} />
+
+          {/* ✅ Redirect any unknown route to dashboard */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </main>
+
+      <Toaster />
+    </div>
+  );
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <Router>
+        <AppContent />
+      </Router>
+    </AuthProvider>
+  );
+}
