@@ -13,6 +13,7 @@ import {
   LogOut,
   Globe,
 } from 'lucide-react';
+import logo from '../media/profile_logo.png';
 import { Link, useLocation } from 'react-router-dom';   // ✅ Router imports
 
 interface NavigationProps {
@@ -22,6 +23,8 @@ interface NavigationProps {
   onCountryChange: (country: string) => void;
   userRole: string | null;
 }
+
+
 
 export function Navigation({
   selectedCompany,
@@ -44,7 +47,7 @@ export function Navigation({
   const countries = ['UAE', 'Saudi Arabia', 'Qatar', 'Kuwait', 'Bahrain', 'Oman'];
 
   const navItems = [
-    { path: '/', label: 'Dashboard', icon: BarChart3, roles: ['admin', 'recruiter', 'hiring_manager', 'finance'] },
+    { path: '/dashboard', label: 'Dashboard', icon: BarChart3, roles: ['admin', 'recruiter', 'hiring_manager', 'finance'] },
     { path: '/requisitions', label: 'Requisitions', icon: FileText, roles: ['admin', 'recruiter', 'hiring_manager'] },
     { path: '/candidates', label: 'Candidates', icon: Users, roles: ['admin', 'recruiter', 'hiring_manager', 'interviewer'] },
     { path: '/interviews', label: 'Interviews', icon: Calendar, roles: ['admin', 'recruiter', 'hiring_manager', 'interviewer'] },
@@ -92,7 +95,7 @@ export function Navigation({
           {/* Right Side (company, country, user) */}
           <div className="flex items-center space-x-4">
             {/* Company Select */}
-            <div className="flex items-center space-x-2">
+            {/* <div className="flex items-center space-x-2">
               <Building2 className="h-4 w-4 text-gray-500" />
               <Select value={selectedCompany} onValueChange={onCompanyChange}>
                 <SelectTrigger className="w-48">
@@ -106,10 +109,10 @@ export function Navigation({
                   ))}
                 </SelectContent>
               </Select>
-            </div>
+            </div> */}
 
             {/* Country Select */}
-            <div className="flex items-center space-x-2">
+            {/* <div className="flex items-center space-x-2">
               <Globe className="h-4 w-4 text-gray-500" />
               <Select value={selectedCountry} onValueChange={onCountryChange}>
                 <SelectTrigger className="w-32">
@@ -123,10 +126,18 @@ export function Navigation({
                   ))}
                 </SelectContent>
               </Select>
-            </div>
+            </div> */}
 
             {/* User Info */}
             <div className="flex items-center space-x-3">
+               <div className="flex-shrink-0 h-10 w-10">
+                  <img
+                    className="h-10 w-10 rounded-full object-cover"
+                    // src={user?.profilePhotoUrl || 'https://via.placeholder.com/150'}
+                    src={logo}
+                    alt={`${user?.name}'s profile photo`}
+                  />
+                </div>
               <div className="text-sm">
                 <p className="text-gray-900 font-medium">{user?.name}</p>
                 <p className="text-gray-500 capitalize">{userRole?.replace('_', ' ')}</p>

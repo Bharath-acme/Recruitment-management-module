@@ -14,8 +14,8 @@ import { LoginForm } from "./components/LoginForm";
 import { Toaster } from "./components/ui/sonner";
 import { Card } from "./components/ui/card";
 import { Dashboard } from "./components/Dashboard";
-import CandidateProfile from "./components/CandidateProfile";
-import PositionPage from "./components/PositionDetails";
+import CandidateProfile from "./components/Candidate";
+import RquisitionPage from "./components/Requisition";
 
 function AppContent() {
   const { user, loading, userRole } = useAuth();
@@ -53,7 +53,7 @@ function AppContent() {
       {/* ✅ Main content controlled by routes */}
       <main className="pt-16">
         <Routes>
-          <Route path="/" element={<Dashboard selectedCompany={selectedCompany} selectedCountry={selectedCountry}  />} />
+          <Route path="/dashboard" element={<Dashboard selectedCompany={selectedCompany} selectedCountry={selectedCountry}  />} />
           <Route path="/requisitions" element={<RequisitionManager selectedCompany={selectedCompany} selectedCountry={selectedCountry} />} />
           <Route path="/candidates" element={<CandidateManager selectedCompany={selectedCompany} selectedCountry={selectedCountry} />} />
           <Route path="/interviews" element={<InterviewManager selectedCompany={selectedCompany} selectedCountry={selectedCountry} />} />
@@ -64,11 +64,11 @@ function AppContent() {
             <Route path="/admin" element={<AdminPanel />} />
           )}
           <Route path="/open-positions" element={<OpenPositions />} />
-          <Route path="/candidates/cd-profile" element={<CandidateProfile />} />
-           <Route path="/requisitions/position" element={<PositionPage />} />
+          <Route path="/candidates/:id" element={<CandidateProfile />} />
+           <Route path="/requisitions/:id" element={<RquisitionPage />} />
 
           {/* ✅ Redirect any unknown route to dashboard */}
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </main>
 

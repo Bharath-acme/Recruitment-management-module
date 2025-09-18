@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardHeader, CardTitle, CardContent } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
@@ -20,37 +21,44 @@ import {
   Mail,
   Phone,
   MapPin,
-  Calendar,
   FileText,
   MessageSquare
 } from 'lucide-react';
-import { toast } from 'sonner@2.0.3';
+import { toast } from 'sonner';
 import { projectId, publicAnonKey } from '../utils/supabase/info';
+import CandidateForm from './CandidateForm';
 
 interface CandidateManagerProps {
   selectedCompany: string;
   selectedCountry: string;
 }
 
-interface Candidate {
+export interface Candidate {
   id: string;
   name: string;
   email: string;
   phone: string;
   location: string;
   position: string;
-  requisitionId: string;
+  requisition_id: string;
   stage: string;
   status: string;
   rating: number;
-  experience: string;
+  experience: number;
   skills: string[];
   source: string;
-  appliedDate: string;
-  lastActivity: string;
+  applied_date: string;
+  last_activity: string;
   recruiter: string;
   resumeUrl?: string;
   notes?: string;
+  current_ctc?: string;
+  expected_ctc?: string;
+  notice_period?: string;
+  current_company?: string;
+  dob?: string;
+  marital_status?: string;
+
 }
 
 export function CandidateManager({ selectedCompany, selectedCountry }: CandidateManagerProps) {
@@ -70,221 +78,103 @@ export function CandidateManager({ selectedCompany, selectedCountry }: Candidate
     requisitionId: '',
     experience: '',
     skills: '',
-    source: 'direct'
+    source: 'direct',
+    current_ctc: '',      // snake_case
+    expected_ctc: '',
+    notice_period: '',
+    current_company: '',
+    dob: '',
+    marital_status: ''
   });
+  const navigate = useNavigate();
+
   useEffect(() => {
-     setCandidates([
-      {
-        id: 'CND-001',
-        name: 'Ahmed Al-Rashid',
-        email: 'ahmed.rashid@email.com',
-        phone: '+971-50-123-4567',
-        location: 'Dubai, UAE',
-        position: 'Senior Software Engineer',
-        requisitionId: 'REQ-2025-001',
-        stage: 'Interview',
-        status: 'Active',
-        rating: 4,
-        experience: '8 years',
-        skills: ['React', 'Node.js', 'Python', 'AWS'],
-        source: 'LinkedIn',
-        appliedDate: '2025-08-25',
-        lastActivity: '2025-08-28',
-        recruiter: 'Sarah Johnson',
-        notes: 'Strong technical background, good cultural fit'
-      },
-      {
-        id: 'CND-002',
-        name: 'Fatima Al-Zahra',
-        email: 'fatima.zahra@email.com',
-        phone: '+966-55-987-6543',
-        location: 'Riyadh, KSA',
-        position: 'Product Manager',
-        requisitionId: 'REQ-2025-002',
-        stage: 'Offer',
-        status: 'Active',
-        rating: 5,
-        experience: '6 years',
-        skills: ['Product Strategy', 'Analytics', 'Leadership', 'Agile'],
-        source: 'Referral',
-        appliedDate: '2025-08-20',
-        lastActivity: '2025-08-29',
-        recruiter: 'Mike Chen',
-        notes: 'Excellent product sense, strong leadership skills'
-      },
-      {
-        id: 'CND-003',
-        name: 'Omar Hassan',
-        email: 'omar.hassan@email.com',
-        phone: '+974-33-456-7890',
-        location: 'Doha, Qatar',
-        position: 'UI/UX Designer',
-        requisitionId: 'REQ-2025-003',
-        stage: 'Screening',
-        status: 'Active',
-        rating: 3,
-        experience: '4 years',
-        skills: ['Figma', 'Adobe Creative Suite', 'Prototyping', 'User Research'],
-        source: 'Job Board',
-        appliedDate: '2025-08-27',
-        lastActivity: '2025-08-28',
-        recruiter: 'Lisa Park',
-        notes: 'Good portfolio, needs to improve presentation skills'
-      }
-    ]);
-  },[])
+    loadCandidates();
+
+  }, []);
+  
   useEffect(() => {
     loadCandidates();
 
   }, [selectedCompany, selectedCountry, stageFilter]);
 
-  const loadCandidates = async () => {
-    setLoading(true);
-    try {
-      const response = await fetch(`https://${projectId}.supabase.co/functions/v1/make-server-66aec17b/candidates?stage=${stageFilter}`, {
-        headers: {
-          'Authorization': `Bearer ${publicAnonKey}`,
-          'Content-Type': 'application/json'
-        }
-      });
+ const loadCandidates = async () => {
+  setLoading(true);
+  try {
+    const response = await fetch(`http://127.0.0.1:8000/candidates`, {
+      headers: { 'Content-Type': 'application/json' }
+    });
 
-      if (response.ok) {
-        const data = await response.json();
-        setCandidates(data.candidates || []);
-      } else {
-        loadDemoData();
-      }
-    } catch (error) {
-      console.error('Candidates load error:', error);
-      loadDemoData();
-    } finally {
-      setLoading(false);
+    if (response.ok) {
+      const data = await response.json();
+      console.log('Fetched candidates:', data);
+
+      // Adjust depending on backend response
+      setCandidates(Array.isArray(data) ? data : data.candidates || []);
+    } else {
+      console.error("Failed to fetch candidates");
     }
-  };
+  } catch (error) {
+    console.error('Candidates load error:', error);
+  } finally {
+    setLoading(false);
+  }
+};
 
-  const loadDemoData = () => {
-    setCandidates([
-      {
-        id: 'CND-001',
-        name: 'Ahmed Al-Rashid',
-        email: 'ahmed.rashid@email.com',
-        phone: '+971-50-123-4567',
-        location: 'Dubai, UAE',
-        position: 'Senior Software Engineer',
-        requisitionId: 'REQ-2025-001',
-        stage: 'Interview',
-        status: 'Active',
-        rating: 4,
-        experience: '8 years',
-        skills: ['React', 'Node.js', 'Python', 'AWS'],
-        source: 'LinkedIn',
-        appliedDate: '2025-08-25',
-        lastActivity: '2025-08-28',
-        recruiter: 'Sarah Johnson',
-        notes: 'Strong technical background, good cultural fit'
-      },
-      {
-        id: 'CND-002',
-        name: 'Fatima Al-Zahra',
-        email: 'fatima.zahra@email.com',
-        phone: '+966-55-987-6543',
-        location: 'Riyadh, KSA',
-        position: 'Product Manager',
-        requisitionId: 'REQ-2025-002',
-        stage: 'Offer',
-        status: 'Active',
-        rating: 5,
-        experience: '6 years',
-        skills: ['Product Strategy', 'Analytics', 'Leadership', 'Agile'],
-        source: 'Referral',
-        appliedDate: '2025-08-20',
-        lastActivity: '2025-08-29',
-        recruiter: 'Mike Chen',
-        notes: 'Excellent product sense, strong leadership skills'
-      },
-      {
-        id: 'CND-003',
-        name: 'Omar Hassan',
-        email: 'omar.hassan@email.com',
-        phone: '+974-33-456-7890',
-        location: 'Doha, Qatar',
-        position: 'UI/UX Designer',
-        requisitionId: 'REQ-2025-003',
-        stage: 'Screening',
-        status: 'Active',
-        rating: 3,
-        experience: '4 years',
-        skills: ['Figma', 'Adobe Creative Suite', 'Prototyping', 'User Research'],
-        source: 'Job Board',
-        appliedDate: '2025-08-27',
-        lastActivity: '2025-08-28',
-        recruiter: 'Lisa Park',
-        notes: 'Good portfolio, needs to improve presentation skills'
-      }
-    ]);
-  };
+  
+  const handleAddCandidate = async (candidateData: any) => {
+  try {
+    const response = await fetch("http://127.0.0.1:8000/create-candidate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(candidateData),
+    });
 
-  const handleAddCandidate = async () => {
-    try {
-      const candidateData = {
-        ...newCandidate,
-        skills: newCandidate.skills.split(',').map(s => s.trim()).filter(s => s)
-      };
-
-      const response = await fetch(`https://${projectId}.supabase.co/functions/v1/make-server-66aec17b/candidates`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${publicAnonKey}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(candidateData)
-      });
-
-      if (response.ok) {
-        toast.success('Candidate added successfully!');
-        setShowAddDialog(false);
-        loadCandidates();
-        setNewCandidate({
-          name: '',
-          email: '',
-          phone: '',
-          location: '',
-          position: '',
-          requisitionId: '',
-          experience: '',
-          skills: '',
-          source: 'direct'
-        });
-      } else {
-        toast.error('Failed to add candidate');
-      }
-    } catch (error) {
-      console.error('Add candidate error:', error);
-      toast.error('Failed to add candidate');
+    if (response.ok) {
+      toast.success("Candidate added successfully!");
+      setShowAddDialog(false);
+      loadCandidates();
+    } else {
+      toast.error("Failed to add candidate");
     }
-  };
+  } catch (error) {
+    console.error("Add candidate error:", error);
+    toast.error("Failed to add candidate");
+  }
+};
 
-  const filteredCandidates = candidates.filter(candidate =>
-    candidate.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    candidate.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    candidate.position.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    candidate.skills.some(skill => skill.toLowerCase().includes(searchTerm.toLowerCase()))
+
+ const filteredCandidates = candidates.filter(candidate => {
+  const name = (candidate.name??"").toLowerCase();
+  const email = (candidate.email??"").toLowerCase();
+  const position = (candidate.position??"").toLowerCase();
+  // const skills = Array.isArray(candidate.skills) ? candidate.skills : [];
+
+  return (
+    name.includes(searchTerm.toLowerCase()) ||
+    email.includes(searchTerm.toLowerCase()) ||
+    position.includes(searchTerm.toLowerCase()) 
+    // skills.some(skill => skill?.toLowerCase().includes(searchTerm.toLowerCase()))
   );
+});
 
-  const getStageColor = (stage: string) => {
-    switch (stage.toLowerCase()) {
-      case 'applied': return 'bg-gray-100 text-gray-800';
-      case 'screening': return 'bg-blue-100 text-blue-800';
-      case 'interview': return 'bg-yellow-100 text-yellow-800';
-      case 'offer': return 'bg-green-100 text-green-800';
-      case 'hired': return 'bg-emerald-100 text-emerald-800';
-      case 'rejected': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
+
+  console.log('Filtered Candidates:', candidates);
+
+ const getStageColor = (stage?: string) => {
+  switch ((stage ?? "").toLowerCase()) {
+    case "applied": return "bg-gray-100 text-gray-800";
+    case "screening": return "bg-blue-100 text-blue-800";
+    case "interview": return "bg-yellow-100 text-yellow-800";
+    case "offer": return "bg-green-100 text-green-800";
+    case "hired": return "bg-emerald-100 text-emerald-800";
+    case "rejected": return "bg-red-100 text-red-800";
+    default: return "bg-gray-100 text-gray-800";
+  }
+};
 
   const getSourceColor = (source: string) => {
-    switch (source.toLowerCase()) {
+    switch ((source??"").toLowerCase()) {
       case 'linkedin': return 'bg-blue-100 text-blue-800';
       case 'referral': return 'bg-purple-100 text-purple-800';
       case 'job board': return 'bg-orange-100 text-orange-800';
@@ -316,121 +206,13 @@ export function CandidateManager({ selectedCompany, selectedCountry }: Candidate
           <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Add New Candidate</DialogTitle>
-              <DialogDescription>
-                Add a new candidate to the system by filling in their details below.
-              </DialogDescription>
+              <DialogDescription>Fill candidate details below.</DialogDescription>
             </DialogHeader>
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="name">Full Name</Label>
-                  <Input
-                    id="name"
-                    value={newCandidate.name}
-                    onChange={(e) => setNewCandidate({...newCandidate, name: e.target.value})}
-                    placeholder="Ahmed Al-Rashid"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={newCandidate.email}
-                    onChange={(e) => setNewCandidate({...newCandidate, email: e.target.value})}
-                    placeholder="ahmed@email.com"
-                  />
-                </div>
-              </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="phone">Phone</Label>
-                  <Input
-                    id="phone"
-                    value={newCandidate.phone}
-                    onChange={(e) => setNewCandidate({...newCandidate, phone: e.target.value})}
-                    placeholder="+971-50-123-4567"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="location">Location</Label>
-                  <Input
-                    id="location"
-                    value={newCandidate.location}
-                    onChange={(e) => setNewCandidate({...newCandidate, location: e.target.value})}
-                    placeholder="Dubai, UAE"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="position">Position Applied For</Label>
-                  <Input
-                    id="position"
-                    value={newCandidate.position}
-                    onChange={(e) => setNewCandidate({...newCandidate, position: e.target.value})}
-                    placeholder="Senior Software Engineer"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="experience">Years of Experience</Label>
-                  <Input
-                    id="experience"
-                    value={newCandidate.experience}
-                    onChange={(e) => setNewCandidate({...newCandidate, experience: e.target.value})}
-                    placeholder="5 years"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="requisitionId">Requisition ID</Label>
-                  <Input
-                    id="requisitionId"
-                    value={newCandidate.requisitionId}
-                    onChange={(e) => setNewCandidate({...newCandidate, requisitionId: e.target.value})}
-                    placeholder="REQ-2025-001"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="source">Source</Label>
-                  <Select value={newCandidate.source} onValueChange={(value) => setNewCandidate({...newCandidate, source: value})}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="direct">Direct Application</SelectItem>
-                      <SelectItem value="linkedin">LinkedIn</SelectItem>
-                      <SelectItem value="job-board">Job Board</SelectItem>
-                      <SelectItem value="referral">Referral</SelectItem>
-                      <SelectItem value="agency">Agency</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="skills">Skills (comma-separated)</Label>
-                <Input
-                  id="skills"
-                  value={newCandidate.skills}
-                  onChange={(e) => setNewCandidate({...newCandidate, skills: e.target.value})}
-                  placeholder="React, Node.js, Python, AWS"
-                />
-              </div>
-
-              <div className="flex justify-end space-x-2">
-                <Button variant="outline" onClick={() => setShowAddDialog(false)}>
-                  Cancel
-                </Button>
-                <Button onClick={handleAddCandidate}>
-                  Add Candidate
-                </Button>
-              </div>
-            </div>
+            <CandidateForm
+              onSubmit={handleAddCandidate}
+              onCancel={() => setShowAddDialog(false)}
+            />
           </DialogContent>
         </Dialog>
       </div>
@@ -465,10 +247,10 @@ export function CandidateManager({ selectedCompany, selectedCountry }: Candidate
           <Filter className="h-4 w-4 mr-2" />
           More Filters
         </Button>
-        <Button variant="outline">
+        {/* <Button variant="outline">
           <Download className="h-4 w-4 mr-2" />
           Export
-        </Button>
+        </Button> */}
       </div>
 
       <Card>
@@ -483,7 +265,7 @@ export function CandidateManager({ selectedCompany, selectedCountry }: Candidate
                 <TableHead>Source</TableHead>
                 <TableHead>Applied</TableHead>
                 <TableHead>Recruiter</TableHead>
-                <TableHead>Actions</TableHead>
+                {/* <TableHead>Actions</TableHead> */}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -497,12 +279,12 @@ export function CandidateManager({ selectedCompany, selectedCountry }: Candidate
                     <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
                     <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
                     <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
-                    <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
+                    {/* <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell> */}
                   </TableRow>
                 ))
               ) : (
                 filteredCandidates.map((candidate) => (
-                  <TableRow key={candidate.id}>
+                  <TableRow onClick={()=>navigate(`/candidates/${candidate.id}`)} key={candidate.id}>
                     <TableCell>
                       <div className="flex items-center space-x-3">
                         <Avatar className="h-10 w-10">
@@ -524,12 +306,14 @@ export function CandidateManager({ selectedCompany, selectedCountry }: Candidate
                     <TableCell>
                       <div>
                         <div className="font-medium">{candidate.position}</div>
-                        <div className="text-sm text-gray-500">{candidate.requisitionId}</div>
-                        <div className="text-sm text-gray-500">{candidate.experience} experience</div>
+                        <div className="text-sm text-gray-500">{candidate.requisition_id}</div>
+                        <div className="text-sm text-gray-500">{candidate.experience} yrs</div>
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge className={getStageColor(candidate.stage)}>{candidate.stage}</Badge>
+                      <Badge className={getStageColor(candidate.stage)}>
+                        {candidate.stage ?? "N/A"}
+                      </Badge>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center space-x-1">
@@ -538,19 +322,19 @@ export function CandidateManager({ selectedCompany, selectedCountry }: Candidate
                     </TableCell>
                     <TableCell>
                       <Badge variant="outline" className={getSourceColor(candidate.source)}>
-                        {candidate.source}
+                        {candidate.source ?? "N/A"}
                       </Badge>
                     </TableCell>
                     <TableCell>
                       <div className="text-sm">
-                        <div>{new Date(candidate.appliedDate).toLocaleDateString()}</div>
+                        <div>{new Date(candidate.applied_date).toLocaleDateString()}</div>
                         <div className="text-gray-500">
-                          Last: {new Date(candidate.lastActivity).toLocaleDateString()}
+                          Last: {new Date(candidate.last_activity).toLocaleDateString()}
                         </div>
                       </div>
                     </TableCell>
                     <TableCell>{candidate.recruiter}</TableCell>
-                    <TableCell>
+                    {/* <TableCell>
                       <div className="flex space-x-2">
                         <Button size="sm" variant="outline">
                           <Eye className="h-4 w-4" />
@@ -562,7 +346,7 @@ export function CandidateManager({ selectedCompany, selectedCountry }: Candidate
                           <FileText className="h-4 w-4" />
                         </Button>
                       </div>
-                    </TableCell>
+                    </TableCell> */}
                   </TableRow>
                 ))
               )}

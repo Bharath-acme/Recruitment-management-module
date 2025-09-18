@@ -6,11 +6,13 @@ import { Label } from './ui/label';
 import { Button } from './ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
-import { toast } from 'sonner@2.0.3';
+import { toast } from 'sonner';
 import { Building2, Users, Globe } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export function LoginForm() {
   const { signIn, signUp } = useAuth();
+  const navigate = useNavigate()
   const [loading, setLoading] = useState(false);
   const [loginData, setLoginData] = useState({
     email: '',
@@ -26,57 +28,70 @@ export function LoginForm() {
     country: ''
   });
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
+const handleLogin = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setLoading(true);
+  try {
+    const { data, error } = await signIn(loginData.email, loginData.password);
+    if (error) throw new Error(error);
+    toast.success("Login successful!");
+    navigate("/dashboard");
+  } catch (error: any) {
+    toast.error(error.message || "Failed to sign in");
+  } finally {
+    setLoading(false);
+  }
+};
 
-    try {
-      const { error } = await signIn(loginData.email, loginData.password);
-      if (error) throw error;
-      toast.success('Successfully signed in!');
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to sign in');
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  const handleSignup = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (signupData.password !== signupData.confirmPassword) {
-      toast.error('Passwords do not match');
-      return;
-    }
+const handleSignup = async (e: React.FormEvent) => {
+  e.preventDefault();
+  if (signupData.password !== signupData.confirmPassword) {
+    toast.error("Passwords do not match");
+    return;
+  }
 
-    setLoading(true);
-
-    try {
-      const result = await signUp(signupData.email, signupData.password, {
+  setLoading(true);
+  try {
+    const res = await fetch("http://127.0.0.1:8000/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: signupData.email,
+        password: signupData.password,
+        confirm_password:signupData.confirmPassword,
         name: signupData.name,
         role: signupData.role,
         company: signupData.company,
-        country: signupData.country
-      });
+        country: signupData.country,
+      }),
+    });
 
-      if (result.error) throw new Error(result.error);
-      
-      toast.success('Account created successfully! Please sign in.');
-      // Reset form
-      setSignupData({
-        email: '',
-        password: '',
-        confirmPassword: '',
-        name: '',
-        role: '',
-        company: '',
-        country: ''
-      });
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to create account');
-    } finally {
-      setLoading(false);
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.detail || "Signup failed");
     }
-  };
+
+    const data = await res.json();
+    toast.success(data.message);
+    navigate("/dashboard");
+    setSignupData({
+      email: "",
+      password: "",
+      confirmPassword: "",
+      name: "",
+      role: "",
+      company: "",
+      country: "",
+    });
+  } catch (error: any) {
+    toast.error(error.message);
+  } finally {
+    setLoading(false);
+  }
+};
+
+
 
   const roles = [
     { value: 'admin', label: 'HR Admin / TA Lead' },
@@ -181,7 +196,7 @@ export function LoginForm() {
 
                     <div className="space-y-2">
                       <Label htmlFor="signup-role">Role</Label>
-                      <Select value={signupData.role} onValueChange={(value) => setSignupData({ ...signupData, role: value })}>
+                      <Select value={signupData.role} onValueChange={(value:any) => setSignupData({ ...signupData, role: value })}>
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
@@ -197,7 +212,7 @@ export function LoginForm() {
 
                     <div className="space-y-2">
                       <Label htmlFor="signup-company">Company</Label>
-                      <Select value={signupData.company} onValueChange={(value) => setSignupData({ ...signupData, company: value })}>
+                      <Select value={signupData.company} onValueChange={(value:any) => setSignupData({ ...signupData, company: value })}>
                         <SelectTrigger>
                           <SelectValue placeholder="Select company" />
                         </SelectTrigger>
@@ -213,7 +228,7 @@ export function LoginForm() {
 
                     <div className="space-y-2">
                       <Label htmlFor="signup-country">Country</Label>
-                      <Select value={signupData.country} onValueChange={(value) => setSignupData({ ...signupData, country: value })}>
+                      <Select value={signupData.country} onValueChange={(value:any) => setSignupData({ ...signupData, country: value })}>
                         <SelectTrigger>
                           <SelectValue placeholder="Select country" />
                         </SelectTrigger>

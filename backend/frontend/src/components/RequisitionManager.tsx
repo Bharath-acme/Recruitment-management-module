@@ -23,37 +23,47 @@ import {
   XCircle,
   AlertCircle
 } from 'lucide-react';
-import { toast } from 'sonner@2.0.3';
-import { projectId, publicAnonKey } from '../utils/supabase/info';
+import { toast } from 'sonner';
+import { projectId, publicAnonKey } from '../utils/supabase/info'; 
+import { useNavigate } from 'react-router-dom';
+import { RequisitionForm } from './RequisitionFrom';
+import { useAuth } from './AuthProvider';
+import { Capitalize } from '../utils/Utils';
+
 
 interface RequisitionManagerProps {
   selectedCompany: string;
   selectedCountry: string;
 }
 
-interface Requisition {
+export interface Requisition {
   id: string;
-  title: string;
+  position: string;
   department: string;
   location: string;
-  employmentType: string;
-  workMode: string;
+  employment_type: string;
+  work_mode: string;
   grade: string;
-  budgetMin: number;
-  budgetMax: number;
+  min_salary: number;
+  max_salary: number;
   currency: string;
   status: string;
   priority: string;
-  openings: number;
+  positions_count: number;
   filled: number;
   daysOpen: number;
-  applicants: number;
-  hiringManager: string;
-  recruiter: string;
-  targetStartDate: string;
+  candidates: any[];
+  hiring_manager: string;
+  recruiter: any;
+  recruiter_id: number;
+  job_description: string;
+  skills: string[];
+  progress: number; // percentage of positions filled
+  // Add any other fields as necessary
+  target_startdate: string;
   sla: number;
   approvalStatus: string;
-  createdDate: string;
+  created_date: string;
 }
 
 export function RequisitionManager({ selectedCompany, selectedCountry }: RequisitionManagerProps) {
@@ -63,162 +73,82 @@ export function RequisitionManager({ selectedCompany, selectedCountry }: Requisi
   const [statusFilter, setStatusFilter] = useState('all');
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [selectedRequisition, setSelectedRequisition] = useState<Requisition | null>(null);
-
+  const [approval, setApproval] = useState('');
+  const navigate = useNavigate();
+ 
+  const {user } = useAuth();
   const [newRequisition, setNewRequisition] = useState({
-    title: '',
+    position: '',
     department: '',
     location: '',
-    employmentType: 'permanent',
-    workMode: 'onsite',
+    employment_type: '',
+    work_mode: 'onsite',
     grade: '',
-    budgetMin: '',
-    budgetMax: '',
+    min_salary: '',
+    max_salary: '',
     currency: 'AED',
     priority: 'medium',
-    openings: 1,
-    description: '',
-    requirements: '',
-    hiringManager: '',
-    targetStartDate: ''
+    positions_count: null,
+    job_description: '',
+    skills: '',
+    recruiter:'',
+    hiring_manager: user?.name || '',
+    target_startdate: '',
+    created_date: ''
+
   });
 
   useEffect(() => {
     loadRequisitions();
+   
   }, [selectedCompany, selectedCountry, statusFilter]);
+
+ 
 
   const loadRequisitions = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`https://${projectId}.supabase.co/functions/v1/make-server-66aec17b/requisitions?status=${statusFilter}`, {
-        headers: {
-          'Authorization': `Bearer ${publicAnonKey}`,
-          'Content-Type': 'application/json'
+      const response = await fetch( 'http://127.0.0.1:8000/requisitions',
+        // `/api/requisitions?company=${encodeURIComponent(selectedCompany)}&country=${encodeURIComponent(selectedCountry)}&status=${encodeURIComponent(statusFilter)}`,
+        {
+          headers: {
+            'Content-Type': 'application/json'
+          }
         }
-      });
+      );
 
       if (response.ok) {
         const data = await response.json();
-        setRequisitions(data.requisitions || []);
+        setRequisitions(data || []);
+        console.log('Requisitions loaded:', data);
       } else {
-        loadDemoData();
+        console.error('Failed to load requisitions');
       }
     } catch (error) {
       console.error('Requisitions load error:', error);
-      loadDemoData();
+     
     } finally {
       setLoading(false);
     }
   };
 
-  const loadDemoData = () => {
-    setRequisitions([
-      {
-        id: 'REQ-2025-001',
-        title: 'Senior Software Engineer',
-        department: 'Engineering',
-        location: 'Dubai, UAE',
-        employmentType: 'Permanent',
-        workMode: 'Hybrid',
-        grade: 'Senior',
-        budgetMin: 15000,
-        budgetMax: 20000,
-        currency: 'AED',
-        status: 'Active',
-        priority: 'High',
-        openings: 2,
-        filled: 0,
-        daysOpen: 12,
-        applicants: 23,
-        hiringManager: 'Sarah Johnson',
-        recruiter: 'Ahmed Al-Rashid',
-        targetStartDate: '2025-10-01',
-        sla: 30,
-        approvalStatus: 'Approved',
-        createdDate: '2025-08-18'
-      },
-      {
-        id: 'REQ-2025-002',
-        title: 'Product Manager',
-        department: 'Product',
-        location: 'Riyadh, KSA',
-        employmentType: 'Permanent',
-        workMode: 'Onsite',
-        grade: 'Senior',
-        budgetMin: 18000,
-        budgetMax: 25000,
-        currency: 'SAR',
-        status: 'Active',
-        priority: 'High',
-        openings: 1,
-        filled: 0,
-        daysOpen: 8,
-        applicants: 31,
-        hiringManager: 'Mike Chen',
-        recruiter: 'Fatima Al-Zahra',
-        targetStartDate: '2025-09-15',
-        sla: 25,
-        approvalStatus: 'Approved',
-        createdDate: '2025-08-22'
-      },
-      {
-        id: 'REQ-2025-003',
-        title: 'UI/UX Designer',
-        department: 'Design',
-        location: 'Doha, Qatar',
-        employmentType: 'Contract',
-        workMode: 'Remote',
-        grade: 'Mid',
-        budgetMin: 12000,
-        budgetMax: 16000,
-        currency: 'QAR',
-        status: 'Pending Approval',
-        priority: 'Medium',
-        openings: 1,
-        filled: 0,
-        daysOpen: 3,
-        applicants: 0,
-        hiringManager: 'Lisa Park',
-        recruiter: 'Omar Hassan',
-        targetStartDate: '2025-09-30',
-        sla: 20,
-        approvalStatus: 'Pending',
-        createdDate: '2025-08-27'
-      }
-    ]);
-  };
 
-  const handleCreateRequisition = async () => {
+  // Add the missing handler function for creating a requisition
+  const handleCreateRequisition = async (requisitionData:any) => {
     try {
-      const response = await fetch(`https://${projectId}.supabase.co/functions/v1/make-server-66aec17b/requisitions`, {
+      const response = await fetch('http://127.0.0.1:8000/create-requisition', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${publicAnonKey}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(newRequisition)
+         body: JSON.stringify(requisitionData),
+        
       });
 
       if (response.ok) {
         toast.success('Requisition created successfully!');
         setShowCreateDialog(false);
         loadRequisitions();
-        setNewRequisition({
-          title: '',
-          department: '',
-          location: '',
-          employmentType: 'permanent',
-          workMode: 'onsite',
-          grade: '',
-          budgetMin: '',
-          budgetMax: '',
-          currency: 'AED',
-          priority: 'medium',
-          openings: 1,
-          description: '',
-          requirements: '',
-          hiringManager: '',
-          targetStartDate: ''
-        });
       } else {
         toast.error('Failed to create requisition');
       }
@@ -228,8 +158,10 @@ export function RequisitionManager({ selectedCompany, selectedCountry }: Requisi
     }
   };
 
+ 
+
   const filteredRequisitions = requisitions.filter(req =>
-    req.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    req.position.toLowerCase().includes(searchTerm.toLowerCase()) ||
     req.department.toLowerCase().includes(searchTerm.toLowerCase()) ||
     req.id.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -253,8 +185,15 @@ export function RequisitionManager({ selectedCompany, selectedCountry }: Requisi
     }
   };
 
+  const daysOpen = (createdDate: string) => {
+    const created = new Date(createdDate);
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - created.getTime());
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  };
+
   const getApprovalStatusIcon = (status: string) => {
-    switch (status.toLowerCase()) {
+    switch (status?.toLowerCase()) {
       case 'approved': return <CheckCircle2 className="h-4 w-4 text-green-600" />;
       case 'pending': return <Clock className="h-4 w-4 text-yellow-600" />;
       case 'rejected': return <XCircle className="h-4 w-4 text-red-600" />;
@@ -283,198 +222,11 @@ export function RequisitionManager({ selectedCompany, selectedCountry }: Requisi
                 Create a new job requisition by filling in the position details and requirements below.
               </DialogDescription>
             </DialogHeader>
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="title">Position Title</Label>
-                  <Input
-                    id="title"
-                    value={newRequisition.title}
-                    onChange={(e) => setNewRequisition({...newRequisition, title: e.target.value})}
-                    placeholder="e.g. Senior Software Engineer"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="department">Department</Label>
-                  <Select value={newRequisition.department} onValueChange={(value) => setNewRequisition({...newRequisition, department: value})}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select department" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Engineering">Engineering</SelectItem>
-                      <SelectItem value="Product">Product</SelectItem>
-                      <SelectItem value="Design">Design</SelectItem>
-                      <SelectItem value="Sales">Sales</SelectItem>
-                      <SelectItem value="Marketing">Marketing</SelectItem>
-                      <SelectItem value="HR">Human Resources</SelectItem>
-                      <SelectItem value="Finance">Finance</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="location">Location</Label>
-                  <Input
-                    id="location"
-                    value={newRequisition.location}
-                    onChange={(e) => setNewRequisition({...newRequisition, location: e.target.value})}
-                    placeholder="e.g. Dubai, UAE"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="grade">Grade</Label>
-                  <Select value={newRequisition.grade} onValueChange={(value) => setNewRequisition({...newRequisition, grade: value})}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select grade" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Junior">Junior</SelectItem>
-                      <SelectItem value="Mid">Mid Level</SelectItem>
-                      <SelectItem value="Senior">Senior</SelectItem>
-                      <SelectItem value="Lead">Lead</SelectItem>
-                      <SelectItem value="Principal">Principal</SelectItem>
-                      <SelectItem value="Director">Director</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <Label htmlFor="employmentType">Employment Type</Label>
-                  <Select value={newRequisition.employmentType} onValueChange={(value) => setNewRequisition({...newRequisition, employmentType: value})}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="permanent">Permanent</SelectItem>
-                      <SelectItem value="contract">Contract</SelectItem>
-                      <SelectItem value="temporary">Temporary</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="workMode">Work Mode</Label>
-                  <Select value={newRequisition.workMode} onValueChange={(value) => setNewRequisition({...newRequisition, workMode: value})}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="onsite">Onsite</SelectItem>
-                      <SelectItem value="remote">Remote</SelectItem>
-                      <SelectItem value="hybrid">Hybrid</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="priority">Priority</Label>
-                  <Select value={newRequisition.priority} onValueChange={(value) => setNewRequisition({...newRequisition, priority: value})}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="low">Low</SelectItem>
-                      <SelectItem value="medium">Medium</SelectItem>
-                      <SelectItem value="high">High</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <Label htmlFor="budgetMin">Min Salary</Label>
-                  <Input
-                    id="budgetMin"
-                    type="number"
-                    value={newRequisition.budgetMin}
-                    onChange={(e) => setNewRequisition({...newRequisition, budgetMin: e.target.value})}
-                    placeholder="15000"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="budgetMax">Max Salary</Label>
-                  <Input
-                    id="budgetMax"
-                    type="number"
-                    value={newRequisition.budgetMax}
-                    onChange={(e) => setNewRequisition({...newRequisition, budgetMax: e.target.value})}
-                    placeholder="20000"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="currency">Currency</Label>
-                  <Select value={newRequisition.currency} onValueChange={(value) => setNewRequisition({...newRequisition, currency: value})}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="AED">AED</SelectItem>
-                      <SelectItem value="SAR">SAR</SelectItem>
-                      <SelectItem value="QAR">QAR</SelectItem>
-                      <SelectItem value="KWD">KWD</SelectItem>
-                      <SelectItem value="BHD">BHD</SelectItem>
-                      <SelectItem value="OMR">OMR</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="openings">Number of Openings</Label>
-                  <Input
-                    id="openings"
-                    type="number"
-                    min="1"
-                    value={newRequisition.openings}
-                    onChange={(e) => setNewRequisition({...newRequisition, openings: parseInt(e.target.value) || 1})}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="targetStartDate">Target Start Date</Label>
-                  <Input
-                    id="targetStartDate"
-                    type="date"
-                    value={newRequisition.targetStartDate}
-                    onChange={(e) => setNewRequisition({...newRequisition, targetStartDate: e.target.value})}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="description">Job Description</Label>
-                <Textarea
-                  id="description"
-                  value={newRequisition.description}
-                  onChange={(e) => setNewRequisition({...newRequisition, description: e.target.value})}
-                  placeholder="Describe the role and responsibilities..."
-                  rows={4}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="requirements">Requirements</Label>
-                <Textarea
-                  id="requirements"
-                  value={newRequisition.requirements}
-                  onChange={(e) => setNewRequisition({...newRequisition, requirements: e.target.value})}
-                  placeholder="List the required skills, experience, and qualifications..."
-                  rows={4}
-                />
-              </div>
-
-              <div className="flex justify-end space-x-2">
-                <Button variant="outline" onClick={() => setShowCreateDialog(false)}>
-                  Cancel
-                </Button>
-                <Button onClick={handleCreateRequisition}>
-                  Create Requisition
-                </Button>
-              </div>
-            </div>
+            <RequisitionForm
+            onSubmit={handleCreateRequisition}
+            onCancel={() => setShowCreateDialog(false)}
+            />
+            
           </DialogContent>
         </Dialog>
       </div>
@@ -510,21 +262,21 @@ export function RequisitionManager({ selectedCompany, selectedCountry }: Requisi
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Position</TableHead>
-                <TableHead>Department</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Priority</TableHead>
-                <TableHead>Progress</TableHead>
-                <TableHead>Days Open</TableHead>
-                <TableHead>Hiring Manager</TableHead>
-                <TableHead>Actions</TableHead>
+              <TableHead>Position</TableHead>
+              <TableHead>Department</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Priority</TableHead>
+              <TableHead>Progress</TableHead>
+              <TableHead>Days Open</TableHead>
+              <TableHead>Hiring Manager</TableHead>
+              <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading ? (
                 [...Array(5)].map((_, i) => (
-                  <TableRow key={i}>
-                    <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
+                  <TableRow  key={i}>
+                    <TableCell><div  className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
                     <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
                     <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
                     <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
@@ -536,10 +288,10 @@ export function RequisitionManager({ selectedCompany, selectedCountry }: Requisi
                 ))
               ) : (
                 filteredRequisitions.map((req) => (
-                  <TableRow key={req.id}>
+                  <TableRow onClick={()=>{ navigate(`/requisitions/${req.id}`)}} key={req.id}>
                     <TableCell>
                       <div>
-                        <div className="font-medium">{req.title}</div>
+                        <div className="font-medium">{req.position}</div>
                         <div className="text-sm text-gray-500">{req.id}</div>
                         <div className="text-sm text-gray-500">{req.location}</div>
                       </div>
@@ -548,7 +300,7 @@ export function RequisitionManager({ selectedCompany, selectedCountry }: Requisi
                     <TableCell>
                       <div className="flex items-center space-x-2">
                         <Badge className={getStatusColor(req.status)}>{req.status}</Badge>
-                        {getApprovalStatusIcon(req.approvalStatus)}
+                        
                       </div>
                     </TableCell>
                     <TableCell>
@@ -556,27 +308,33 @@ export function RequisitionManager({ selectedCompany, selectedCountry }: Requisi
                     </TableCell>
                     <TableCell>
                       <div className="space-y-1">
-                        <div className="text-sm">{req.filled}/{req.openings} filled</div>
-                        <div className="text-sm text-gray-500">{req.applicants} applicants</div>
+                        <div className="text-sm">{req.filled} {req.positions_count} filled</div>
+                        {/* <div className="text-sm text-gray-500"> applicants</div> */}
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center space-x-1">
                         <Clock className="h-4 w-4 text-gray-400" />
-                        <span className={req.daysOpen > req.sla ? 'text-red-600' : 'text-gray-600'}>
-                          {req.daysOpen}
+                        <span className={daysOpen(req.created_date) > req.sla ? 'text-red-600' : 'text-gray-600'}>
+                          {daysOpen(req.created_date)} days
                         </span>
                       </div>
                     </TableCell>
-                    <TableCell>{req.hiringManager}</TableCell>
+                    <TableCell>{Capitalize(req.hiring_manager)}</TableCell>
                     <TableCell>
-                      <div className="flex space-x-2">
-                        <Button size="sm" variant="outline">
-                          <Eye className="h-4 w-4" />
+                      <div className="flex items-center space-x-2">
+                        <Button 
+                        // onClick={(e:any)=>{e.stopPropagation(); }} 
+                        onClick={(e)=>{ e.stopPropagation(); setApproval(req.id);}}
+                        size="sm" 
+                        variant="outline">
+                          {/* <Eye className="h-4 w-4" /> */}
+                        {approval == req.id ?  ' Approved' : 'Approve'}
                         </Button>
-                        <Button size="sm" variant="outline">
+                        {/* {getApprovalStatusIcon(req?.approvalStatus)} */}
+                        {/* <Button onClick={(e:any)=>{e.stopPropagation(); }} size="sm" variant="outline">
                           <Edit className="h-4 w-4" />
-                        </Button>
+                        </Button> */}
                       </div>
                     </TableCell>
                   </TableRow>

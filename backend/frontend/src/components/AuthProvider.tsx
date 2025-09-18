@@ -1,14 +1,9 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { createClient } from '@supabase/supabase-js';
-import { projectId, publicAnonKey } from '../utils/supabase/info';
+// Removed supabase imports and client
 
-const supabase = createClient(
-  `https://${projectId}.supabase.co`,
-  publicAnonKey
-);
 
 interface User {
-  id: string;
+  id?: string;
   email: string;
   name?: string;
   role?: string;
@@ -23,87 +18,88 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<any>;
   signOut: () => Promise<void>;
   signUp: (email: string, password: string, userData: any) => Promise<any>;
+  setUser: React.Dispatch<React.SetStateAction<User | null>>;
 }
 
 const AuthContext = createContext<AuthContextType>({} as AuthContextType);
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
+interface AuthProviderProps {
+  children: React.ReactNode;
+}
+
+export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [userRole, setUserRole] = useState<string | null>(null);
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        const userData = {
-          id: session.user.id,
-          email: session.user.email || '',
-          name: session.user.user_metadata?.name,
-          role: session.user.user_metadata?.role || 'recruiter',
-          company: session.user.user_metadata?.company,
-          country: session.user.user_metadata?.country
-        };
-        setUser(userData);
-        setUserRole(userData.role);
-      }
+    // Check for token in localStorage and fetch user info if exists
+    const token = localStorage.getItem('token');
+    if (token) {
+      setLoading(true);
+      fetch('http://127.0.0.1:8000/me', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      })
+        .then(res => res.ok ? res.json() : null)
+        .then(data => {
+          if (data) {
+            setUser(data);
+            setUserRole(data.role);
+          } else {
+            setUser(null);
+            setUserRole(null);
+          }
+        })
+        .finally(() => setLoading(false));
+    } else {
+      setUser(null);
+      setUserRole(null);
       setLoading(false);
-    });
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (session?.user) {
-          const userData = {
-            id: session.user.id,
-            email: session.user.email || '',
-            name: session.user.user_metadata?.name,
-            role: session.user.user_metadata?.role || 'recruiter',
-            company: session.user.user_metadata?.company,
-            country: session.user.user_metadata?.country
-          };
-          setUser(userData);
-          setUserRole(userData.role);
-        } else {
-          setUser(null);
-          setUserRole(null);
-        }
-        setLoading(false);
-      }
-    );
-
-    return () => subscription.unsubscribe();
+    }
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password
+    const res = await fetch('http://127.0.0.1:8000/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
     });
-    return { data, error };
+    if (!res.ok) {
+      const err = await res.json();
+      return { error: err.detail || 'Login failed' };
+    }
+    const data = await res.json();
+    localStorage.setItem('token', data.access_token);
+    // Fetch user info
+    const userRes = await fetch('http://127.0.0.1:8000/me', {
+      headers: { 'Authorization': `Bearer ${data.access_token}` }
+    });
+    const userData = await userRes.json();
+    setUser(userData);
+    setUserRole(userData.role);
+    return { data: userData };
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    localStorage.removeItem('token');
     setUser(null);
     setUserRole(null);
   };
 
   const signUp = async (email: string, password: string, userData: any) => {
-    // This will be handled by the server for proper user creation
-    const response = await fetch(`https://${projectId}.supabase.co/functions/v1/make-server-66aec17b/signup`, {
+    const response = await fetch(`http://127.0.0.1:8000/register`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${publicAnonKey}`,
       },
       body: JSON.stringify({
         email,
         password,
-        userData
+        ...userData
       })
     });
-
     const result = await response.json();
     return result;
   };
@@ -114,7 +110,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     userRole,
     signIn,
     signOut,
-    signUp
+    signUp,
+    setUser
   };
 
   return (

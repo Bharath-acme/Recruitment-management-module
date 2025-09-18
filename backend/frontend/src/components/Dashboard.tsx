@@ -24,8 +24,7 @@ import { projectId, publicAnonKey } from '../utils/supabase/info';
 interface DashboardProps {
   selectedCompany: string;
   selectedCountry: string;
-//   activeTab: string;
-//  setActiveTab: (tab: string) => void;
+
 }
 
 interface MetricCard {
@@ -57,9 +56,11 @@ export function Dashboard({ selectedCompany, selectedCountry  }: DashboardProps)
   const [upcomingInterviews, setUpcomingInterviews] = useState<any[]>([]);
   const [pendingApprovals, setPendingApprovals] = useState<any[]>([]);
   const navigate = useNavigate();
+ 
 
   useEffect(() => {
     loadDashboardData();
+   
   }, [selectedCompany, selectedCountry]);
 
   // Icon mapping for server responses
@@ -71,6 +72,7 @@ export function Dashboard({ selectedCompany, selectedCountry  }: DashboardProps)
     'Clock': Clock,
     'Target': Target
   };
+
 
   const loadDashboardData = async () => {
     setLoading(true);
@@ -88,7 +90,7 @@ export function Dashboard({ selectedCompany, selectedCountry  }: DashboardProps)
         const mappedMetrics = (data.metrics || []).map((metric: any) => ({
           ...metric,
           icon: iconMap[metric.iconName] || FileText,
-          route: metric.route || "/"
+          route: metric.route || "/dashboard"
           
         }));
         console.log('Mapped Metrics:', mappedMetrics);
