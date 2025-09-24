@@ -41,7 +41,7 @@ export default function CandidateForm({ initialData, onSubmit, onCancel }: Candi
     e.preventDefault();
     onSubmit({
       ...formData,
-      skills: formData.skills.split(",").map(s => s.trim()).filter(s => s),
+      skills: formData.skills.split(",").map((s: string) => s.trim()).filter((s: any) => s),
     });
   };
 
@@ -125,7 +125,7 @@ export default function CandidateForm({ initialData, onSubmit, onCancel }: Candi
       <Label htmlFor="source">Source</Label>
       <Select
         value={formData.source}
-        onValueChange={val => handleChange("source", val)}
+        onValueChange={(val: any) => handleChange("source", val)}
       >
         <SelectTrigger>
           <SelectValue placeholder="Select source" />

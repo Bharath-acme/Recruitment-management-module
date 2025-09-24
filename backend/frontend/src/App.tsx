@@ -16,6 +16,8 @@ import { Card } from "./components/ui/card";
 import { Dashboard } from "./components/Dashboard";
 import CandidateProfile from "./components/Candidate";
 import RquisitionPage from "./components/Requisition";
+import HomePage from "./components/landingPage";
+
 
 function AppContent() {
   const { user, loading, userRole } = useAuth();
@@ -36,27 +38,35 @@ function AppContent() {
   }
 
   if (!user) {
-    return <LoginForm />;
+    return (
+    < Routes>
+    <Route path="/" element={<HomePage/>} />
+    <Route path="/login" element={<LoginForm/>} />
+     <Route path="*" element={<Navigate to="/" replace />} />
+    </ Routes>)
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      {/* ✅ Navigation is always visible */}
-      <Navigation
-        selectedCompany={selectedCompany}
-        selectedCountry={selectedCountry}
-        onCompanyChange={setSelectedCompany}
-        onCountryChange={setSelectedCountry}
-        userRole={userRole}
-      />
-
-      {/* ✅ Main content controlled by routes */}
-      <main className="pt-16">
+    <div className="min-h-screen bg-slate-50 flex">
+      {/* Left: Sidebar Navigation */}
+      <aside style={{background:'navy',color:'#ffff', position:'fixed'}} className="w-64 min-h-screen border-r">
+        <Navigation
+          selectedCompany={selectedCompany}
+          selectedCountry={selectedCountry}
+          onCompanyChange={setSelectedCompany}
+          onCountryChange={setSelectedCountry}
+          userRole={userRole}
+        />
+      </aside>
+      {/* Right: Main Content */}
+      <main style={{marginLeft:200}} className="flex-1 p-6">
         <Routes>
           <Route path="/dashboard" element={<Dashboard selectedCompany={selectedCompany} selectedCountry={selectedCountry}  />} />
           <Route path="/requisitions" element={<RequisitionManager selectedCompany={selectedCompany} selectedCountry={selectedCountry} />} />
           <Route path="/candidates" element={<CandidateManager selectedCompany={selectedCompany} selectedCountry={selectedCountry} />} />
-          <Route path="/interviews" element={<InterviewManager selectedCompany={selectedCompany} selectedCountry={selectedCountry} />} />
+          <Route path="/interviews" element={<InterviewManager 
+          selectedCompany={selectedCompany} selectedCountry={selectedCountry} 
+          />} />
           <Route path="/offers" element={<OfferManager selectedCompany={selectedCompany} selectedCountry={selectedCountry} />} />
           <Route path="/analytics" element={<AnalyticsDashboard selectedCompany={selectedCompany} selectedCountry={selectedCountry} />} />
           <Route path="/vendors" element={<VendorManager selectedCompany={selectedCompany} selectedCountry={selectedCountry} />} />
@@ -65,14 +75,12 @@ function AppContent() {
           )}
           <Route path="/open-positions" element={<OpenPositions />} />
           <Route path="/candidates/:id" element={<CandidateProfile />} />
-           <Route path="/requisitions/:id" element={<RquisitionPage />} />
-
-          {/* ✅ Redirect any unknown route to dashboard */}
+          <Route path="/requisitions/:id" element={<RquisitionPage />} />
+          {/* Redirect any unknown route to dashboard */}
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
+        <Toaster />
       </main>
-
-      <Toaster />
     </div>
   );
 }

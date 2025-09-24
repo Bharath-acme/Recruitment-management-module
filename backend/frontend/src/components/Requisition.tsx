@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { RequisitionForm } from "./RequisitionFrom";    
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
 import { Capitalize,formatCurrency,formatDate } from "../utils/Utils";
+import PositionForm from "./PositionForm";
 
 
 
@@ -48,6 +49,9 @@ export default function RequisitionPage() {
   const [toastMessage, setToastMessage] = useState("");
   const navigate = useNavigate();
    const [showAddDialog, setShowAddDialog] = useState(false);
+   const [openEditForm, setEditForm] = useState(false);
+   const [openPositionForm, setOpenPositionForm] = useState(false);
+   const [positionData, setPositionData] = useState<any>('');
 
  useEffect(() => {
     if (!id) return;
@@ -81,12 +85,34 @@ export default function RequisitionPage() {
       toast.success("Requisition updated!");
       const updatedRequisition = await response.json();
       setRequisition(updatedRequisition);
-       setShowAddDialog(false);
+       setEditForm(false);
     } else {
       toast.error("Failed to update requisition");
     }
   }
  
+  const createPosition = async (data: any) => {
+    try {
+          const response = await fetch(`http://127.0.0.1:8000/positions`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
+          });
+
+          if (response.ok) {
+            const newPosition = await response.json();
+            toast.success("Position added successfully!");
+            setPositionData(newPosition);
+            console.log("New Position:", newPosition);
+            setOpenPositionForm(false);
+          } else {
+            toast.error("Failed to add position");
+          }
+        } catch (err) {
+          console.error("Error adding position:", err);
+          toast.error("Error while adding position");
+        }
+      }
 
   if (loading) return <p>Loading...</p>;
   if (!requisition) return <p>No requisition found</p>;
@@ -95,6 +121,16 @@ export default function RequisitionPage() {
     showToast(`${action.charAt(0).toUpperCase() + action.slice(1)} clicked!`);
   };
   const candidateCount = requisition?.candidates?.length ?? 0;
+  const positionsCount = requisition?.positions?.length ?? 0;
+  const filledCount = ()=>{
+    let filled=0;
+    requisition?.positions?.forEach((pos:any)=>{
+      if(pos.status.toLowerCase()==='closed'){
+        filled+=1;
+      }
+    })
+    return filled;
+  }
 
   
   const daysOpen = (createdDate: string) => {
@@ -128,7 +164,7 @@ export default function RequisitionPage() {
         {/* Action buttons */}
         <div className="flex gap-3 mb-8">
 
-           <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+           <Dialog open={openEditForm} onOpenChange={setEditForm} >
           <DialogTrigger asChild>
             <Button>
               ✏️ Edit
@@ -143,8 +179,27 @@ export default function RequisitionPage() {
              <RequisitionForm
                   initialData={requisition} 
                   onSubmit={updateRequisition}
-                  onCancel={() =>  setShowAddDialog(false)}
+                  onCancel={() =>  setEditForm(false)}
                  />
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={openPositionForm} onOpenChange={setOpenPositionForm}>
+          <DialogTrigger asChild>
+            <Button onClick={() => setOpenPositionForm(true)}>
+              Add Position
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Add New Position</DialogTitle>
+              <DialogDescription>Fill position details below.</DialogDescription>
+            </DialogHeader>
+            <PositionForm
+              requisition_id={Number(requisition.id)}
+              onSubmit={createPosition}
+              onCancel={() => setOpenPositionForm(false)}
+            />
           </DialogContent>
         </Dialog>
         
@@ -158,8 +213,8 @@ export default function RequisitionPage() {
           <h2 className="text-xl font-semibold mb-4">Key Metrics</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
-                { label: "Openings", value: requisition?.positions_count ?? 0 },
-                { label: "Filled", value: requisition?.filled ?? 0 },
+                { label: "Openings", value:positionsCount },
+                { label: "Filled", value: filledCount() },
                 { label: "Days Open", value: daysOpen(requisition?.created_date) },
                 { label: "Applicants", value:candidateCount },
             ].map((metric) => (

@@ -64,6 +64,8 @@ export interface Requisition {
   sla: number;
   approvalStatus: string;
   created_date: string;
+  positions:any[],
+  req_id: string;
 }
 
 export function RequisitionManager({ selectedCompany, selectedCountry }: RequisitionManagerProps) {
@@ -132,6 +134,7 @@ export function RequisitionManager({ selectedCompany, selectedCountry }: Requisi
     }
   };
 
+  
 
   // Add the missing handler function for creating a requisition
   const handleCreateRequisition = async (requisitionData:any) => {
@@ -288,11 +291,12 @@ export function RequisitionManager({ selectedCompany, selectedCountry }: Requisi
                 ))
               ) : (
                 filteredRequisitions.map((req) => (
+                  
                   <TableRow onClick={()=>{ navigate(`/requisitions/${req.id}`)}} key={req.id}>
                     <TableCell>
                       <div>
                         <div className="font-medium">{req.position}</div>
-                        <div className="text-sm text-gray-500">{req.id}</div>
+                        <div className="text-sm text-gray-500">{req.req_id}</div>
                         <div className="text-sm text-gray-500">{req.location}</div>
                       </div>
                     </TableCell>
@@ -309,7 +313,7 @@ export function RequisitionManager({ selectedCompany, selectedCountry }: Requisi
                     <TableCell>
                       <div className="space-y-1">
                         <div className="text-sm">{req.filled} {req.positions_count} filled</div>
-                        {/* <div className="text-sm text-gray-500"> applicants</div> */}
+                        <div className="text-sm text-gray-500"> applicants</div>
                       </div>
                     </TableCell>
                     <TableCell>

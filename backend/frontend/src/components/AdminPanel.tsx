@@ -326,7 +326,7 @@ export function AdminPanel() {
                   <Switch
                     id="email-notifications"
                     checked={systemSettings.emailNotifications}
-                    onCheckedChange={(checked) => handleSettingChange('emailNotifications', checked)}
+                    onCheckedChange={(checked: any) => handleSettingChange('emailNotifications', checked)}
                   />
                 </div>
                 <div className="flex items-center justify-between">
@@ -334,7 +334,7 @@ export function AdminPanel() {
                   <Switch
                     id="sms-notifications"
                     checked={systemSettings.smsNotifications}
-                    onCheckedChange={(checked) => handleSettingChange('smsNotifications', checked)}
+                    onCheckedChange={(checked: any) => handleSettingChange('smsNotifications', checked)}
                   />
                 </div>
               </CardContent>
@@ -353,7 +353,7 @@ export function AdminPanel() {
                   <Switch
                     id="two-factor"
                     checked={systemSettings.requireTwoFactor}
-                    onCheckedChange={(checked) => handleSettingChange('requireTwoFactor', checked)}
+                    onCheckedChange={(checked: any) => handleSettingChange('requireTwoFactor', checked)}
                   />
                 </div>
                 <div className="flex items-center justify-between">
@@ -361,7 +361,7 @@ export function AdminPanel() {
                   <Switch
                     id="guest-access"
                     checked={systemSettings.allowGuestAccess}
-                    onCheckedChange={(checked) => handleSettingChange('allowGuestAccess', checked)}
+                    onCheckedChange={(checked: any) => handleSettingChange('allowGuestAccess', checked)}
                   />
                 </div>
               </CardContent>
@@ -411,7 +411,7 @@ export function AdminPanel() {
                   <Switch
                     id="maintenance-mode"
                     checked={systemSettings.maintenanceMode}
-                    onCheckedChange={(checked) => handleSettingChange('maintenanceMode', checked)}
+                    onCheckedChange={(checked: any) => handleSettingChange('maintenanceMode', checked)}
                   />
                 </div>
                 <div className="space-y-2">

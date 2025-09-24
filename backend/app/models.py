@@ -59,7 +59,7 @@ class Requisitions(Base):
     __tablename__ = "requisitions"
 
     id = Column(Integer, primary_key=True, index=True)
-
+    req_id = Column(String(50), unique=True, index=True, nullable=False)
     # Core info
     position = Column(String(100), nullable=False)
     department = Column(String(100), nullable=False)
@@ -89,8 +89,7 @@ class Requisitions(Base):
     job_description = Column(Text, nullable=True)
     recruiter_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     recruiter = relationship("User", back_populates="requisitions")
-    
-
+    # positions = relationship("Position", back_populates="requisition", cascade="all, delete-orphan")
 
 
 class Candidate(Base):

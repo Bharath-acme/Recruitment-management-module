@@ -44,6 +44,22 @@ class RecruiterOut(BaseModel):
     class Config:
         orm_mode = True
 
+class PositionBase(BaseModel):
+    requisition_id: int
+    position_name: str
+    skills: List[str]
+    position_desc: str
+    status: str
+
+class PositionCreate(PositionBase):
+    pass
+
+class PositionResponse(PositionBase):
+    id: int
+    class Config:
+        orm_mode = True
+
+
 # Base schema (common fields)
 class RequisitionBase(BaseModel):
     position: str
@@ -64,10 +80,14 @@ class RequisitionBase(BaseModel):
     status: Status = Status.OPEN
     job_description: Optional[str] = None
     recruiter_id: Optional[int] = None
+    
+
+
+
 
 # For creating requisition
 class RequisitionCreate(RequisitionBase):
-    pass
+     pass
 
 
 # For updating requisition
@@ -79,8 +99,10 @@ class RequisitionUpdate(RequisitionBase):
 class RequisitionResponse(RequisitionBase):
     id: int
     created_date: datetime
+    req_id: str    
     recruiter: Optional[RecruiterOut]
     candidates: List["CandidateResponse"] = [] 
+    # positions: List[PositionResponse] = []
     class Config:
         orm_mode = True
 

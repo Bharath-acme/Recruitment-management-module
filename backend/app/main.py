@@ -19,7 +19,7 @@ origins = [
 ]
 
 app.add_middleware(
-     CORSMiddleware,
+    CORSMiddleware,
     allow_origins=origins,  
     allow_credentials=True,
     allow_methods=["*"],
@@ -113,7 +113,23 @@ def create_requisition(req: schemas.RequisitionCreate, db: Session = Depends(get
 
 @app.get("/requisitions", response_model=list[schemas.RequisitionResponse])
 def read_requisitions(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
-    return crud.get_requisitions(db, skip=skip, limit=limit)
+    db_reqs = crud.get_requisitions(db, skip=skip, limit=limit)
+    result = []
+    for req in db_reqs:
+        recruiter = None
+        if req.recruiter:
+            recruiter = {
+                "id": req.recruiter.id,
+                "name": req.recruiter.name,
+                "email": req.recruiter.email,
+            }
+        req_dict = req.__dict__.copy()
+        req_dict["recruiter"] = recruiter
+        req_dict.pop("_sa_instance_state", None)
+        # Ensure req_id is always a string (not None)
+        req_dict["req_id"] = str(req_dict.get("req_id") or "")
+        result.append(req_dict)
+    return result
 
 
 @app.get("/requisitions/{requisition_id}", response_model=schemas.RequisitionResponse)
@@ -139,6 +155,47 @@ def delete_requisition(requisition_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Requisition not found")
     return db_req
 
+
+# @app.post("/positions", response_model=schemas.PositionResponse)
+# def create_position(position: schemas.PositionCreate, db: Session = Depends(get_db)):
+#     return crud.create_position(db, position)
+
+@app.post("/positions", response_model=schemas.PositionResponse)
+def create_position(position_data: schemas.PositionCreate, db: Session = Depends(get_db)):
+    # Convert camelCase to snake_case for ORM
+    db_position = models.Position(
+        requisition_id=position_data.requisition_id,
+        position_name=position_data.positionName,
+        skills=",".join(position_data.skills) if isinstance(position_data.skills, list) else position_data.skills,
+        position_desc=position_data.position_desc,
+        status=position_data.status,
+    )
+    db.add(db_position)
+    db.commit()
+    db.refresh(db_position)
+    # Return camelCase for frontend
+    return {
+        "id": db_position.id,
+        "requisition_id": db_position.requisition_id,
+        "position_name": db_position.position_name,
+        "position_desc": db_position.position_desc,
+        "skills": p.skills.split(",") if isinstance(p.skills, str) and p.skills else p.skills if isinstance(p.skills, list) else [],
+        "status": db_position.status,
+    }
+# @app.get("/requisitions/{id}/positions", response_model=list[schemas.PositionResponse])
+# def list_positions(id: int, db: Session = Depends(get_db)):
+#     positions = crud.get_positions_by_requisition(db, id)
+#     return [
+#         {
+#             "id": p.id,
+#             "requisition_id": p.requisition_id,
+#             "position_name": p.position_name,
+#             "skills": p.skills.split(",") if isinstance(p.skills, str) and p.skills else p.skills if isinstance(p.skills, list) else [],
+#             "position_desc": p.position_desc,
+#             "status": p.status,
+#         }
+#         for p in positions
+#     ]
 
 # =============================Candidates============================
 

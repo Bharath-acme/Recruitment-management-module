@@ -31,6 +31,9 @@
             "@radix-ui/react-toggle-group": "^1.1.2",
             "@radix-ui/react-tooltip": "^1.1.8",
             "@supabase/supabase-js": "^2.0.0",
+            "@tailwindcss/vite": "^4.1.13",
+            "autoprefixer": "^10.4.21",
+            "axios": "^1.12.2",
             "class-variance-authority": "^0.7.1",
             "clsx": "*",
             "cmdk": "^1.1.1",
@@ -48,9 +51,11 @@
             "recharts": "^2.15.2",
             "sonner": "^2.0.3",
             "tailwind-merge": "*",
+            "tailwindcss": "^4.1.13",
             "vaul": "^1.1.2"
       },
       "devDependencies": {
+            "@tailwindcss/postcss": "^4.1.13",
             "@types/node": "^20.10.0",
             "@types/react": "^19.1.13",
             "@types/react-dom": "^19.1.9",
