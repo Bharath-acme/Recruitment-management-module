@@ -20,38 +20,15 @@ interface AnalyticsDashboardProps {
 }
 
 export function AnalyticsDashboard({ selectedCompany, selectedCountry }: AnalyticsDashboardProps) {
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [timeRange, setTimeRange] = useState('3months');
   const [analyticsData, setAnalyticsData] = useState<any>({});
 
   useEffect(() => {
-    loadAnalyticsData();
+    loadDemoData();
   }, [selectedCompany, selectedCountry, timeRange]);
 
-  const loadAnalyticsData = async () => {
-    setLoading(true);
-    try {
-      const response = await fetch(`https://${projectId}.supabase.co/functions/v1/make-server-66aec17b/analytics?range=${timeRange}`, {
-        headers: {
-          'Authorization': `Bearer ${publicAnonKey}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setAnalyticsData(data);
-      } else {
-        loadDemoData();
-      }
-    } catch (error) {
-      console.error('Analytics load error:', error);
-      loadDemoData();
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  
   const loadDemoData = () => {
     setAnalyticsData({
       timeToHire: {

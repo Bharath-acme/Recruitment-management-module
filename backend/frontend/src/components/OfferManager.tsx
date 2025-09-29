@@ -57,7 +57,7 @@ interface Offer {
 
 export function OfferManager({ selectedCompany, selectedCountry }: OfferManagerProps) {
   const [offers, setOffers] = useState<Offer[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);    
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -79,32 +79,32 @@ export function OfferManager({ selectedCompany, selectedCountry }: OfferManagerP
   });
 
   useEffect(() => {
-    loadOffers();
+    loadDemoData();
   }, [selectedCompany, selectedCountry, statusFilter]);
 
-  const loadOffers = async () => {
-    setLoading(true);
-    try {
-      const response = await fetch(`https://${projectId}.supabase.co/functions/v1/make-server-66aec17b/offers?status=${statusFilter}`, {
-        headers: {
-          'Authorization': `Bearer ${publicAnonKey}`,
-          'Content-Type': 'application/json'
-        }
-      });
+ 
+  //   setLoading(true);
+  //   try {
+  //     const response = await fetch(`https://${projectId}.supabase.co/functions/v1/make-server-66aec17b/offers?status=${statusFilter}`, {
+  //       headers: {
+  //         'Authorization': `Bearer ${publicAnonKey}`,
+  //         'Content-Type': 'application/json'
+  //       }
+  //     });
 
-      if (response.ok) {
-        const data = await response.json();
-        setOffers(data.offers || []);
-      } else {
-        loadDemoData();
-      }
-    } catch (error) {
-      console.error('Offers load error:', error);
-      loadDemoData();
-    } finally {
-      setLoading(false);
-    }
-  };
+  //     if (response.ok) {
+  //       const data = await response.json();
+  //       setOffers(data.offers || []);
+  //     } else {
+  //       loadDemoData();
+  //     }
+  //   } catch (error) {
+  //     console.error('Offers load error:', error);
+  //     loadDemoData();
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   const loadDemoData = () => {
     setOffers([
@@ -162,52 +162,7 @@ export function OfferManager({ selectedCompany, selectedCountry }: OfferManagerP
     ]);
   };
 
-  const handleCreateOffer = async () => {
-    try {
-      const baseSalary = parseFloat(newOffer.baseSalary) || 0;
-      const housing = parseFloat(newOffer.housingAllowance) || 0;
-      const transport = parseFloat(newOffer.transportAllowance) || 0;
-      const mobile = parseFloat(newOffer.mobileAllowance) || 0;
-      const tickets = parseFloat(newOffer.ticketsAllowance) || 0;
-      const variable = parseFloat(newOffer.variablePay) || 0;
-
-      const offerData = {
-        ...newOffer,
-        baseSalary,
-        allowances: {
-          housing,
-          transport,
-          mobile,
-          tickets
-        },
-        variablePay: variable,
-        totalCompensation: baseSalary + housing + transport + mobile + (tickets / 12) + (variable / 12),
-        expiryDate: new Date(Date.now() + newOffer.expiryDays * 24 * 60 * 60 * 1000).toISOString()
-      };
-
-      const response = await fetch(`https://${projectId}.supabase.co/functions/v1/make-server-66aec17b/offers`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${publicAnonKey}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(offerData)
-      });
-
-      if (response.ok) {
-        toast.success('Offer created successfully!');
-        setShowCreateDialog(false);
-        loadOffers();
-        resetForm();
-      } else {
-        toast.error('Failed to create offer');
-      }
-    } catch (error) {
-      console.error('Create offer error:', error);
-      toast.error('Failed to create offer');
-    }
-  };
-
+ 
   const resetForm = () => {
     setNewOffer({
       candidateName: '',
@@ -439,7 +394,9 @@ export function OfferManager({ selectedCompany, selectedCountry }: OfferManagerP
                 <Button variant="outline" onClick={() => setShowCreateDialog(false)}>
                   Cancel
                 </Button>
-                <Button onClick={handleCreateOffer}>
+                <Button 
+                // onClick={handleCreateOffer}
+                >
                   Create Offer
                 </Button>
               </div>

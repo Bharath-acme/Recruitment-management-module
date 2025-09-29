@@ -36,7 +36,7 @@ interface Interview {
   candidateName: string;
   candidateEmail: string;
   position: string;
-  requisitionId: string;
+  requisition_id: string;
   interviewType: string;
   mode: string;
   datetime: string;
@@ -49,6 +49,9 @@ interface Interview {
   score?: number;
   notes?: string;
   createdDate: string;
+  cadidate_id: string;
+  candidate: { id: string; name: string; email: string; position: string; requisition_id: string};
+  requisition: { id: string; position: string };
 }
 
 export function InterviewManager({ selectedCompany, selectedCountry }: InterviewManagerProps) {
@@ -59,19 +62,34 @@ export function InterviewManager({ selectedCompany, selectedCountry }: Interview
   const [showScheduleDialog, setShowScheduleDialog] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
 
+
   const [newInterview, setNewInterview] = useState({
     candidateName: '',
     candidateEmail: '',
     position: '',
-    requisitionId: '',
+    requisition_id: '',
     interviewType: 'technical',
     mode: 'video',
     date: '',
     time: '',
     duration: 60,
     location: '',
-    interviewers: ''
+    interviewers: '',
+    cadidate_id: ''
   });
+
+  const [candidates, setCandidates] = useState<
+  { id:string, email: string; name: string; position: string; requisition_id: string }[]
+>([]);
+
+useEffect(() => {
+  fetch("http://localhost:8000/candidates")
+    .then((res) => res.json())
+    .then((data) => setCandidates(data));
+
+    loadInterviews();
+}, []);
+console.log("Candidates:", candidates); 
 
   useEffect(() => {
     loadInterviews();
@@ -80,132 +98,75 @@ export function InterviewManager({ selectedCompany, selectedCountry }: Interview
   const loadInterviews = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`https://${projectId}.supabase.co/functions/v1/make-server-66aec17b/interviews?status=${statusFilter}`, {
+      const response = await fetch(`http://localhost:8000/interviews/`, {
         headers: {
-          'Authorization': `Bearer ${publicAnonKey}`,
+         
           'Content-Type': 'application/json'
         }
       });
 
       if (response.ok) {
         const data = await response.json();
-        setInterviews(data.interviews || []);
+        setInterviews(data || []);
+        console.log("Fetched interviews:", data);
       } else {
-        loadDemoData();
+        
       }
     } catch (error) {
       console.error('Interviews load error:', error);
-      loadDemoData();
+     
     } finally {
       setLoading(false);
     }
   };
 
-  const loadDemoData = () => {
-    setInterviews([
-      {
-        id: 'INT-001',
-        candidateName: 'Ahmed Al-Rashid',
-        candidateEmail: 'ahmed.rashid@email.com',
-        position: 'Senior Software Engineer',
-        requisitionId: 'REQ-2025-001',
-        interviewType: 'Technical',
-        mode: 'Video Call',
-        datetime: '2025-08-30T10:00:00',
-        duration: 60,
-        location: 'Microsoft Teams',
-        meetingLink: 'https://teams.microsoft.com/l/meetup-join/...',
-        interviewers: ['Sarah Johnson', 'Mike Chen'],
-        status: 'Scheduled',
-        createdDate: '2025-08-28'
-      },
-      {
-        id: 'INT-002',
-        candidateName: 'Fatima Al-Zahra',
-        candidateEmail: 'fatima.zahra@email.com',
-        position: 'Product Manager',
-        requisitionId: 'REQ-2025-002',
-        interviewType: 'Behavioral',
-        mode: 'In-Person',
-        datetime: '2025-08-30T14:00:00',
-        duration: 45,
-        location: 'Conference Room A, Dubai Office',
-        interviewers: ['Lisa Park', 'John Davis'],
-        status: 'Scheduled',
-        createdDate: '2025-08-28'
-      },
-      {
-        id: 'INT-003',
-        candidateName: 'Omar Hassan',
-        candidateEmail: 'omar.hassan@email.com',
-        position: 'UI/UX Designer',
-        requisitionId: 'REQ-2025-003',
-        interviewType: 'Portfolio Review',
-        mode: 'Video Call',
-        datetime: '2025-08-31T09:00:00',
-        duration: 90,
-        location: 'Zoom',
-        meetingLink: 'https://zoom.us/j/123456789',
-        interviewers: ['Emma Wilson'],
-        status: 'Completed',
-        score: 4,
-        feedback: 'Strong design skills, good portfolio presentation',
-        createdDate: '2025-08-27'
-      }
-    ]);
-  };
+ 
+ const handleScheduleInterview = async () => {
+  try {
 
-  const handleScheduleInterview = async () => {
-    try {
-      const interviewData = {
-        ...newInterview,
-        datetime: `${newInterview.date}T${newInterview.time}:00`,
-        interviewers: newInterview.interviewers.split(',').map(i => i.trim()).filter(i => i)
-      };
+     const datetime = newInterview.date && newInterview.time
+      ? new Date(`${newInterview.date}T${newInterview.time}`).toISOString()
+      : '';
+    const payload = {
+      candidate_id: newInterview.cadidate_id,
 
-      const response = await fetch(`https://${projectId}.supabase.co/functions/v1/make-server-66aec17b/interviews`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${publicAnonKey}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(interviewData)
-      });
+      requisition_id: String(newInterview.requisition_id),
+      interview_type: newInterview.interviewType,
+      mode: newInterview.mode,
+      datetime,
+      duration: newInterview.duration,
+      location: newInterview.location,
+      interviewers: newInterview.interviewers.split(",").map(i => i.trim())
+    };
+    const response = await fetch("http://localhost:8000/interviews/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
 
-      if (response.ok) {
-        toast.success('Interview scheduled successfully!');
-        setShowScheduleDialog(false);
-        loadInterviews();
-        setNewInterview({
-          candidateName: '',
-          candidateEmail: '',
-          position: '',
-          requisitionId: '',
-          interviewType: 'technical',
-          mode: 'video',
-          date: '',
-          time: '',
-          duration: 60,
-          location: '',
-          interviewers: ''
-        });
-      } else {
-        toast.error('Failed to schedule interview');
-      }
-    } catch (error) {
-      console.error('Schedule interview error:', error);
-      toast.error('Failed to schedule interview');
+    if (response.ok) {
+      toast.success("Interview scheduled successfully!");
+      setShowScheduleDialog(false);
+      loadInterviews();
+      
+    } else {
+      toast.error("Failed to schedule interview");
     }
-  };
+  } catch (err) {
+    console.error(err);
+    toast.error("Failed to schedule interview");
+  }
+};
+
 
   const filteredInterviews = interviews.filter(interview =>
-    interview.candidateName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    interview.position.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    interview.requisitionId.toLowerCase().includes(searchTerm.toLowerCase())
+    interview.candidate.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    interview.requisition.position.toLowerCase().includes(searchTerm.toLowerCase()) 
+   
   );
 
   const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
+    switch ((status??'').toLowerCase()) {
       case 'scheduled': return 'bg-blue-100 text-blue-800';
       case 'in-progress': return 'bg-yellow-100 text-yellow-800';
       case 'completed': return 'bg-green-100 text-green-800';
@@ -216,7 +177,7 @@ export function InterviewManager({ selectedCompany, selectedCountry }: Interview
   };
 
   const getTypeColor = (type: string) => {
-    switch (type.toLowerCase()) {
+    switch ((type??'').toLowerCase()) {
       case 'technical': return 'bg-purple-100 text-purple-800';
       case 'behavioral': return 'bg-green-100 text-green-800';
       case 'cultural': return 'bg-blue-100 text-blue-800';
@@ -263,23 +224,45 @@ export function InterviewManager({ selectedCompany, selectedCountry }: Interview
             </DialogHeader>
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
+                
                 <div>
+                <Label htmlFor="candidateEmail">Candidate Email</Label>
+                <Select 
+                  value={newInterview.candidateEmail || ''} 
+                  onValueChange={(value: any) => {
+                    setNewInterview({ ...newInterview, candidateEmail: value });
+                    const selectedCandidate = candidates.find(c => c.email === value);
+                    if (selectedCandidate) {
+                      setNewInterview({
+                        ...newInterview,
+                        candidateEmail: value,
+                        cadidate_id: selectedCandidate.id,
+                        candidateName: selectedCandidate.name,
+                        position: selectedCandidate.position,
+                        requisition_id: selectedCandidate.requisition_id
+                      });
+                    }
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select candidate email" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {candidates.map((c) => (
+                      <SelectItem key={c.email} value={c.email}>
+                        {c.email}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
                   <Label htmlFor="candidateName">Candidate Name</Label>
                   <Input
                     id="candidateName"
-                    value={newInterview.candidateName}
+                    value={newInterview.candidateName || ''}
                     onChange={(e) => setNewInterview({...newInterview, candidateName: e.target.value})}
                     placeholder="Ahmed Al-Rashid"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="candidateEmail">Candidate Email</Label>
-                  <Input
-                    id="candidateEmail"
-                    type="email"
-                    value={newInterview.candidateEmail}
-                    onChange={(e) => setNewInterview({...newInterview, candidateEmail: e.target.value})}
-                    placeholder="ahmed@email.com"
                   />
                 </div>
               </div>
@@ -289,7 +272,7 @@ export function InterviewManager({ selectedCompany, selectedCountry }: Interview
                   <Label htmlFor="position">Position</Label>
                   <Input
                     id="position"
-                    value={newInterview.position}
+                    value={newInterview.position || ''}
                     onChange={(e) => setNewInterview({...newInterview, position: e.target.value})}
                     placeholder="Senior Software Engineer"
                   />
@@ -298,8 +281,8 @@ export function InterviewManager({ selectedCompany, selectedCountry }: Interview
                   <Label htmlFor="requisitionId">Requisition ID</Label>
                   <Input
                     id="requisitionId"
-                    value={newInterview.requisitionId}
-                    onChange={(e) => setNewInterview({...newInterview, requisitionId: e.target.value})}
+                    value={newInterview.requisition_id ||''}
+                    onChange={(e) => setNewInterview({...newInterview, requisition_id: e.target.value})}
                     placeholder="REQ-2025-001"
                   />
                 </div>
@@ -308,7 +291,7 @@ export function InterviewManager({ selectedCompany, selectedCountry }: Interview
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="interviewType">Interview Type</Label>
-                  <Select value={newInterview.interviewType} onValueChange={(value) => setNewInterview({...newInterview, interviewType: value})}>
+                  <Select value={newInterview.interviewType || ''} onValueChange={(value: any) => setNewInterview({...newInterview, interviewType: value})}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -324,7 +307,7 @@ export function InterviewManager({ selectedCompany, selectedCountry }: Interview
                 </div>
                 <div>
                   <Label htmlFor="mode">Interview Mode</Label>
-                  <Select value={newInterview.mode} onValueChange={(value) => setNewInterview({...newInterview, mode: value})}>
+                  <Select value={newInterview.mode || ''} onValueChange={(value: any) => setNewInterview({...newInterview, mode: value})}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -343,7 +326,7 @@ export function InterviewManager({ selectedCompany, selectedCountry }: Interview
                   <Input
                     id="date"
                     type="date"
-                    value={newInterview.date}
+                    value={newInterview.date || ''}
                     onChange={(e) => setNewInterview({...newInterview, date: e.target.value})}
                   />
                 </div>
@@ -352,7 +335,7 @@ export function InterviewManager({ selectedCompany, selectedCountry }: Interview
                   <Input
                     id="time"
                     type="time"
-                    value={newInterview.time}
+                    value={newInterview.time || ''}
                     onChange={(e) => setNewInterview({...newInterview, time: e.target.value})}
                   />
                 </div>
@@ -361,7 +344,7 @@ export function InterviewManager({ selectedCompany, selectedCountry }: Interview
                   <Input
                     id="duration"
                     type="number"
-                    value={newInterview.duration}
+                    value={newInterview.duration || 0}
                     onChange={(e) => setNewInterview({...newInterview, duration: parseInt(e.target.value) || 60})}
                     min="15"
                     step="15"
@@ -373,7 +356,7 @@ export function InterviewManager({ selectedCompany, selectedCountry }: Interview
                 <Label htmlFor="location">Location / Meeting Details</Label>
                 <Input
                   id="location"
-                  value={newInterview.location}
+                  value={newInterview.location || ''}
                   onChange={(e) => setNewInterview({...newInterview, location: e.target.value})}
                   placeholder="Conference Room A or Meeting Link"
                 />
@@ -383,7 +366,7 @@ export function InterviewManager({ selectedCompany, selectedCountry }: Interview
                 <Label htmlFor="interviewers">Interviewers (comma-separated)</Label>
                 <Input
                   id="interviewers"
-                  value={newInterview.interviewers}
+                  value={newInterview.interviewers || ''}
                   onChange={(e) => setNewInterview({...newInterview, interviewers: e.target.value})}
                   placeholder="Sarah Johnson, Mike Chen"
                 />
@@ -460,9 +443,9 @@ export function InterviewManager({ selectedCompany, selectedCountry }: Interview
                     <TableRow key={interview.id} className={isToday(interview.datetime) ? 'bg-blue-50' : ''}>
                       <TableCell>
                         <div>
-                          <div className="font-medium">{interview.candidateName}</div>
-                          <div className="text-sm text-gray-500">{interview.position}</div>
-                          <div className="text-sm text-gray-500">{interview.requisitionId}</div>
+                          <div className="font-medium">{interview.candidate.name}</div>
+                          <div className="text-sm text-gray-500">{interview.requisition.position}</div>
+                          <div className="text-sm text-gray-500">{interview.requisition_id}</div>
                         </div>
                       </TableCell>
                       <TableCell>

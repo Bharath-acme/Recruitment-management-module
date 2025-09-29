@@ -50,7 +50,7 @@ interface RequisitionItem {
 
 export function Dashboard({ selectedCompany, selectedCountry  }: DashboardProps) {
   const { user } = useAuth();
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [metrics, setMetrics] = useState<MetricCard[]>([]);
   const [recentRequisitions, setRecentRequisitions] = useState<RequisitionItem[]>([]);
   const [upcomingInterviews, setUpcomingInterviews] = useState<any[]>([]);
@@ -59,7 +59,7 @@ export function Dashboard({ selectedCompany, selectedCountry  }: DashboardProps)
  
 
   useEffect(() => {
-    loadDashboardData();
+    loadDemoData();
    
   }, [selectedCompany, selectedCountry]);
 
@@ -74,41 +74,7 @@ export function Dashboard({ selectedCompany, selectedCountry  }: DashboardProps)
   };
 
 
-  const loadDashboardData = async () => {
-    setLoading(true);
-    try {
-      const response = await fetch(`https://${projectId}.supabase.co/functions/v1/make-server-66aec17b/dashboard`, {
-        headers: {
-          'Authorization': `Bearer ${publicAnonKey}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        // Map icon names to actual components
-        const mappedMetrics = (data.metrics || []).map((metric: any) => ({
-          ...metric,
-          icon: iconMap[metric.iconName] || FileText,
-          route: metric.route || "/dashboard"
-          
-        }));
-        console.log('Mapped Metrics:', mappedMetrics);
-        setMetrics(mappedMetrics);
-        setRecentRequisitions(data.requisitions || []);
-        setUpcomingInterviews(data.interviews || []);
-        setPendingApprovals(data.approvals || []);
-      } else {
-        // Use demo data if server not available
-        loadDemoData();
-      }
-    } catch (error) {
-      console.error('Dashboard data load error:', error);
-      loadDemoData();
-    } finally {
-      setLoading(false);
-    }
-  };
+ 
 
   const loadDemoData = () => {
     setMetrics([

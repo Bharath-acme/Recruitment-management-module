@@ -114,7 +114,7 @@ export function LoginForm() {
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
             <div className="flex justify-center mb-4">
-              Join Acme → Raise Job → Relax → We Handle → Get Talent
+              Join ACME → Raise Job → Relax → We Handle → Get Talent
             </div>
             <h1 className="text-2xl font-bold text-gray-900">Talent Acquisition System</h1>
             <p className="text-gray-600">Enterprise Recruitment Management</p>

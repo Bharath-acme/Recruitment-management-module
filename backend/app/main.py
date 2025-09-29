@@ -156,46 +156,7 @@ def delete_requisition(requisition_id: int, db: Session = Depends(get_db)):
     return db_req
 
 
-# @app.post("/positions", response_model=schemas.PositionResponse)
-# def create_position(position: schemas.PositionCreate, db: Session = Depends(get_db)):
-#     return crud.create_position(db, position)
 
-@app.post("/positions", response_model=schemas.PositionResponse)
-def create_position(position_data: schemas.PositionCreate, db: Session = Depends(get_db)):
-    # Convert camelCase to snake_case for ORM
-    db_position = models.Position(
-        requisition_id=position_data.requisition_id,
-        position_name=position_data.positionName,
-        skills=",".join(position_data.skills) if isinstance(position_data.skills, list) else position_data.skills,
-        position_desc=position_data.position_desc,
-        status=position_data.status,
-    )
-    db.add(db_position)
-    db.commit()
-    db.refresh(db_position)
-    # Return camelCase for frontend
-    return {
-        "id": db_position.id,
-        "requisition_id": db_position.requisition_id,
-        "position_name": db_position.position_name,
-        "position_desc": db_position.position_desc,
-        "skills": p.skills.split(",") if isinstance(p.skills, str) and p.skills else p.skills if isinstance(p.skills, list) else [],
-        "status": db_position.status,
-    }
-# @app.get("/requisitions/{id}/positions", response_model=list[schemas.PositionResponse])
-# def list_positions(id: int, db: Session = Depends(get_db)):
-#     positions = crud.get_positions_by_requisition(db, id)
-#     return [
-#         {
-#             "id": p.id,
-#             "requisition_id": p.requisition_id,
-#             "position_name": p.position_name,
-#             "skills": p.skills.split(",") if isinstance(p.skills, str) and p.skills else p.skills if isinstance(p.skills, list) else [],
-#             "position_desc": p.position_desc,
-#             "status": p.status,
-#         }
-#         for p in positions
-#     ]
 
 # =============================Candidates============================
 
@@ -228,3 +189,29 @@ def delete_candidate(candidate_id: str, db: Session = Depends(get_db)):
     if not db_candidate:
         raise HTTPException(status_code=404, detail="Candidate not found")
     return {"detail": "Candidate deleted successfully"}
+
+
+# =============================Positions============================
+
+@app.post("/interviews/", response_model=schemas.InterviewResponse)
+def create_interview(interview: schemas.InterviewCreate, db: Session = Depends(get_db)):
+    candidate = db.query(models.Candidate).filter(models.Candidate.id == interview.candidate_id).first()
+    requisition = db.query(models.Requisitions).filter(models.Requisitions.id == interview.requisition_id).first()
+
+    if not candidate:
+        raise HTTPException(status_code=400, detail="Candidate not found")
+    if not requisition:
+        raise HTTPException(status_code=400, detail="Requisition not found")
+
+    return crud.create_interview(db, interview)
+
+@app.get("/interviews/", response_model=List[schemas.InterviewResponse])
+def list_interviews(db: Session = Depends(get_db)):
+    return crud.get_interviews(db)
+
+@app.get("/interviews/{interview_id}", response_model=schemas.InterviewResponse)
+def get_interview(interview_id: str, db: Session = Depends(get_db)):
+    db_interview = crud.get_interview(db, interview_id)
+    if not db_interview:
+        raise HTTPException(status_code=404, detail="Interview not found")
+    return db_interview

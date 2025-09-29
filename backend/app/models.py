@@ -24,7 +24,6 @@ class User(Base):
     company = Column(String(100), nullable=False)
     country = Column(String(100), nullable=False)
     hashed_password = Column(String(100), nullable=False)
-
     requisitions = relationship("Requisitions", back_populates="recruiter")
 
 
@@ -89,6 +88,7 @@ class Requisitions(Base):
     job_description = Column(Text, nullable=True)
     recruiter_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     recruiter = relationship("User", back_populates="requisitions")
+    interviews = relationship("Interview", back_populates="requisition")
     # positions = relationship("Position", back_populates="requisition", cascade="all, delete-orphan")
 
 
@@ -123,3 +123,32 @@ class Candidate(Base):
     current_company = Column(String(100), nullable=True)
     dob = Column(Date, nullable=True)
     marital_status = Column(String(50), nullable=True)
+    interviews = relationship("Interview", back_populates="candidate")
+
+
+# ======================================== Interview Model =====================================
+
+class Interview(Base):
+    __tablename__ = "interviews"
+
+    id = Column(String(100), primary_key=True, index=True, default=lambda: str(uuid.uuid4()))
+    
+    candidate_id = Column(String(100), ForeignKey("candidates.id"), nullable=False)
+    requisition_id = Column(String(100), ForeignKey("requisitions.id"), nullable=False)
+
+    interview_type = Column(String(100), nullable=False)   # e.g., technical, behavioral
+    mode = Column(String(100), nullable=False)            # video, in-person
+    datetime = Column(DateTime, nullable=False)
+    duration = Column(Integer, default=60)
+    location = Column(String(100), nullable=True)
+    meeting_link = Column(String(100), nullable=True)
+    interviewers = Column(Text, nullable=True)       # comma-separated string
+    status = Column(String(100), default="scheduled")
+    feedback = Column(Text, nullable=True)
+    score = Column(Integer, nullable=True)
+    notes = Column(Text, nullable=True)
+    # created_date = Column(DateTime, default=datetime.utcnow)
+
+    # Relationships
+    candidate = relationship("Candidate", back_populates="interviews")
+    requisition = relationship("Requisitions", back_populates="interviews")

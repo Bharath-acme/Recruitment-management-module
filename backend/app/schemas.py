@@ -174,5 +174,45 @@ class CandidateResponse(CandidateBase):
     class Config:
         orm_mode = True
 
+class candidateMini(BaseModel):
+    id: str
+    name: str
+    email: EmailStr
+    position: str
+    requisition_id: Optional[int] = None
+
+    class Config:
+        orm_mode = True
+
 UserResponse.update_forward_refs()
 RequisitionResponse.update_forward_refs()
+
+
+# ======================================== Interview Schemas =====================================
+
+class InterviewBase(BaseModel):
+    candidate_id: str
+    requisition_id: str
+    interview_type: str
+    mode: str
+    datetime: datetime
+    duration: int = 60
+    location: Optional[str] = None
+    meeting_link: Optional[str] = None
+    interviewers: List[str] = []
+    status: str = "scheduled"
+    feedback: Optional[str] = None
+    score: Optional[int] = None
+    notes: Optional[str] = None
+
+class InterviewCreate(InterviewBase):
+    pass
+
+class InterviewResponse(InterviewBase):
+    id: str
+    created_date: datetime
+    candidate: candidateMini
+    requisition: RequisitionMini
+
+    class Config:
+        orm_mode = True
