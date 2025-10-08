@@ -1,9 +1,9 @@
-from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi import FastAPI, Depends, HTTPException, status, Query
 from fastapi.security import OAuth2PasswordRequestForm,OAuth2PasswordBearer
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 from app import models, schemas, crud, auth
-from app.schemas import LoginRequest
+from app.schemas import LoginRequest, OfferCreate, OfferOut, ApproverAction, CandidateAction
 from app.auth import *
 from app.database import engine, Base, get_db
 from typing import List
@@ -112,8 +112,41 @@ def create_requisition(req: schemas.RequisitionCreate, db: Session = Depends(get
 
 
 @app.get("/requisitions", response_model=list[schemas.RequisitionResponse])
-def read_requisitions(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
-    db_reqs = crud.get_requisitions(db, skip=skip, limit=limit)
+# def read_requisitions(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
+#     db_reqs = crud.get_requisitions(db, skip=skip, limit=limit)
+#     result = []
+#     for req in db_reqs:
+#         recruiter = None
+#         if req.recruiter:
+#             recruiter = {
+#                 "id": req.recruiter.id,
+#                 "name": req.recruiter.name,
+#                 "email": req.recruiter.email,
+#             }
+#         req_dict = req.__dict__.copy()
+#         req_dict["recruiter"] = recruiter
+#         req_dict.pop("_sa_instance_state", None)
+#         # Ensure req_id is always a string (not None)
+#         req_dict["req_id"] = str(req_dict.get("req_id") or "")
+#         result.append(req_dict)
+#     return result
+def read_requisitions(
+    skip: int = 0,
+    limit: int = 10,
+    db: Session = Depends(get_db),
+    role: str = Query(None),
+    user_id: int = Query(None),
+    approval_status: str = Query("approved")
+):
+    db_reqs = crud.get_requisitions(
+        db,
+        skip=skip,
+        limit=limit,
+        role=role,
+        user_id=user_id,
+        approval_status=approval_status
+    )
+
     result = []
     for req in db_reqs:
         recruiter = None
@@ -123,14 +156,14 @@ def read_requisitions(skip: int = 0, limit: int = 10, db: Session = Depends(get_
                 "name": req.recruiter.name,
                 "email": req.recruiter.email,
             }
+
         req_dict = req.__dict__.copy()
         req_dict["recruiter"] = recruiter
         req_dict.pop("_sa_instance_state", None)
-        # Ensure req_id is always a string (not None)
         req_dict["req_id"] = str(req_dict.get("req_id") or "")
         result.append(req_dict)
-    return result
 
+    return result
 
 @app.get("/requisitions/{requisition_id}", response_model=schemas.RequisitionResponse)
 def read_requisition(requisition_id: int, db: Session = Depends(get_db)):
@@ -215,3 +248,62 @@ def get_interview(interview_id: str, db: Session = Depends(get_db)):
     if not db_interview:
         raise HTTPException(status_code=404, detail="Interview not found")
     return db_interview
+
+# =============================Offers============================
+
+
+def require_roles(*roles):
+    def _inner(user = Depends(get_current_user)):
+        if user["role"] not in roles and "admin" not in user["role"]:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="forbidden")
+        return user
+    return _inner
+
+@app.post("/offers", response_model=OfferOut)
+def create_offer(payload: OfferCreate, db: Session = Depends(get_db), user = Depends(require_roles("recruiter", "admin"))):
+    # Validate candidate & application exist? (left to integration)
+    # create
+    offer = crud.create_offer(db, payload, creator_user=user)
+    return OfferOut.from_orm(offer)
+
+@app.post("/offers/{offer_id}/submit_for_approval")
+def submit_offer_for_approval(offer_id: str, country: str = "IN", db: Session = Depends(get_db), user = Depends(require_roles("recruiter", "admin"))):
+    offer = db.query(models.Offer).filter(models.Offer.offer_id == offer_id).one_or_none()
+    if not offer:
+        raise HTTPException(404, "offer not found")
+    res = crud.submit_for_approval(db, offer, country)
+    return res
+
+@app.post("/offers/{offer_id}/approvals")
+def approver_action(offer_id: str, payload: ApproverAction, db: Session = Depends(get_db), user = Depends(require_roles("finance", "leadership", "hr", "admin"))):
+    offer = db.query(models.Offer).filter(models.Offer.offer_id == offer_id).one_or_none()
+    if not offer:
+        raise HTTPException(404, "offer not found")
+    # record approval (role from payload)
+    updated = crud.record_approval(db, offer, payload.role, user["id"], payload.action, payload.comment)
+    return {"message": "recorded", "offer_status": updated.status.value}
+
+@app.post("/offers/{offer_id}/generate_letter")
+def generate_letter(offer_id: str, db: Session = Depends(get_db), user = Depends(require_roles("admin"))):
+    offer = db.query(models.Offer).filter(models.Offer.offer_id == offer_id).one_or_none()
+    if not offer:
+        raise HTTPException(404, "offer not found")
+    if offer.status != models.OfferStatus.APPROVED:
+        raise HTTPException(400, "offer must be APPROVED to generate letter")
+    res = crud.generate_letter(db, offer)
+    return res
+
+@app.post("/offers/{offer_id}/candidate_action")
+def candidate_action(offer_id: str, payload: CandidateAction, db: Session = Depends(get_db), user = Depends(require_roles("candidate", "admin"))):
+    offer = db.query(models.Offer).filter(models.Offer.offer_id == offer_id).one_or_none()
+    if not offer:
+        raise HTTPException(404, "offer not found")
+    updated = crud.candidate_action(db, offer, payload.action, payload.counter_base, payload.counter_note)
+    return {"message": "processed", "status": updated.status.value}
+
+@app.get("/offers/{offer_id}", response_model=OfferOut)
+def get_offer(offer_id: str, db: Session = Depends(get_db), user = Depends(get_current_user)):
+    offer = db.query(models.Offer).filter(models.Offer.offer_id == offer_id).one_or_none()
+    if not offer:
+        raise HTTPException(404, "offer not found")
+    return OfferOut.from_orm(offer)

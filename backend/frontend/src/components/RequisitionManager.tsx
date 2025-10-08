@@ -24,7 +24,6 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { projectId, publicAnonKey } from '../utils/supabase/info'; 
 import { useNavigate } from 'react-router-dom';
 import { RequisitionForm } from './RequisitionFrom';
 import { useAuth } from './AuthProvider';
@@ -62,7 +61,7 @@ export interface Requisition {
   // Add any other fields as necessary
   target_startdate: string;
   sla: number;
-  approvalStatus: string;
+  approval_status: string;
   created_date: string;
   positions:any[],
   req_id: string;
@@ -75,7 +74,7 @@ export function RequisitionManager({ selectedCompany, selectedCountry }: Requisi
   const [statusFilter, setStatusFilter] = useState('all');
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [selectedRequisition, setSelectedRequisition] = useState<Requisition | null>(null);
-  const [approval, setApproval] = useState('');
+  // const [approval, setApproval] = useState('');
   const navigate = useNavigate();
  
   const {user } = useAuth();
@@ -97,7 +96,7 @@ export function RequisitionManager({ selectedCompany, selectedCountry }: Requisi
     hiring_manager: user?.name || '',
     target_startdate: '',
     created_date: ''
-
+    
   });
 
   useEffect(() => {
@@ -105,34 +104,36 @@ export function RequisitionManager({ selectedCompany, selectedCountry }: Requisi
    
   }, [selectedCompany, selectedCountry, statusFilter]);
 
- 
-
-  const loadRequisitions = async () => {
-    setLoading(true);
-    try {
-      const response = await fetch( 'http://127.0.0.1:8000/requisitions',
-        // `/api/requisitions?company=${encodeURIComponent(selectedCompany)}&country=${encodeURIComponent(selectedCountry)}&status=${encodeURIComponent(statusFilter)}`,
-        {
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        }
-      );
-
-      if (response.ok) {
-        const data = await response.json();
-        setRequisitions(data || []);
-        console.log('Requisitions loaded:', data);
-      } else {
-        console.error('Failed to load requisitions');
-      }
-    } catch (error) {
-      console.error('Requisitions load error:', error);
-     
-    } finally {
-      setLoading(false);
+ const queryvalues = () => {
+    if (user?.role === 'admin' || user?.role === 'hiring_manager') {
+      return 'all';
+    } else {
+      return 'approved';
     }
-  };
+ }
+
+ const loadRequisitions = async () => {
+  setLoading(true);
+  try {
+    const approvalStatus = queryvalues();
+    const response = await fetch(
+      `http://127.0.0.1:8000/requisitions?approval_status=${approvalStatus}&user_id=${user?.id}&role=${user?.role}`,
+      {
+        headers: { 'Content-Type': 'application/json' }
+      }
+    );
+
+    if (response.ok) {
+      const data = await response.json();
+      setRequisitions(data || []);
+    }
+  } catch (error) {
+    console.error('Requisitions load error:', error);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   
 
@@ -272,7 +273,7 @@ export function RequisitionManager({ selectedCompany, selectedCountry }: Requisi
               <TableHead>Progress</TableHead>
               <TableHead>Days Open</TableHead>
               <TableHead>Hiring Manager</TableHead>
-              <TableHead>Actions</TableHead>
+              <TableHead>Approval</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -329,11 +330,11 @@ export function RequisitionManager({ selectedCompany, selectedCountry }: Requisi
                       <div className="flex items-center space-x-2">
                         <Button 
                         // onClick={(e:any)=>{e.stopPropagation(); }} 
-                        onClick={(e)=>{ e.stopPropagation(); setApproval(req.id);}}
+                        // onClick={(e)=>{ e.stopPropagation(); setApproval(req.id);}}
                         size="sm" 
                         variant="outline">
                           {/* <Eye className="h-4 w-4" /> */}
-                        {approval == req.id ?  ' Approved' : 'Approve'}
+                         {req.approval_status}
                         </Button>
                         {/* {getApprovalStatusIcon(req?.approvalStatus)} */}
                         {/* <Button onClick={(e:any)=>{e.stopPropagation(); }} size="sm" variant="outline">

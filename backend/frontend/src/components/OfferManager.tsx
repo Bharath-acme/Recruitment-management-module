@@ -20,8 +20,13 @@ import {
   Send,
   DollarSign
 } from 'lucide-react';
-import { toast } from 'sonner@2.0.3';
-import { projectId, publicAnonKey } from '../utils/supabase/info';
+import { toast } from 'sonner';
+import OfferForm from './OfferLetterForm';
+
+interface Allowance {
+  name: string;
+  value: number;
+}
 
 interface OfferManagerProps {
   selectedCompany: string;
@@ -61,6 +66,10 @@ export function OfferManager({ selectedCompany, selectedCountry }: OfferManagerP
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [allowances, setAllowances] = useState<Allowance[]>([
+      { name: "Housing", value: 0 },
+      { name: "Transport", value: 0 },
+    ]);
 
   const [newOffer, setNewOffer] = useState({
     candidateName: '',
@@ -83,29 +92,6 @@ export function OfferManager({ selectedCompany, selectedCountry }: OfferManagerP
   }, [selectedCompany, selectedCountry, statusFilter]);
 
  
-  //   setLoading(true);
-  //   try {
-  //     const response = await fetch(`https://${projectId}.supabase.co/functions/v1/make-server-66aec17b/offers?status=${statusFilter}`, {
-  //       headers: {
-  //         'Authorization': `Bearer ${publicAnonKey}`,
-  //         'Content-Type': 'application/json'
-  //       }
-  //     });
-
-  //     if (response.ok) {
-  //       const data = await response.json();
-  //       setOffers(data.offers || []);
-  //     } else {
-  //       loadDemoData();
-  //     }
-  //   } catch (error) {
-  //     console.error('Offers load error:', error);
-  //     loadDemoData();
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-
   const loadDemoData = () => {
     setOffers([
       {
@@ -221,6 +207,24 @@ export function OfferManager({ selectedCompany, selectedCountry }: OfferManagerP
     return daysUntilExpiry <= 3 && daysUntilExpiry > 0;
   };
 
+
+  const addAllowance = () =>
+    setAllowances([...allowances, { name: "", value: 0 }]);
+
+  const removeAllowance = (index: number) => {
+    setAllowances(allowances.filter((_, i) => i !== index));
+  };
+
+  const updateAllowance = (index: number, key: keyof Allowance, value: any) => {
+    const updated = [...allowances];
+    if (key === "name") {
+      updated[index].name = value as string;
+    } else if (key === "value") {
+      updated[index].value = Number(value);
+    }
+    setAllowances(updated);
+  };
+
   return (
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
@@ -242,6 +246,7 @@ export function OfferManager({ selectedCompany, selectedCountry }: OfferManagerP
                 Create a comprehensive job offer including compensation package and benefits.
               </DialogDescription>
             </DialogHeader>
+            {/* <OfferForm/> */}
             <div className="space-y-6">
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -318,7 +323,7 @@ export function OfferManager({ selectedCompany, selectedCountry }: OfferManagerP
                   </div>
                 </div>
 
-                <h4 className="font-medium mb-2">Allowances (Monthly)</h4>
+                {/* <h4 className="font-medium mb-2">Allowances (Monthly)</h4>
                 <div className="grid grid-cols-2 gap-4 mb-4">
                   <div>
                     <Label htmlFor="housingAllowance">Housing Allowance</Label>
@@ -340,9 +345,44 @@ export function OfferManager({ selectedCompany, selectedCountry }: OfferManagerP
                       placeholder="1500"
                     />
                   </div>
-                </div>
+                </div> */}
 
-                <div className="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                            <Label className="text-lg">Allowances</Label>
+                            {allowances.map((allowance, index) => (
+                              <div key={index} className="flex gap-2 items-center mt-2">
+                                <Input
+                                  placeholder="Name"
+                                  value={allowance.name}
+                                  onChange={(e) =>
+                                    updateAllowance(index, "name", e.target.value)
+                                  }
+                                />
+                                <Input
+                                  type="number"
+                                  placeholder="Value"
+                                  value={allowance.value}
+                                  onChange={(e) =>
+                                    updateAllowance(index, "value", Number(e.target.value))
+                                  }
+                                />
+                                {/* <Button
+                                  type="button"
+                                  variant="destructive"
+                                  onClick={() => removeAllowance(index)}
+                                >
+                                  Remove
+                                </Button> */}
+                                 <XCircle onClick={() => removeAllowance(index)}  className="h-10 w-10 mr-1 cursor-pointer" />
+                              </div>
+                            ))}
+                           
+                            <Button type="button" onClick={addAllowance} className="mt-2 mb-3">
+                              Add Allowance
+                            </Button>
+                          </div>
+
+                {/* <div className="grid grid-cols-2 gap-4 mb-4">
                   <div>
                     <Label htmlFor="mobileAllowance">Mobile Allowance</Label>
                     <Input
@@ -363,7 +403,7 @@ export function OfferManager({ selectedCompany, selectedCountry }: OfferManagerP
                       placeholder="10000"
                     />
                   </div>
-                </div>
+                </div> */}
 
                 <div className="grid grid-cols-2 gap-4 mb-4">
                   <div>

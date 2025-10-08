@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import * as Toast from "@radix-ui/react-toast";
 import { Card, CardHeader, CardTitle, CardContent } from './ui/card';
 import { Button } from "./ui/button";
@@ -145,11 +145,15 @@ export default function RequisitionPage() {
       <div className="bg-slate-50 text-slate-800 min-h-screen p-6">
         <header className="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center">
           <div>
-            {/* <Button variant="link" className="text-blue-600 pl-0">
-              ← Back to Requisitions
-            </Button> */}
-            <h1 className="text-3xl font-bold">{requisition.position.charAt(0).toUpperCase() + requisition.position.slice(1)}</h1>
-            <p className="text-sm text-slate-500">ID: {requisition.id}</p>
+            <div className="flex gap-4 items-center mb-2">
+            <Link to="/requisitions">
+            <h1 className="text-blue-300 text-3xl font-bold pl-0 hover:text-blue-900">
+              Requisitions |
+            </h1>
+            </Link>
+            <h1 className="text-blue-900 text-3xl font-bold">{requisition.position.charAt(0).toUpperCase() + requisition.position.slice(1)}</h1>
+            </div>
+            <p className="text-sm text-slate-500">ID: {requisition.req_id}</p>
           </div>
           <div className="flex gap-2 mt-4 md:mt-0">
             <Badge className={getPriorityClass(requisition.priority)}>
@@ -319,7 +323,7 @@ export default function RequisitionPage() {
                 </div>
                 <div>
                   <p className="font-medium">Approval Status</p>
-                  <dd className="text-gray-600">{requisition.approvalStatus}</dd>
+                  <dd className="text-gray-600">{requisition.approval_status}</dd>
                 </div>
                 <div>
                   <dt className="font-medium">SLA</dt>
