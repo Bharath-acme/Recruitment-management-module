@@ -11,6 +11,7 @@ import { RequisitionForm } from "./RequisitionFrom";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
 import { Capitalize,formatCurrency,formatDate } from "../utils/Utils";
 import PositionForm from "./PositionForm";
+import { useAuth } from "./AuthProvider";
 
 
 
@@ -44,6 +45,7 @@ const getStatusClass = (status: string) => {
 
 export default function RequisitionPage() {
   const { id } = useParams<{ id: string }>();
+  const { user } = useAuth();
   const [requisition, setRequisition] = useState<Requisition | null>(null);
   const [loading, setLoading] = useState(true);
   const [toastMessage, setToastMessage] = useState("");
@@ -143,7 +145,8 @@ export default function RequisitionPage() {
   return (
     <Toast.Provider swipeDirection="right">
       <div className="bg-slate-50 text-slate-800 min-h-screen p-6">
-        <header className="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center">
+        <header className="mb-8 flex md:flex-row justify-between items-start md:items-center">
+          <div className="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center">
           <div>
             <div className="flex gap-4 items-center mb-2">
             <Link to="/requisitions">
@@ -163,54 +166,36 @@ export default function RequisitionPage() {
               {requisition.status}
             </Badge>
           </div>
+          </div>
+         {(user?.role === 'hiring_manager' || user?.role === 'admin') && (
+           <div className="flex gap-3 mb-8">
+
+          <Dialog open={openEditForm} onOpenChange={setEditForm} >
+        <DialogTrigger asChild>
+          <Button>
+            ✏️ Edit
+          </Button>
+        </DialogTrigger>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Add New Candidate</DialogTitle>
+            <DialogDescription>Fill candidate details below.</DialogDescription>
+          </DialogHeader>
+
+            <RequisitionForm
+                initialData={requisition} 
+                onSubmit={updateRequisition}
+                onCancel={() =>  setEditForm(false)}
+                />
+        </DialogContent>
+      </Dialog>
+      
+        
+      </div>)}
         </header>
 
         {/* Action buttons */}
-        <div className="flex gap-3 mb-8">
-
-           <Dialog open={openEditForm} onOpenChange={setEditForm} >
-          <DialogTrigger asChild>
-            <Button>
-              ✏️ Edit
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Add New Candidate</DialogTitle>
-              <DialogDescription>Fill candidate details below.</DialogDescription>
-            </DialogHeader>
-
-             <RequisitionForm
-                  initialData={requisition} 
-                  onSubmit={updateRequisition}
-                  onCancel={() =>  setEditForm(false)}
-                 />
-          </DialogContent>
-        </Dialog>
-
-        <Dialog open={openPositionForm} onOpenChange={setOpenPositionForm}>
-          <DialogTrigger asChild>
-            <Button onClick={() => setOpenPositionForm(true)}>
-              Add Position
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Add New Position</DialogTitle>
-              <DialogDescription>Fill position details below.</DialogDescription>
-            </DialogHeader>
-            <PositionForm
-              requisition_id={Number(requisition.id)}
-              onSubmit={createPosition}
-              onCancel={() => setOpenPositionForm(false)}
-            />
-          </DialogContent>
-        </Dialog>
-        
-          {/* <Button variant="outline" onClick={() => handleActionClick("close")}>
-            ❌ Close
-          </Button> */}
-        </div>
+       
 
         {/* Metrics */}
         <section className="mb-8">
@@ -289,25 +274,7 @@ export default function RequisitionPage() {
             </CardContent>
           </Card>
 
-           <Card>
-            <CardHeader>
-              <CardTitle className="text-xl">Job Description</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <dt className="font-medium">Skills</dt>
-                  <dd className="text-gray-600">{requisition?.skills}</dd>
-                </div>
-                <div>
-                  <dt className="font-medium">Description</dt>
-                  <dd className="text-gray-600">{requisition.job_description}</dd>
-                </div>
-              </dl>
-            </CardContent>
-          </Card>
-
-          <Card className="lg:col-span-2">
+<Card className="lg:col-span-2">
             <CardHeader>
               <CardTitle className="font-medium text-xl">Timeline & Status</CardTitle>
             </CardHeader>
@@ -332,6 +299,27 @@ export default function RequisitionPage() {
               </dl>
             </CardContent>
           </Card>
+
+
+           <Card>
+            <CardHeader>
+              <CardTitle className="text-xl">Job Description</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <dt className="font-medium">Skills</dt>
+                  <dd className="text-gray-600">{requisition?.skills}</dd>
+                </div>
+                <div>
+                  <dt className="font-medium">Description</dt>
+                  <dd className="text-gray-600">{requisition.job_description}</dd>
+                </div>
+              </dl>
+            </CardContent>
+          </Card>
+
+          
         </section>
       </div>
 

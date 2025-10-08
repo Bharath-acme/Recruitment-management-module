@@ -104,9 +104,9 @@ export default function CandidateProfile() {
   if (!candidate) return <p>No candidate found</p>;
 
   return (
-    <div className="bg-gray-100 min-h-screen p-4 sm:p-6 lg:p-8">
-      <div className="container mx-auto max-w-7xl">
-        <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8 lg:p-10 border border-gray-200">
+    <div className=" min-h-screen p-4 sm:p-6 lg:p-8">
+      <div className=" mx-auto max-w-7xl">
+        <div className="  p-6 md:p-8 lg:p-10 ">
 
           {/* Header */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b pb-6 mb-6">
