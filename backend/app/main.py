@@ -180,6 +180,53 @@ def update_requisition(requisition_id: int, req: schemas.RequisitionUpdate, db: 
         raise HTTPException(status_code=404, detail="Requisition not found")
     return db_req
 
+@app.put("/requisitions/{req_id}/approval")
+def update_requisition_approval(
+    req_id: int,
+    approval_update: schemas.RequisitionApprovalUpdate,
+    db: Session = Depends(get_db),
+):
+    # 1️ Fetch requisition
+    requisition = db.query(models.Requisitions).filter(models.Requisitions.id == req_id).first()
+    if not requisition:
+        raise HTTPException(status_code=404, detail="Requisition not found")
+
+    # 2️ Update approval status
+    requisition.approval_status = approval_update.approval_status
+    db.commit()
+    db.refresh(requisition)
+
+    # 3️ Optional: send notification/email here
+
+    return requisition
+
+@app.put("/requisitions/{req_id}/assignTeam", response_model=schemas.RequisitionResponse)
+def update_requisition_team(
+    req_id: int,
+    team_update: schemas.TeamAssignToRequisition,
+    current_user=Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    if current_user.role.lower() not in ["admin", "hiring_manager"]:
+        raise HTTPException(status_code=403, detail="Not authorized to assign recruiters")
+
+    requisition = db.query(models.Requisitions).filter(models.Requisitions.id == req_id).first()
+    if not requisition:
+        raise HTTPException(status_code=404, detail="Requisition not found")
+
+    if team_update.recruiter_id is not None:
+        recruiter = db.query(models.User).filter(
+            models.User.id == team_update.recruiter_id,
+            models.User.role == "recruiter"
+        ).first()
+        if not recruiter:
+            raise HTTPException(status_code=400, detail="Invalid recruiter ID")
+        requisition.recruiter_id = team_update.recruiter_id
+
+    db.commit()
+    db.refresh(requisition)
+    return requisition
+
 
 @app.delete("/requisitions/{requisition_id}", response_model=schemas.RequisitionResponse)
 def delete_requisition(requisition_id: int, db: Session = Depends(get_db)):

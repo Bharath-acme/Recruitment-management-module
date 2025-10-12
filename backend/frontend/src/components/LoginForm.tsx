@@ -96,10 +96,10 @@ export function LoginForm() {
 
   return (
     <div className="min-h-screen grid grid-cols-1 md:grid-cols-2">
-      
+       
       {/* Left Section with Image */}
               
-      <div className="hidden md:flex bg-blue-100">
+      <div className="hidden md:flex bg-blue-900 rounded-e-3xl ">
         
                 <img className='position-absolute top-0 left-0 h-15 ' src={logo}  />
         <img
@@ -108,6 +108,7 @@ export function LoginForm() {
           className="w-3/4 max-h-[80%] object-contain"
         />
       </div>
+     <div className=' bg-green-100 rounded-sm absolute '></div> 
 
       {/* Right Section with Form */}
       <div className="flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-6">

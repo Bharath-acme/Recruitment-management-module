@@ -78,10 +78,9 @@ class RequisitionBase(BaseModel):
     skills: Optional[str] = None
     target_startdate: Optional[date] = None
     hiring_manager: Optional[str] = None
-    status: Status = Status.OPEN
-   
+    status: Status = Status.OPEN   
     job_description: Optional[str] = None
-    recruiter_id: Optional[int] = None
+    
     
 
 
@@ -95,13 +94,15 @@ class RequisitionCreate(RequisitionBase):
 # For updating requisition
 class RequisitionUpdate(RequisitionBase):
     approval_status: Optional[str] = "Pending"
+    recruiter_id: Optional[int] = None
 
 
 # Response schema
 class RequisitionResponse(RequisitionBase):
     id: int
     created_date: datetime
-    req_id: str    
+    req_id: str 
+    recruiter_id: Optional[int] = None   
     recruiter: Optional[RecruiterOut]
     candidates: List["CandidateResponse"] = [] 
     approval_status: Optional[str] = "Pending"
@@ -117,7 +118,11 @@ class RequisitionMini(BaseModel):
     class Config:
         orm_mode = True
 
+class RequisitionApprovalUpdate(BaseModel):
+    approval_status: str
 
+class TeamAssignToRequisition(BaseModel):
+    recruiter_id: Optional[int] = None
 
 # ======================================== Candidate Schemas =====================================
 

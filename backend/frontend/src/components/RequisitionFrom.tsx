@@ -267,7 +267,7 @@ export function RequisitionForm({ initialData, onSubmit, onCancel }: Requisition
       </div>
 
       {/* Recruiter Dropdown */}
-      <div>
+      {/* <div>
         <Label>Assign Recruiter</Label>
         <Select
           value={formData.recruiter_id||""}
@@ -284,7 +284,7 @@ export function RequisitionForm({ initialData, onSubmit, onCancel }: Requisition
             ))}
           </SelectContent>
         </Select>
-      </div>
+      </div> */}
 
       {/* Description */}
       <div>

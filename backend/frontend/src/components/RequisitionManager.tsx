@@ -21,7 +21,8 @@ import {
   Clock,
   CheckCircle2,
   XCircle,
-  AlertCircle
+  AlertCircle,
+  MapPin
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
@@ -213,12 +214,12 @@ export function RequisitionManager({ selectedCompany, selectedCountry }: Requisi
           <p className="text-gray-600">Manage job requisitions and hiring requests</p>
         </div>
         <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-          <DialogTrigger asChild>
+         {(user?.role === 'hiring_manager' || user?.role === 'admin') &&  <DialogTrigger asChild>
             <Button>
               <Plus className="h-4 w-4 mr-2" />
               New Requisition
             </Button>
-          </DialogTrigger>
+          </DialogTrigger>}
           <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Create New Requisition</DialogTitle>
@@ -261,11 +262,11 @@ export function RequisitionManager({ selectedCompany, selectedCountry }: Requisi
         </Select>
       </div>
 
-      <Card>
+      <Card className='border-blue-200'>
         <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
+          <Table >
+            <TableHeader >
+              <TableRow className='border-blue-200' >
               <TableHead>Position</TableHead>
               <TableHead>Department</TableHead>
               <TableHead>Status</TableHead>
@@ -293,12 +294,15 @@ export function RequisitionManager({ selectedCompany, selectedCountry }: Requisi
               ) : (
                 filteredRequisitions.map((req) => (
                   
-                  <TableRow onClick={()=>{ navigate(`/requisitions/${req.id}`)}} key={req.id}>
-                    <TableCell>
+                  <TableRow className='border-blue-200' onClick={()=>{ navigate(`/requisitions/${req.id}`)}} key={req.id}>
+                    <TableCell >
                       <div>
                         <div className="font-medium">{req.position}</div>
                         <div className="text-sm text-gray-500">{req.req_id}</div>
-                        <div className="text-sm text-gray-500">{req.location}</div>
+                       
+                        <div className="text-sm text-gray-500 flex items-center gap-1">
+                           <MapPin className="h-3 w-3" /> <span>{req.location}</span>
+                        </div>
                       </div>
                     </TableCell>
                     <TableCell>{req.department}</TableCell>
@@ -331,10 +335,12 @@ export function RequisitionManager({ selectedCompany, selectedCountry }: Requisi
                         <Button 
                         // onClick={(e:any)=>{e.stopPropagation(); }} 
                         // onClick={(e)=>{ e.stopPropagation(); setApproval(req.id);}}
+                        className="flex items-center gap-2"
                         size="sm" 
                         variant="outline">
                           {/* <Eye className="h-4 w-4" /> */}
-                         {req.approval_status}
+                          {Capitalize(req.approval_status)}
+                         {getApprovalStatusIcon(req.approval_status)}
                         </Button>
                         {/* {getApprovalStatusIcon(req?.approvalStatus)} */}
                         {/* <Button onClick={(e:any)=>{e.stopPropagation(); }} size="sm" variant="outline">

@@ -12,6 +12,10 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Capitalize,formatCurrency,formatDate } from "../utils/Utils";
 import PositionForm from "./PositionForm";
 import { useAuth } from "./AuthProvider";
+import { Input } from "./ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+import { Label } from "./ui/label";
+
 
 
 
@@ -54,6 +58,9 @@ export default function RequisitionPage() {
    const [openEditForm, setEditForm] = useState(false);
    const [openPositionForm, setOpenPositionForm] = useState(false);
    const [positionData, setPositionData] = useState<any>('');
+   const [recruitersTeam, setRecruitersTeam] = useState<any[]>([]);
+   const [selectedRecruiter, setSelectedRecruiter] = useState<string>("");
+  const [selectedHM, setSelectedHM] = useState<string>("");
 
  useEffect(() => {
     if (!id) return;
@@ -67,6 +74,8 @@ export default function RequisitionPage() {
         console.error("Error fetching requisition:", err);
         setLoading(false);
       });
+
+      getTeamData();
   }, [id]);
 
   const showToast = (message: string) => {
@@ -92,29 +101,33 @@ export default function RequisitionPage() {
       toast.error("Failed to update requisition");
     }
   }
- 
-  const createPosition = async (data: any) => {
-    try {
-          const response = await fetch(`http://127.0.0.1:8000/positions`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data),
-          });
 
-          if (response.ok) {
-            const newPosition = await response.json();
-            toast.success("Position added successfully!");
-            setPositionData(newPosition);
-            console.log("New Position:", newPosition);
-            setOpenPositionForm(false);
-          } else {
-            toast.error("Failed to add position");
-          }
-        } catch (err) {
-          console.error("Error adding position:", err);
-          toast.error("Error while adding position");
+  
+  const token = localStorage.getItem("token");
+
+   const getTeamData = async () => {
+    try {
+      const response = await fetch("http://127.0.0.1:8000/recruiter_team", {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
         }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setRecruitersTeam(data || []);
+        console.log("Recruiters:", data);
+      } else {
+        console.error("Failed to load recruiters");
       }
+    } catch (error) {
+      console.error("Recruiters load error:", error);
+    }
+  };
+ 
+ 
+ 
 
   if (loading) return <p>Loading...</p>;
   if (!requisition) return <p>No requisition found</p>;
@@ -134,6 +147,8 @@ export default function RequisitionPage() {
     return filled;
   }
 
+
+  
   
   const daysOpen = (createdDate: string) => {
     const created = new Date(createdDate);
@@ -142,10 +157,66 @@ export default function RequisitionPage() {
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   };
 
+
+
+   const updateApprovalStatus = async (status: string) => {
+    try {
+      const response = await fetch(`http://127.0.0.1:8000/requisitions/${id}/approval`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+         },
+        
+        body: JSON.stringify({ approval_status: status }),
+      });
+      if (response.ok) {
+        // Refetch requisition details after update
+        const updated = await fetch(`http://127.0.0.1:8000/requisitions/${id}`);
+        const updatedRequisition = await updated.json();
+        setRequisition(updatedRequisition);
+        toast.success(`Requisition ${status}!`);
+      } else {
+        toast.error("Failed to update approval status");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Error updating approval status");
+    }
+  };
+
+  // ✅ Function to handle assigning recruiter / hiring manager
+const updateAssignments = async (recruiterId: number) => {
+  try {
+    const updateData = { recruiter_id: recruiterId };
+
+    const response = await fetch(`http://127.0.0.1:8000/requisitions/${id}/assignTeam`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(updateData),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      setRequisition(data);
+      toast.success("Recruiter assigned successfully!");
+    } else {
+      console.error("Backend error:", data);
+      toast.error(data.detail || "Failed to update team assignment");
+    }
+  } catch (error) {
+    console.error("Error updating team assignment:", error);
+    toast.error("Error updating team assignment");
+  }
+};
+
   return (
     <Toast.Provider swipeDirection="right">
       <div className="bg-slate-50 text-slate-800 min-h-screen p-6">
-        <header className="mb-8 flex md:flex-row justify-between items-start md:items-center">
+        <header className="mb-4 flex md:flex-row justify-between items-start md:items-center">
           <div className="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center">
           <div>
             <div className="flex gap-4 items-center mb-2">
@@ -156,13 +227,13 @@ export default function RequisitionPage() {
             </Link>
             <h1 className="text-blue-900 text-3xl font-bold">{requisition.position.charAt(0).toUpperCase() + requisition.position.slice(1)}</h1>
             </div>
-            <p className="text-sm text-slate-500">ID: {requisition.req_id}</p>
+            <p className="text-sm text-slate-500">Requisition ID: {requisition.req_id}</p>
           </div>
           <div className="flex gap-2 mt-4 md:mt-0">
-            <Badge className={getPriorityClass(requisition.priority)}>
+            <Badge style={{height:25 }} className={getPriorityClass(requisition.priority)}>
               {requisition.priority}
             </Badge>
-            <Badge className={getStatusClass(requisition.status)}>
+            <Badge style={{height:25 }} className={getStatusClass(requisition.status)}>
               {requisition.status}
             </Badge>
           </div>
@@ -170,13 +241,48 @@ export default function RequisitionPage() {
          {(user?.role === 'hiring_manager' || user?.role === 'admin') && (
            <div className="flex gap-3 mb-8">
 
+            {requisition.approval_status !== "pending" && (
+                <Button
+                  className="bg-blue-100"
+                  variant="outline"
+                   onClick={() => updateApprovalStatus("pending")}
+                >
+                  Revoke
+                </Button>
+              )}
+
+           {requisition.approval_status === "pending" ? (
+                <>
+                  <Button
+                    className="bg-green-100"
+                    variant="outline"
+                    onClick={() => updateApprovalStatus("approved")}
+                  >
+                    Approve
+                  </Button>
+                  <Button
+                    className="bg-red-100"
+                    variant="outline"
+                    onClick={() => updateApprovalStatus("rejected")}
+                  >
+                    Reject
+                  </Button>
+                </>
+              ) : (
+                <Button variant="outline" className={ requisition.approval_status === "approved" ? "bg-green-500 h-9 px-4 py-2 has-[>svg]:px-3":"bg-red-200 text-black"}>
+                  {Capitalize(requisition.approval_status)}
+                </Button>
+              )}
+              
+              
+
           <Dialog open={openEditForm} onOpenChange={setEditForm} >
         <DialogTrigger asChild>
           <Button>
             ✏️ Edit
           </Button>
         </DialogTrigger>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+        <DialogContent  className="max-w-3xl max-h-[80vh] overflow-y-auto" >
           <DialogHeader>
             <DialogTitle>Add New Candidate</DialogTitle>
             <DialogDescription>Fill candidate details below.</DialogDescription>
@@ -194,15 +300,14 @@ export default function RequisitionPage() {
       </div>)}
         </header>
 
-        {/* Action buttons */}
-       
-
+       <hr style={{width:'100%'}} className="bg-gray-200 mb-4"></hr>
+   
         {/* Metrics */}
         <section className="mb-8">
           <h2 className="text-xl font-semibold mb-4">Key Metrics</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
-                { label: "Openings", value:positionsCount },
+                { label: "Openings", value:requisition?.positions_count },
                 { label: "Filled", value: filledCount() },
                 { label: "Days Open", value: daysOpen(requisition?.created_date) },
                 { label: "Applicants", value:candidateCount },
@@ -264,17 +369,65 @@ export default function RequisitionPage() {
               <dl className="grid grid-cols-2 sm:grid-cols-2 gap-4">
                 <div>
                   <dt className="font-medium">Hiring Manager</dt>
-                  <dd className="text-gray-600">{Capitalize(requisition.hiring_manager)}</dd>
+                  {user?.role === "admin" ? (
+                    <Select
+                      value={selectedHM}
+                      onValueChange={(value: string) => setSelectedHM(value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select hiring manager" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {recruitersTeam.map((hm) => (
+                          <SelectItem key={hm.id} value={hm.id.toString()}>
+                            {hm.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <dd className="text-gray-600">{Capitalize(requisition.hiring_manager)}</dd>
+                  )}
                 </div>
                 <div>
                   <dt className="font-medium">Recruiter</dt>
-                  <dd className="text-gray-600">{requisition.recruiter_id ? Capitalize(requisition.recruiter.name):''}</dd>
+                 {user && (user.role === "admin" || user.role === "hiring_manager") ? (
+                      <Select
+                        value={
+                          selectedRecruiter ||
+                          (requisition.recruiter_id ? requisition.recruiter_id.toString() : "")
+                        }
+                        onValueChange={(value: string) => {
+                          // 1️⃣ Update state first
+                          setSelectedRecruiter(value);
+
+                          // 2️⃣ Wait for state update using callback or manual param
+                          updateAssignments(Number(value)); // ✅ Pass recruiter id directly
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select recruiter" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {recruitersTeam.map((rec) => (
+                            <SelectItem key={rec.id} value={rec.id.toString()}>
+                              {rec.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <dd className="text-gray-600">
+                        {requisition.recruiter?.name ? Capitalize(requisition.recruiter.name) : ""}
+                      </dd>
+                    )}
+
                 </div>
               </dl>
             </CardContent>
           </Card>
 
-<Card className="lg:col-span-2">
+          <Card className="lg:col-span-2">
             <CardHeader>
               <CardTitle className="font-medium text-xl">Timeline & Status</CardTitle>
             </CardHeader>
@@ -290,7 +443,7 @@ export default function RequisitionPage() {
                 </div>
                 <div>
                   <p className="font-medium">Approval Status</p>
-                  <dd className="text-gray-600">{requisition.approval_status}</dd>
+                  <dd className="text-gray-600">{Capitalize(requisition.approval_status)}</dd>
                 </div>
                 <div>
                   <dt className="font-medium">SLA</dt>
