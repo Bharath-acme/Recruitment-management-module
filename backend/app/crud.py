@@ -151,6 +151,18 @@ def get_positions_by_requisition(db: Session, requisition_id: int):
     return db.query(models.Position).filter(models.Position.requisition_id == requisition_id).all()
 
 
+def create_activity_log(db, requisition_id, user, action, details=None):
+    log = models.RequisitionActivityLog(
+        requisition_id=requisition_id,
+        user_id=user.id,
+        username=user.name,
+        action=action,
+        details=details
+    )
+    db.add(log)
+    db.commit()
+    db.refresh(log)
+    return log
 #======================================= Candidate CRUD operations ======================================
 
 def get_candidate(db: Session, candidate_id: str):

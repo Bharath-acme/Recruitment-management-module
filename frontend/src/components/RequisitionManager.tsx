@@ -112,6 +112,7 @@ export function RequisitionManager({ selectedCompany, selectedCountry }: Requisi
       return 'approved';
     }
  }
+  const token = localStorage.getItem("token");
 
  const loadRequisitions = async () => {
   setLoading(true);
@@ -144,7 +145,8 @@ export function RequisitionManager({ selectedCompany, selectedCountry }: Requisi
       const response = await fetch('http://127.0.0.1:8000/create-requisition', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
         },
          body: JSON.stringify(requisitionData),
         

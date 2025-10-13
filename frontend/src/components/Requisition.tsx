@@ -45,6 +45,14 @@ const getStatusClass = (status: string) => {
   }
 };
 
+interface ActivityLog {
+  id: number;
+  username: string;
+  action: string;
+  details?: string;
+  timestamp: string;
+}
+
 
 
 export default function RequisitionPage() {
@@ -61,6 +69,7 @@ export default function RequisitionPage() {
    const [recruitersTeam, setRecruitersTeam] = useState<any[]>([]);
    const [selectedRecruiter, setSelectedRecruiter] = useState<string>("");
   const [selectedHM, setSelectedHM] = useState<string>("");
+  const [logs, setLogs] = useState<ActivityLog[]>([]);
 
  useEffect(() => {
     if (!id) return;
@@ -76,6 +85,7 @@ export default function RequisitionPage() {
       });
 
       getTeamData();
+      getLogs();
   }, [id]);
 
   const showToast = (message: string) => {
@@ -85,11 +95,24 @@ export default function RequisitionPage() {
 
   const formatNumber = (value: number) =>
   new Intl.NumberFormat("en-US").format(value);
+  
+
+
+
  
+  const getLogs = async () => {
+      const res = await fetch(`http://127.0.0.1:8000/requisitions/${id}/activity`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) setLogs(await res.json());
+    };
+  const token = localStorage.getItem("token");
   const updateRequisition = async (data: any) => {
   const response = await fetch(`http://127.0.0.1:8000/requisitions/${id}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+       },
       body: JSON.stringify(data),
     });
     if (response.ok) {
@@ -103,7 +126,7 @@ export default function RequisitionPage() {
   }
 
   
-  const token = localStorage.getItem("token");
+  
 
    const getTeamData = async () => {
     try {
@@ -471,7 +494,25 @@ const updateAssignments = async (recruiterId: number) => {
               </dl>
             </CardContent>
           </Card>
-
+            <div className="mt-6 bg-gray-50 border rounded-lg p-4">
+      <h3 className="font-semibold text-lg mb-2">Activity Logs</h3>
+      {logs.length === 0 ? (
+        <p className="text-sm text-gray-500">No activities yet.</p>
+      ) : (
+        <ul className="divide-y divide-gray-200">
+          {logs.map((log) => (
+            <li key={log.id} className="py-2">
+              <div className="flex justify-between items-center">
+                <span className="font-medium">{log.username}</span>
+                <span className="text-xs text-gray-500">{new Date(log.timestamp).toLocaleString()}</span>
+              </div>
+              <p className="text-sm">{log.action}</p>
+              {log.details && <p className="text-xs text-gray-600 italic">{log.details}</p>}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
           
         </section>
       </div>

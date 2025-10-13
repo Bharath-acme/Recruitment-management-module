@@ -124,6 +124,23 @@ class RequisitionApprovalUpdate(BaseModel):
 class TeamAssignToRequisition(BaseModel):
     recruiter_id: Optional[int] = None
 
+
+class ActivityLogBase(BaseModel):
+    requisition_id: int
+    user_id: int
+    username: str
+    action: str
+    details: Optional[str] = None
+
+class ActivityLogCreate(ActivityLogBase):
+    pass
+
+class ActivityLogResponse(ActivityLogBase):
+    id: int
+    timestamp: datetime
+
+    class Config:
+        orm_mode = True
 # ======================================== Candidate Schemas =====================================
 
 class CandidateBase(BaseModel):

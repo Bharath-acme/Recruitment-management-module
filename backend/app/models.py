@@ -25,6 +25,8 @@ class User(Base):
     country = Column(String(100), nullable=False)
     hashed_password = Column(String(100), nullable=False)
     requisitions = relationship("Requisitions", back_populates="recruiter")
+    activity_logs = relationship("RequisitionActivityLog", back_populates="user", cascade="all, delete-orphan")
+    
 
 
 #  Optionally define some enums for consistency
@@ -94,7 +96,23 @@ class Requisitions(Base):
     interviews = relationship("Interview", back_populates="requisition")
     # recruiters = relationship("User", secondary=requisition_recruiter, backref="assigned_requisitions")
     offers = relationship("Offer", back_populates="requisitions", cascade="all, delete-orphan")
+    activity_logs = relationship("RequisitionActivityLog", back_populates="requisition", cascade="all, delete-orphan")
     # positions = relationship("Position", back_populates="requisition", cascade="all, delete-orphan")
+
+
+class RequisitionActivityLog(Base):
+    __tablename__ = "requisition_activity_logs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    requisition_id = Column(Integer, ForeignKey("requisitions.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    username = Column(String(100), nullable=False)
+    action = Column(String(255), nullable=False)
+    details = Column(Text, nullable=True)
+    timestamp = Column(DateTime, default=datetime.utcnow)
+
+    requisition = relationship("Requisitions", back_populates="activity_logs")
+    user = relationship("User", back_populates="activity_logs")
 
 
 class Candidate(Base):

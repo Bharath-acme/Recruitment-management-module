@@ -80,15 +80,21 @@ def login(data: LoginRequest, db: Session = Depends(get_db)):
 
 def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     try:
+        print("Decoding token...")  # Debug log
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         email: str = payload.get("sub")
+        print(f"Token payload: {payload}")  # Debug log
         if email is None:
+            print("Token missing 'sub' field")  # Debug log
             raise HTTPException(status_code=401, detail="Invalid token")
         user = crud.get_user_by_email(db, email=email)
         if user is None:
+            print(f"No user found for email: {email}")  # Debug log
             raise HTTPException(status_code=401, detail="User not found")
+        print(f"Authenticated user: {user.email}")  # Debug log
         return user
-    except JWTError:
+    except JWTError as e:
+        print(f"JWT decoding error: {e}")  # Debug log
         raise HTTPException(status_code=401, detail="Invalid token")
 
 @app.get("/me", response_model=schemas.UserResponse)
@@ -107,29 +113,21 @@ def get_team_members(current_user=Depends(get_current_user), db: Session = Depen
 
 
 @app.post("/create-requisition", response_model=schemas.RequisitionResponse)
-def create_requisition(req: schemas.RequisitionCreate, db: Session = Depends(get_db)):
-    return crud.create_requisition(db, req)
+def create_requisition(req: schemas.RequisitionCreate, db: Session = Depends(get_db),current_user=Depends(get_current_user)):
+    requisition = crud.create_requisition(db, req)
+    crud.create_activity_log(
+        db,
+        requisition_id=requisition.id,
+        user=current_user,
+        action="Created Requisition",
+        details=f"Requisition '{requisition.position}' created by {current_user.name}"
+    )
+
+    return requisition
+   
 
 
 @app.get("/requisitions", response_model=list[schemas.RequisitionResponse])
-# def read_requisitions(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
-#     db_reqs = crud.get_requisitions(db, skip=skip, limit=limit)
-#     result = []
-#     for req in db_reqs:
-#         recruiter = None
-#         if req.recruiter:
-#             recruiter = {
-#                 "id": req.recruiter.id,
-#                 "name": req.recruiter.name,
-#                 "email": req.recruiter.email,
-#             }
-#         req_dict = req.__dict__.copy()
-#         req_dict["recruiter"] = recruiter
-#         req_dict.pop("_sa_instance_state", None)
-#         # Ensure req_id is always a string (not None)
-#         req_dict["req_id"] = str(req_dict.get("req_id") or "")
-#         result.append(req_dict)
-#     return result
 def read_requisitions(
     skip: int = 0,
     limit: int = 10,
@@ -174,17 +172,39 @@ def read_requisition(requisition_id: int, db: Session = Depends(get_db)):
 
 
 @app.put("/requisitions/{requisition_id}", response_model=schemas.RequisitionResponse)
-def update_requisition(requisition_id: int, req: schemas.RequisitionUpdate, db: Session = Depends(get_db)):
-    db_req = crud.update_requisition(db, requisition_id, req)
+def update_requisition(requisition_id: int, req: schemas.RequisitionUpdate, db: Session = Depends(get_db),current_user=Depends(get_current_user)):
+    db_req = db.query(models.Requisitions).filter(models.Requisitions.id == requisition_id).first()
     if not db_req:
         raise HTTPException(status_code=404, detail="Requisition not found")
-    return db_req
+
+    # ✅ Check differences BEFORE updating
+    changes = []
+    for field, new_value in req.dict(exclude_unset=True).items():
+        old_value = getattr(db_req, field)
+        if old_value != new_value:
+            changes.append(f"{field} changed from '{old_value}' to '{new_value}'")
+
+    # ✅ Now actually update it
+    updated_req = crud.update_requisition(db, requisition_id, req)
+
+    # ✅ Log activity if any field changed
+    if changes:
+        crud.create_activity_log(
+            db=db,
+            requisition_id=db_req.id,
+            user=current_user,
+            action="Updated Requisition",
+            details="; ".join(changes)
+        )
+
+    return updated_req
 
 @app.put("/requisitions/{req_id}/approval")
 def update_requisition_approval(
     req_id: int,
     approval_update: schemas.RequisitionApprovalUpdate,
     db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
 ):
     # 1️ Fetch requisition
     requisition = db.query(models.Requisitions).filter(models.Requisitions.id == req_id).first()
@@ -192,11 +212,18 @@ def update_requisition_approval(
         raise HTTPException(status_code=404, detail="Requisition not found")
 
     # 2️ Update approval status
+    old_status = requisition.approval_status
     requisition.approval_status = approval_update.approval_status
     db.commit()
     db.refresh(requisition)
 
-    # 3️ Optional: send notification/email here
+    crud.create_activity_log(
+        db=db,
+        requisition_id=requisition.id,
+        user=current_user,
+        action="Approval Status Updated",
+        details=f"Changed from '{old_status}' to '{approval_update.approval_status}'"
+    )
 
     return requisition
 
@@ -225,6 +252,16 @@ def update_requisition_team(
 
     db.commit()
     db.refresh(requisition)
+
+     # 🔹 Log recruiter assignment
+    crud.create_activity_log(
+        db=db,
+        requisition_id=requisition.id,
+        user=current_user,
+        action="Assigned Recruiter",
+        details=f"Recruiter ID {requisition.recruiter_id} assigned by {current_user.name}"
+    )
+
     return requisition
 
 
@@ -236,6 +273,13 @@ def delete_requisition(requisition_id: int, db: Session = Depends(get_db)):
     return db_req
 
 
+@app.get("/requisitions/{req_id}/activity", response_model=List[schemas.ActivityLogResponse])
+def get_activity_logs(req_id: int, db: Session = Depends(get_db)):
+    logs = db.query(models.RequisitionActivityLog)\
+        .filter(models.RequisitionActivityLog.requisition_id == req_id)\
+        .order_by(models.RequisitionActivityLog.timestamp.desc())\
+        .all()
+    return logs
 
 
 # =============================Candidates============================
