@@ -64,5 +64,7 @@ jobs:
         with:
           app-name: 'acme-recruitment'
           slot-name: 'Production'
+          package: ./backend 
 
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_B4485BBD185742AAA1E9262EBEE7D61B }}
+
