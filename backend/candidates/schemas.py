@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 from datetime import date,datetime
 from typing import Optional, List, Dict, Any
 import enum
@@ -19,7 +19,7 @@ class CandidateBase(BaseModel):
     resume_url: Optional[str] = None
     recruiter: Optional[str] = None
     status: Optional[str] = None
-    requisition_id: Optional[str] = None
+    requisition_id: Optional[int] = None
     source: Optional[str] = None
     current_ctc: Optional[str] = None
     expected_ctc: Optional[str] = None
@@ -32,6 +32,7 @@ class CandidateCreate(CandidateBase):
     requisition_id: Optional[int] = None
 
 class CandidateUpdate(CandidateBase):
+    id: Optional[str] = None  # Added id field
     name: Optional[str] = None
     position: Optional[str] = None
     email: Optional[EmailStr] = None
@@ -43,7 +44,7 @@ class CandidateUpdate(CandidateBase):
     resume_url: Optional[str] = None
     recruiter: Optional[str] = None
     status: Optional[str] = None
-    requisition_id: Optional[str] = None
+    requisition_id: Optional[int] = None
     source: Optional[str] = None
     current_ctc: Optional[str] = None
     expected_ctc: Optional[str] = None
@@ -72,3 +73,25 @@ class CandidateMini(BaseModel):
     class Config:
         orm_mode = True
 
+
+# Base schema for CandidateActivityLog
+class CandidateActivityLogBase(BaseModel):
+    candidate_id: str
+    requisition_id: Optional[int] = None
+    user_id: int
+    username: str
+    action: str
+    details: Optional[str] = None
+  
+
+# Schema for creating logs
+class CandidateActivityLogCreate(CandidateActivityLogBase):
+    pass
+
+# Schema for returning logs
+class CandidateActivityLogOut(CandidateActivityLogBase):
+    id: int
+    created_at: datetime = Field(..., alias="timestamp")
+
+    class Config:
+        orm_mode = True

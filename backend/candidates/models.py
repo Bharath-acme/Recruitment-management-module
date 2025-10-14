@@ -1,11 +1,12 @@
-from sqlalchemy import Column, Integer, String, Float, Date, Text, Enum, DateTime,Table, ForeignKey,UniqueConstraint, Enum as SAEnum
+from sqlalchemy import Column, Integer, String, Float, Date, Text, Enum, DateTime,Table, ForeignKey,UniqueConstraint
 from sqlalchemy.orm import relationship
 from app.database import Base
 from sqlalchemy.dialects.sqlite import JSON
 from datetime import datetime
 import uuid
 import enum
-
+from enum import Enum
+from sqlalchemy.sql import func
 
 class Candidate(Base):
     __tablename__ = "candidates"
@@ -40,3 +41,19 @@ class Candidate(Base):
     dob = Column(Date, nullable=True)
     marital_status = Column(String(50), nullable=True)
     interviews = relationship("Interview", back_populates="candidate")
+
+
+class CandidateActivityLog(Base):
+    __tablename__ = "candidate_activity_logs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    candidate_id = Column(String(36), ForeignKey("candidates.id"), nullable=False)
+    requisition_id = Column(Integer, ForeignKey("requisitions.id"), nullable=True)  # Added requisition_id
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    username = Column(String(100), nullable=False)
+    action = Column(String(255), nullable=False)
+    details = Column(Text, nullable=True) 
+    timestamp = Column(DateTime, default=datetime.utcnow)
+
+    candidate = relationship("Candidate", backref="activity_logs")
+    user = relationship("User", backref="candidate_activity_logs")
