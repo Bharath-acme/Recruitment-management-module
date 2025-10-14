@@ -20,6 +20,13 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
+# Serve React build
+# app.mount("/static", StaticFiles(directory="frontend/build/static"), name="static")
+
+# @app.get("/")
+# def serve_react():
+#     return FileResponse("frontend/build/index.html")
+
 origins = [
     "http://localhost:3000",   # React dev server
     "http://127.0.0.1:8000"    # sometimes React runs here
@@ -33,9 +40,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.get("/")
-def home():
-    return {"Home":"Recruitement management module backend application"}
+# @app.get("/")
+# def home():
+#     return {"Home":"Recruitement management module backend application"}
 
 # =============================Authentication============================
 

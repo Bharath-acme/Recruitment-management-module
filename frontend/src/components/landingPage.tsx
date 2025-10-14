@@ -22,7 +22,7 @@ const HomePage: React.FC = () => {
           <span className="text-lg font-semibold text-blue-900 hover:text-blue-500 ml-5 cursor-pointer">Careers</span>
           <span className="text-lg font-semibold text-blue-900 hover:text-blue-500 ml-5 mr-10 cursor-pointer">Pricing</span>
           <Button onClick={() => navigate('/login')} className="hover:bg-blue-600 mr-2 bg-blue-900 cursor-pointer">Login</Button>
-          <Button onClick={() => navigate('/login')}  className="hover:bg-blue-600 mr-2 bg-blue-900 cursor-pointer" size="sm">Sign Up</Button>
+          <Button onClick={() => navigate('/login?tab=signup')}  className="hover:bg-blue-600 mr-2 bg-blue-900 cursor-pointer" size="sm">Sign Up</Button>
         </div>
       </nav>
 
@@ -43,7 +43,7 @@ const HomePage: React.FC = () => {
               className="hover:bg-blue-600 mr-2 border bg-blue-900 cursor-pointer"
               size="lg"
               style={{ background: 'gold',  }}
-              onClick={() => navigate('/login')}
+              onClick={() => navigate('/login?tab=signup')}
             >
               Get Start with ACME
             </Button>

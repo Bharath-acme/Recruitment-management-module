@@ -31,8 +31,13 @@ export default function CandidateForm({ initialData, onSubmit, onCancel }: Candi
     dob: initialData?.dob || "",
     marital_status: initialData?.marital_status || "",
     recruiter: initialData?.recruiter || user?.name ,
+    nationality: initialData?.nationality || "",
+    resume: initialData?.resume || "",
   });
 
+  const handleResumeUpload = (file: File) => {
+    setFormData(prev => ({ ...prev, resume: file }));
+  };
   const handleChange = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
@@ -203,8 +208,55 @@ export default function CandidateForm({ initialData, onSubmit, onCancel }: Candi
         onChange={e => handleChange("marital_status", e.target.value)}
       />
     </div>
-  </div>
-
+    
+          {/* Resume Upload */}
+    <div>
+      <Label htmlFor="resume">Upload Resume</Label>
+      {!formData.resume && (
+        <Input
+          id="resume"
+          type="file"
+          accept=".pdf,.doc,.docx"
+          onChange={(e) => {
+            if (e.target.files && e.target.files[0]) {
+              handleResumeUpload(e.target.files[0]);
+            }
+          }}
+          className="mt-1"
+        />
+      )}
+    
+      {/* Resume Upload button and box*/}
+      {formData.resume && (
+        <div className="relative mt-2 w-40 h-15 border border-gray-300 rounded-lg flex items-center justify-center bg-gray-50 shadow">
+          <span className="text-sm text-gray-700 px-2 text-center truncate w-40">
+            {formData.resume.name.length > 20
+              ? formData.resume.name.substring(0, 15) +
+                "..." +
+                formData.resume.name.split(".").pop()
+              : formData.resume.name}
+          </span>
+          <button
+            type="button"
+            onClick={() => handleChange("resume", null)}
+            className="absolute -top-2 -right-2 w-5 h-5  flex items-center justify-center text-white rounded full text-xs font-bold shadow-md hover:bg-purple-700 focus:outline-none cursor-pointer"
+          >
+            ✖
+          </button>
+        </div>
+      )}
+    </div>
+    
+    <div>
+      <Label htmlFor="nationality">Nationality</Label>
+      <Input
+        id="nationality"
+        value={formData.nationality}
+        onChange={(e) => handleChange("nationality", e.target.value)}
+        placeholder="Enter your Nationality"
+        />
+    </div>
+    </div>
   <div>
     <Label htmlFor="skills">Skills (comma-separated)</Label>
     <Input

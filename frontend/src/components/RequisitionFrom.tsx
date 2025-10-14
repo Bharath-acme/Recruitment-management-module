@@ -33,6 +33,7 @@ export function RequisitionForm({ initialData, onSubmit, onCancel }: Requisition
     created_date: "",
     recruiter_id: initialData?.recruiter?.id || "", // ✅ store recruiter_id
     // recruiter: initialData?.recruiter.name || null, // for display only
+    jd_file: initialData?.jd_file || null,
   });
 
   const [recruitersTeam, setRecruitersTeam] = useState<any[]>([]);
@@ -296,6 +297,45 @@ export function RequisitionForm({ initialData, onSubmit, onCancel }: Requisition
         />
       </div>
 
+
+          {/* JD  Upload */}
+    <div>
+      <Label htmlFor="resume">Upload JD File</Label>
+      {!formData.jd_file && (
+        <Input
+          id="jd_file"
+          type="file"
+          accept=".pdf,.doc,.docx"
+          onChange={(e) => {
+            if (e.target.files && e.target.files[0]) {
+              handleChange("jd_file", e.target.files[0]);
+            }
+          }}
+          className="mt-1"
+        />
+      )}
+    
+      {/* Resume Upload button and box*/}
+      {formData.jd_file && (
+        <div className="relative mt-2 w-40 h-15 border border-gray-300 rounded-lg flex items-center justify-center bg-gray-50 shadow">
+          <span className="text-sm text-gray-700 px-2 text-center truncate w-40">
+            {formData.jd_file.name.length > 20
+              ? formData.jd_file.name.substring(0, 15) +
+                "..." +
+                formData.jd_file.name.split(".").pop()
+              : formData.jd_file.name}
+          </span>
+          <button
+            type="button"
+            onClick={() => handleChange("jd_file", null)}
+            className="absolute -top-2 -right-2 w-5 h-5  flex items-center justify-center text-white rounded full text-xs font-bold shadow-md hover:bg-purple-700 focus:outline-none cursor-pointer"
+          >
+            ✖
+          </button>
+        </div>
+      )}
+    </div>
+    
       {/* Requirements */}
       <div>
         <Label>Requirements</Label>

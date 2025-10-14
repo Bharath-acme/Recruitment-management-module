@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from './AuthProvider';
 import { Card, CardHeader, CardTitle, CardContent } from './ui/card';
 import { Input } from './ui/input';
@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { toast } from 'sonner';
 import { Users } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import logo from '../media/thumbnail_image001.png';
 
@@ -30,6 +31,17 @@ export function LoginForm() {
     companyDescription: '',
     country: ''
   });
+  const [searchParams] = useSearchParams();
+  const [activeTab, setActiveTab] = useState("login");
+
+useEffect(() => {
+  const tabParam = searchParams.get("tab");
+  if (tabParam === "signup") {
+    setActiveTab("signup");
+  } else {
+    setActiveTab("login");
+  }
+}, [searchParams]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -126,7 +138,7 @@ export function LoginForm() {
               <CardTitle className="text-xl text-center">Welcome</CardTitle>
             </CardHeader>
             <CardContent>
-              <Tabs defaultValue="login" className="w-full">
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <TabsList className="grid w-full grid-cols-2">
                   <TabsTrigger value="login">Sign In</TabsTrigger>
                   <TabsTrigger value="signup">Sign Up</TabsTrigger>

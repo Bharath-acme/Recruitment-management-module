@@ -48,7 +48,7 @@ class Requisitions(Base):
     grade = Column(String(50), nullable=True)   # e.g. L1, L2, Senior
     created_date = Column(DateTime, default=datetime.utcnow)
 
-    # Job type details
+    # Job type  
     employment_type = Column(Enum(EmploymentType), nullable=False, default=EmploymentType.FULL_TIME)
     work_mode = Column(Enum(WorkMode), nullable=False, default=WorkMode.ONSITE)
     location = Column(String(100), nullable=True)

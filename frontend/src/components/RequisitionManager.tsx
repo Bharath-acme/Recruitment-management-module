@@ -167,11 +167,26 @@ export function RequisitionManager({ selectedCompany, selectedCountry }: Requisi
 
  
 
-  const filteredRequisitions = requisitions.filter(req =>
-    req.position.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    req.department.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    req.id.toLowerCase().includes(searchTerm.toLowerCase())
+  //const filteredRequisitions = requisitions.filter(req =>
+   // req.position.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    //req.department.toLowerCase().includes(searchTerm.toLowerCase()) ||
+   // req.id.toLowerCase().includes(searchTerm.toLowerCase())
+ // );
+ const filteredRequisitions = requisitions.filter(requisition => {
+  const position = (requisition.position??"").toLowerCase();
+  const department = (requisition.department??"").toLowerCase();
+  const req_id = (requisition.req_id??"").toLowerCase();
+  const location = (requisition.location??"").toLowerCase();
+  
+
+  return (
+    position.includes(searchTerm.toLowerCase()) ||
+    department.includes(searchTerm.toLowerCase()) ||
+    req_id.includes(searchTerm.toLowerCase())  ||
+    location.includes(searchTerm.toLowerCase())
+    
   );
+});
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
