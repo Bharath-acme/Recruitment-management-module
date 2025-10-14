@@ -21,11 +21,11 @@ Base.metadata.create_all(bind=engine)
 app = FastAPI()
 
 # Serve React build
-# app.mount("/static", StaticFiles(directory="frontend/build/static"), name="static")
+app.mount("/static", StaticFiles(directory="frontend/build/static"), name="static")
 
-# @app.get("/")
-# def serve_react():
-#     return FileResponse("frontend/build/index.html")
+@app.get("/")
+def serve_react():
+    return FileResponse("frontend/build/index.html")
 
 origins = [
     "http://localhost:3000",   # React dev server
