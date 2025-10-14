@@ -1,6 +1,14 @@
 fastapi
+uvicorn
 sqlalchemy
+alembic
 pydantic
 python-jose
-uvicorn
-typing-extensions
+passlib[bcrypt]
+python-multipart
+email-validator
+python-dotenv
+PyMySQL
+sentry-sdk
+Jinja2
+cryptography
