@@ -94,23 +94,23 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
 
 @app.post("/register", response_model=schemas.UserResponse)
 def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
-    if user.password != user.confirm_password:
-        raise HTTPException(status_code=400, detail="Passwords do not match")
 
-    existing = crud.get_user_by_email(db, user.email)
-    if existing:
-        raise HTTPException(status_code=400, detail="Email already registered")
+    if user.password != user.confirm_password:
+        raise HTTPException(status_code=400, detail="Passwords do not match")
 
-    # Hash password before saving
-    hashed_pw = hash_password(user.password)
-    return crud.create_user(db, user, hashed_pw)
+    existing = crud.get_user_by_email(db, user.email)
+    if existing:
+        raise HTTPException(status_code=400, detail="Email already registered")
+
+    hashed_pw = hash_password(user.password)
+    return crud.create_user(db, user, hashed_pw)
 
 
 @app.post("/login")
 def login(data: LoginRequest, db: Session = Depends(get_db)):
-    user = crud.get_user_by_email(db, data.email)
-    if not user or not verify_password(data.password, user.hashed_password):
-        raise HTTPException(status_code=401, detail="Invalid credentials")
+    user = crud.get_user_by_email(db, data.email)
+    if not user or not verify_password(data.password, user.hashed_password):
+        raise HTTPException(status_code=401, detail="Invalid credentials")
 
     # Create JWT
     access_token = create_access_token(
@@ -128,14 +128,16 @@ def login(data: LoginRequest, db: Session = Depends(get_db)):
 
 @app.get("/me", response_model=schemas.UserResponse)
 def read_users_me(current_user=Depends(get_current_user)):
-    return current_user
+    return current_user
+
 
 @app.get("/recruiter_team", response_model=List[schemas.RecruiterBase])
 def get_team_members(current_user=Depends(get_current_user), db: Session = Depends(get_db)):
-    print('Current user role:', current_user.role)
-    if current_user.role.lower() != "hiring_manager":
-        raise HTTPException(status_code=403, detail="Not authorized to view team members")
-    return db.query(models.User.id, models.User.name).filter(models.User.role == "recruiter").all()
+    print('curent user:', current_user)
+    if current_user.role.lower() != "hiring_manager":
+        raise HTTPException(status_code=403, detail="Not authorized to view team members")
+    return db.query(models.User.id, models.User.name).filter(models.User.role == "recruiter").all()
+
 
 # Include routers for other modules
 app.include_router(candidates_api.router, prefix="/candidates", tags=["Candidates"])
