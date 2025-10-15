@@ -23,11 +23,13 @@ jobs:
           node-version: '20' # Use a modern LTS version for React/Vite
           
       - name: Install Frontend Dependencies
-        working-directory: ./frontend
+        # FIX: Changed './frontend' to 'frontend' for working-directory
+        working-directory: frontend 
         run: npm install
         
       - name: Build React Frontend
-        working-directory: ./frontend
+        # FIX: Changed './frontend' to 'frontend' for working-directory
+        working-directory: frontend
         run: npm run build
         
       # 2. --- BACKEND SETUP ---
@@ -36,10 +38,9 @@ jobs:
         with:
           python-version: '3.13'
           
-      # This is often needed, as Python dependencies must be installed
-      # inside the deployment package (or done by Oryx, but explicit is better)
       - name: Install Backend Dependencies
-        working-directory: ./backend
+        # FIX: Changed './backend' to 'backend' for working-directory
+        working-directory: backend
         run: pip install -r requirements.txt
 
       # 3. --- DEPLOYMENT STEP ---
@@ -49,11 +50,12 @@ jobs:
         with:
           app-name: 'acme-recruitment'
           slot-name: 'Production'
-          # CRITICAL FIX: Deploy the root directory ('.') to include both 
+          # Deploy the root directory ('.') to include both 
           # 'backend/' and 'frontend/build/'.
           package: . 
           # Ensure this secret name is correct and indented properly:
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_B4485BBD185742AAA1E9262EBEE7D61B }}
+
 
 
 
