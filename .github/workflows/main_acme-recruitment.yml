@@ -1,4 +1,4 @@
-name: Deploy Python App to Azure Web App - acme-recruitment
+name: Deploy Python App & React Frontend to Azure Web App - acme-recruitment
 
 on:
   push:
@@ -7,32 +7,52 @@ on:
   workflow_dispatch:
 
 jobs:
-  # Use one job named 'deploy' for a straightforward process
-  deploy: 
+  deploy:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-    
+      
     steps:
       - uses: actions/checkout@v4
       
+      #  --- FRONTEND BUILD STEP ---
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: Install Frontend Dependencies
+        working-directory: backend/frontend
+        run: npm install
+        
+      - name: Build React Frontend
+        working-directory: backend/frontend
+        run: npm run build
+
+      #  --- BACKEND SETUP ---
       - name: Set up Python version
-        # This is optional, but good for specifying the runtime environment
         uses: actions/setup-python@v5
         with:
           python-version: '3.13'
+          
+      - name: Install Backend Dependencies
+        working-directory: backend
+        run: pip install -r requirements.txt
 
-      # The key deployment step. 
-      - name: 'Deploy Backend to Azure Web App'
+      #  --- DEPLOY TO AZURE ---
+      - name: 'Deploy Backend (with built frontend) to Azure Web App'
         uses: azure/webapps-deploy@v3
         id: deploy-to-webapp
         with:
           app-name: 'acme-recruitment'
           slot-name: 'Production'
-          # CRITICAL FIX: Directs the deployment action to use the 'backend' folder
-          # This resolves both 'requirements.txt not found' and 'artifact not found' errors.
-          package: ./backend 
+          package: ./backend
+        
           # Ensure this secret name is correct and indented properly:
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_B4485BBD185742AAA1E9262EBEE7D61B }}
+
+
+
+
 
 
