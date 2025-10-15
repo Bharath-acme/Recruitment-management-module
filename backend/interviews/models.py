@@ -13,7 +13,7 @@ class Interview(Base):
     id = Column(String(100), primary_key=True, index=True, default=lambda: str(uuid.uuid4()))
     
     candidate_id = Column(String(100), ForeignKey("candidates.id"), nullable=False)
-    requisition_id = Column(Int, ForeignKey("requisitions.id"), nullable=False)
+    requisition_id = Column(Integer, ForeignKey("requisitions.id"), nullable=False)
 
     candidate = relationship("Candidate", back_populates="interviews")
 
