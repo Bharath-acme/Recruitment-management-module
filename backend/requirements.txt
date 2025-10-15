@@ -5,8 +5,8 @@ sqlalchemy
 alembic
 pydantic
 python-jose
-passlib==1.7.5
-bcrypt>=4.0.1
+passlib
+bcrypt
 python-multipart
 email-validator
 python-dotenv
