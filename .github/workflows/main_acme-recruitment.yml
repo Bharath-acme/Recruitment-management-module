@@ -15,46 +15,42 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      # 1. --- FRONTEND BUILD STEP (CRITICAL) ---
-      # This step must run first to create the 'frontend/build' directory.
+      #  --- FRONTEND BUILD STEP ---
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20' # Use a modern LTS version for React/Vite
+          node-version: '20'
           
       - name: Install Frontend Dependencies
-        # Use the relative path to the repo root for working-directory
-        working-directory: frontend 
+        working-directory: backend/frontend
         run: npm install
         
       - name: Build React Frontend
-        # Use the relative path to the repo root for working-directory
-        working-directory: frontend
+        working-directory: backend/frontend
         run: npm run build
-        
-      # 2. --- BACKEND SETUP ---
+
+      #  --- BACKEND SETUP ---
       - name: Set up Python version
         uses: actions/setup-python@v5
         with:
           python-version: '3.13'
           
       - name: Install Backend Dependencies
-        # Use the relative path to the repo root for working-directory
         working-directory: backend
         run: pip install -r requirements.txt
 
-      # 3. --- DEPLOYMENT STEP ---
-      - name: 'Deploy Backend & Frontend to Azure Web App'
+      #  --- DEPLOY TO AZURE ---
+      - name: 'Deploy Backend (with built frontend) to Azure Web App'
         uses: azure/webapps-deploy@v3
         id: deploy-to-webapp
         with:
           app-name: 'acme-recruitment'
           slot-name: 'Production'
-          # Deploy the root directory ('.') to include both 
-          # 'backend/' and 'frontend/build/'.
-          package: . 
+          package: ./backend
+        
           # Ensure this secret name is correct and indented properly:
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_B4485BBD185742AAA1E9262EBEE7D61B }}
+
 
 
 
