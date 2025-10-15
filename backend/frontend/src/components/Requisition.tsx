@@ -15,7 +15,7 @@ import { useAuth } from "./AuthProvider";
 import { Input } from "./ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Label } from "./ui/label";
-
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 
 
@@ -73,7 +73,7 @@ export default function RequisitionPage() {
 
  useEffect(() => {
     if (!id) return;
-    fetch(`http://127.0.0.1:8000/requisitions/${id}`)
+    fetch(`${API_BASE_URL}requisitions/${id}`)
       .then((res) => res.json())
       .then((data: Requisition) => {
         setRequisition(data);
@@ -101,14 +101,14 @@ export default function RequisitionPage() {
 
  
   const getLogs = async () => {
-      const res = await fetch(`http://127.0.0.1:8000/requisitions/${id}/activity`, {
+      const res = await fetch(`${API_BASE_URL}/requisitions/${id}/activity`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) setLogs(await res.json());
     };
   const token = localStorage.getItem("token");
   const updateRequisition = async (data: any) => {
-  const response = await fetch(`http://127.0.0.1:8000/requisitions/${id}`, {
+  const response = await fetch(`${API_BASE_URL}/requisitions/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json",
         Authorization: `Bearer ${token}`
@@ -130,7 +130,7 @@ export default function RequisitionPage() {
 
    const getTeamData = async () => {
     try {
-      const response = await fetch("http://127.0.0.1:8000/recruiter_team", {
+      const response = await fetch("${API_BASE_URL}/recruiter_team", {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`
@@ -184,7 +184,7 @@ export default function RequisitionPage() {
 
    const updateApprovalStatus = async (status: string) => {
     try {
-      const response = await fetch(`http://127.0.0.1:8000/requisitions/${id}/approval`, {
+      const response = await fetch(`${API_BASE_URL}/requisitions/${id}/approval`, {
         method: "PUT",
         headers: { "Content-Type": "application/json",
           Authorization: `Bearer ${token}`
@@ -194,7 +194,7 @@ export default function RequisitionPage() {
       });
       if (response.ok) {
         // Refetch requisition details after update
-        const updated = await fetch(`http://127.0.0.1:8000/requisitions/${id}`);
+        const updated = await fetch(`${API_BASE_URL}/requisitions/${id}`);
         const updatedRequisition = await updated.json();
         setRequisition(updatedRequisition);
         toast.success(`Requisition ${status}!`);
@@ -212,7 +212,7 @@ const updateAssignments = async (recruiterId: number) => {
   try {
     const updateData = { recruiter_id: recruiterId };
 
-    const response = await fetch(`http://127.0.0.1:8000/requisitions/${id}/assignTeam`, {
+    const response = await fetch(`${API_BASE_URL}/requisitions/${id}/assignTeam`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",

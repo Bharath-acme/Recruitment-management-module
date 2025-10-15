@@ -5,6 +5,7 @@ import { Textarea } from "./ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Button } from "./ui/button";
 import { useAuth } from "./AuthProvider";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 interface RequisitionFormProps {
   initialData?: any; // pass requisition when editing
@@ -56,7 +57,7 @@ export function RequisitionForm({ initialData, onSubmit, onCancel }: Requisition
 
   const getTeamData = async () => {
     try {
-      const response = await fetch("http://127.0.0.1:8000/recruiter_team", {
+      const response = await fetch(`${API_BASE_URL}/recruiter_team`, {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`

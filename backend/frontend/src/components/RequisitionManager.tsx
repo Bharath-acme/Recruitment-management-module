@@ -29,6 +29,7 @@ import { useNavigate } from 'react-router-dom';
 import { RequisitionForm } from './RequisitionFrom';
 import { useAuth } from './AuthProvider';
 import { Capitalize } from '../utils/Utils';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 
 interface RequisitionManagerProps {
@@ -119,7 +120,7 @@ export function RequisitionManager({ selectedCompany, selectedCountry }: Requisi
   try {
     const approvalStatus = queryvalues();
     const response = await fetch(
-      `http://127.0.0.1:8000/requisitions?approval_status=${approvalStatus}&user_id=${user?.id}&role=${user?.role}`,
+      `${API_BASE_URL}/requisitions?approval_status=${approvalStatus}&user_id=${user?.id}&role=${user?.role}`,
       {
         headers: { 'Content-Type': 'application/json' }
       }
@@ -142,7 +143,7 @@ export function RequisitionManager({ selectedCompany, selectedCountry }: Requisi
   // Add the missing handler function for creating a requisition
   const handleCreateRequisition = async (requisitionData:any) => {
     try {
-      const response = await fetch('http://127.0.0.1:8000/requisitions/create-requisition', {
+      const response = await fetch(`${API_BASE_URL}/requisitions/create-requisition`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

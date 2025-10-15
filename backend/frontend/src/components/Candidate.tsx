@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import CandidateForm from './CandidateForm';
 import { formatDate } from '../utils/Utils';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 interface CandidateLog {
   id: number;
@@ -62,7 +63,7 @@ export default function CandidateProfile() {
 
   useEffect(() => {
     if (!id) return;
-    fetch(`http://127.0.0.1:8000/candidates/${id}`)
+    fetch(`${API_BASE_URL}/candidates/${id}`)
       .then((res) => res.json())
       .then((data: Candidate) => {
         setCandidate(data);
@@ -79,7 +80,7 @@ export default function CandidateProfile() {
 
   const fetchLogs = async () => {
     try {
-      const res = await fetch(`http://127.0.0.1:8000/candidates/${id}/activity-logs`);
+      const res = await fetch(`${API_BASE_URL}/candidates/${id}/activity-logs`);
       if (!res.ok) throw new Error("Failed to fetch candidate logs");
       const data = await res.json();
       setLogs(data);
@@ -104,7 +105,7 @@ const token = localStorage.getItem('token');
 
   const handleUpdateCandidate = async (updatedData: any) => {
     try {
-      const response = await fetch(`http://127.0.0.1:8000/candidates/${candidate.id}`, {
+      const response = await fetch(`${API_BASE_URL}/candidates/${candidate.id}`, {
         method: "PUT", // or PATCH depending on your API
         headers: {
           "Content-Type": "application/json",
@@ -117,7 +118,7 @@ const token = localStorage.getItem('token');
         toast.success("Candidate updated successfully!");
         setCandidate(updatedCandidate); // update state
         setShowAddDialog(false); // close dialog
-        const res = await fetch(`http://127.0.0.1:8000/candidates/${candidate.id}/activity-logs`);
+        const res = await fetch(`${API_BASE_URL}/candidates/${candidate.id}/activity-logs`);
         setLogs(await res.json());
       } else {
         toast.error("Failed to update candidate");

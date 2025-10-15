@@ -27,6 +27,7 @@ import {
 import { toast } from 'sonner';
 import { projectId, publicAnonKey } from '../utils/supabase/info';
 import CandidateForm from './CandidateForm';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 interface CandidateManagerProps {
   selectedCompany: string;
@@ -103,7 +104,7 @@ export function CandidateManager({ selectedCompany, selectedCountry }: Candidate
  const loadCandidates = async () => {
   setLoading(true);
   try {
-    const response = await fetch(`http://127.0.0.1:8000/candidates`, {
+    const response = await fetch(`${API_BASE_URL}/candidates`, {
       headers: { 'Content-Type': 'application/json',
         authorization: `Bearer ${token}`
        }
@@ -128,7 +129,7 @@ export function CandidateManager({ selectedCompany, selectedCountry }: Candidate
   
   const handleAddCandidate = async (candidateData: any) => {
   try {
-    const response = await fetch("http://127.0.0.1:8000/candidates/create-candidate", {
+    const response = await fetch(`${API_BASE_URL}/candidates/create-candidate`, {
       method: "POST",
       headers: { "Content-Type": "application/json",
         authorization: `Bearer ${token}`

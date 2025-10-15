@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 // Removed supabase imports and client
 
 
@@ -37,7 +38,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const token = localStorage.getItem('token');
     if (token) {
       setLoading(true);
-      fetch('http://127.0.0.1:8000/me', {
+      fetch(`${API_BASE_URL}/me`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -61,7 +62,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    const res = await fetch('http://127.0.0.1:8000/login', {
+    const res = await fetch(`${API_BASE_URL}/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })
@@ -73,7 +74,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const data = await res.json();
     localStorage.setItem('token', data.access_token);
     // Fetch user info
-    const userRes = await fetch('http://127.0.0.1:8000/me', {
+    const userRes = await fetch(`${API_BASE_URL}/me`, {
       headers: { 'Authorization': `Bearer ${data.access_token}` }
     });
     const userData = await userRes.json();
@@ -89,7 +90,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   };
 
   const signUp = async (email: string, password: string, userData: any) => {
-    const response = await fetch(`http://127.0.0.1:8000/register`, {
+    const response = await fetch(`${API_BASE_URL}/register`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
