@@ -147,6 +147,6 @@ app.include_router(offers_api.router, prefix="/offers", tags=["Offers"])
 
 
 
- app.mount("/", StaticFiles(directory=FRONTEND_BUILD_DIR, html=True), name="static")
+app.mount("/", StaticFiles(directory=FRONTEND_BUILD_DIR, html=True), name="static")
 
 
