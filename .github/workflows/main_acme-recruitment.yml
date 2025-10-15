@@ -1,0 +1,38 @@
+name: Deploy Python App to Azure Web App - acme-recruitment
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  # Use one job named 'deploy' for a straightforward process
+  deploy: 
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python version
+        # This is optional, but good for specifying the runtime environment
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      # The key deployment step. 
+      - name: 'Deploy Backend to Azure Web App'
+        uses: azure/webapps-deploy@v3
+        id: deploy-to-webapp
+        with:
+          app-name: 'acme-recruitment'
+          slot-name: 'Production'
+          # CRITICAL FIX: Directs the deployment action to use the 'backend' folder
+          # This resolves both 'requirements.txt not found' and 'artifact not found' errors.
+          package: ./backend 
+          # Ensure this secret name is correct and indented properly:
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_B4485BBD185742AAA1E9262EBEE7D61B }}
+
+

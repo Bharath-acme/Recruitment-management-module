@@ -1,5 +1,7 @@
 from fastapi import FastAPI, Depends, HTTPException, status, Query
 from fastapi.security import OAuth2PasswordRequestForm,OAuth2PasswordBearer
+from fastapi.staticfiles import StaticFiles # Needed for app.mount
+from starlette.responses import FileResponse # Needed for serve_react()
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 from app import models, schemas, crud, auth
@@ -21,7 +23,7 @@ Base.metadata.create_all(bind=engine)
 app = FastAPI()
 
 # Serve React build
-app.mount("/static", StaticFiles(directory="frontend/build/static"), name="static")
+# app.mount("/static", StaticFiles(directory="frontend/build/static"), name="static")
 
 @app.get("/")
 def serve_react():
