@@ -40,7 +40,7 @@ if os.path.exists(FRONTEND_BUILD_DIR) and os.path.exists(FRONTEND_INDEX_FILE):
     # 2. It serves /assets/index-....js when requested.
     # 3. If a request doesn't match a file (e.g., /candidates), 
     #    it falls back to serving index.html (SPA routing mechanism).
-    app.mount("/", StaticFiles(directory=FRONTEND_BUILD_DIR, html=True), name="static")
+   
     
     # We no longer need the explicit @app.get("/{full_path:path}") fallback 
     # because StaticFiles(html=True) handles it.
@@ -144,5 +144,9 @@ app.include_router(candidates_api.router, prefix="/candidates", tags=["Candidate
 app.include_router(requisitions_api.router, prefix="/requisitions", tags=["Requisitions"])
 app.include_router(interviews_api.router, prefix="/interviews", tags=["Interviews"])
 app.include_router(offers_api.router, prefix="/offers", tags=["Offers"])
+
+
+
+ app.mount("/", StaticFiles(directory=FRONTEND_BUILD_DIR, html=True), name="static")
 
 
