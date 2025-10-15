@@ -27,7 +27,7 @@ export function LoginForm() {
     confirmPassword: '',
     name: '',
     role: '',
-    companyName: '',
+    company: '',
     companySize: '',
     companyDescription: '',
     country: ''
@@ -65,7 +65,7 @@ export function LoginForm() {
           confirm_password: signupData.confirmPassword,
           name: signupData.name,
           role: signupData.role,
-          company_name: signupData.companyName,
+          company: signupData.company,
           company_size: signupData.companySize,
           company_description: signupData.companyDescription,
           country: signupData.country,
@@ -215,8 +215,8 @@ export function LoginForm() {
                         <Label>Company Name</Label>
                         <Input
                           placeholder="ACME Corporation"
-                          value={signupData.companyName}
-                          onChange={(e) => setSignupData({ ...signupData, companyName: e.target.value })}
+                          value={signupData.company}
+                          onChange={(e) => setSignupData({ ...signupData, company: e.target.value })}
                           required
                         />
                       </div>
