@@ -8,7 +8,7 @@ from requisitions.schemas import RequisitionMini
 
 class InterviewBase(BaseModel):
     candidate_id: str
-    requisition_id: str
+    requisition_id: int
     interview_type: str
     mode: str
     datetime: datetime
