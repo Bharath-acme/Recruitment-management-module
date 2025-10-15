@@ -25,7 +25,8 @@ app = FastAPI()
 # --- PATH LOGIC FOR FRONTEND ASSETS ---
 # Assuming app/main.py is in 'backend/app' and the frontend build is in 'frontend/build'
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-FRONTEND_BUILD_DIR = os.path.join(BASE_DIR, '..', '..', 'frontend', 'build')
+FRONTEND_BUILD_DIR = os.path.join(BASE_DIR, '..', 'frontend', 'build')
+FRONTEND_BUILD_DIR = os.path.abspath(FRONTEND_BUILD_DIR)
 FRONTEND_INDEX_FILE = os.path.join(FRONTEND_BUILD_DIR, 'index.html')
 
 
