@@ -1,8 +1,8 @@
 import os
-from fastapi import FastAPI, Depends, HTTPException, status, Query
-from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
-from fastapi.staticfiles import StaticFiles # Needed for app.mount
-from starlette.responses import FileResponse # Needed for serve_react()
+from fastapi import FastAPI, Depends, HTTPException
+from fastapi.security import OAuth2PasswordBearer
+from fastapi.staticfiles import StaticFiles
+from starlette.responses import FileResponse, HTMLResponse
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 from app import models, schemas, crud, auth
@@ -17,36 +17,54 @@ from interviews import api as interviews_api
 from offers import api as offers_api
 from datetime import datetime, timedelta
 
-
+# --- Database Setup ---
 Base.metadata.create_all(bind=engine)
-# Base.metadata.drop_all(bind=engine)
 
 app = FastAPI()
 
 # --- PATH LOGIC FOR FRONTEND ASSETS ---
 # Assuming app/main.py is in 'backend/app' and the frontend build is in 'frontend/build'
-# relative to the repository root on the server.
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-# Go up out of 'app', up out of 'backend', then into 'frontend/build'
 FRONTEND_BUILD_DIR = os.path.join(BASE_DIR, '..', '..', 'frontend', 'build')
+FRONTEND_INDEX_FILE = os.path.join(FRONTEND_BUILD_DIR, 'index.html')
 
-# Serve React build (REVISED MOUNT POINT)
-try:
-    if os.path.exists(FRONTEND_BUILD_DIR):
-        # IMPORTANT: We are mounting the *entire* build directory to the / path
-        # using the StaticFiles method, which catches all requests for static assets
-        # that don't match a defined API route. This is the best way to handle
-        # frontend frameworks that assume assets are at the root (e.g., /js/app.js).
-        app.mount("/", StaticFiles(directory=FRONTEND_BUILD_DIR, html=True), name="static")
-    else:
-        # If the build folder is not found, we print a warning.
-        print(f"Warning: Frontend build directory not found at {FRONTEND_BUILD_DIR}. Cannot serve static files.")
-except Exception as e:
-    print(f"Error mounting static files: {e}")
 
+# Serve React build
+if os.path.exists(FRONTEND_BUILD_DIR) and os.path.exists(FRONTEND_INDEX_FILE):
+    print(f"INFO: Frontend build directory found at: {FRONTEND_BUILD_DIR}")
+    
+    # CRITICAL CHANGE: Mount the entire build directory to the root ("/") 
+    # and set html=True. This makes StaticFiles handle the SPA routing:
+    # 1. It serves /index.html when / is requested.
+    # 2. It serves /assets/index-....js when requested.
+    # 3. If a request doesn't match a file (e.g., /candidates), 
+    #    it falls back to serving index.html (SPA routing mechanism).
+    app.mount("/", StaticFiles(directory=FRONTEND_BUILD_DIR, html=True), name="static")
+    
+    # We no longer need the explicit @app.get("/{full_path:path}") fallback 
+    # because StaticFiles(html=True) handles it.
+else:
+    print(f"WARNING: Frontend build directory NOT found at {FRONTEND_BUILD_DIR}. Only API routes will be available.")
+    # Provide a simple error message if the frontend is missing.
+    @app.get("/", include_in_schema=False, response_class=HTMLResponse)
+    async def missing_frontend():
+        return """
+        <html>
+            <head><title>Backend Running</title></head>
+            <body>
+                <h1>FastAPI Backend is Running</h1>
+                <p><strong>Warning:</strong> The Frontend build directory (./frontend/build) was not found.</p>
+                <p>Please ensure your deployment process includes building the React application (e.g., running `npm run build` in the frontend directory).</p>
+                <p>All API endpoints are active. The build path currently checks: <code>{}</code></p>
+            </body>
+        </html>
+        """.format(FRONTEND_BUILD_DIR)
+
+
+# --- CORS Middleware ---
 origins = [
-    "http://localhost:3000", # React dev server
-    "http://127.0.0.1:8000" # sometimes React runs here
+    "http://localhost:3000",
+    "http://127.0.0.1:8000"
 ]
 
 app.add_middleware(
