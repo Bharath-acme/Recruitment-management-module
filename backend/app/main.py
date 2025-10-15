@@ -140,3 +140,5 @@ app.include_router(candidates_api.router, prefix="/candidates", tags=["Candidate
 app.include_router(requisitions_api.router, prefix="/requisitions", tags=["Requisitions"])
 app.include_router(interviews_api.router, prefix="/interviews", tags=["Interviews"])
 app.include_router(offers_api.router, prefix="/offers", tags=["Offers"])
+
+
