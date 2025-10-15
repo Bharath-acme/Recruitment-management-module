@@ -23,12 +23,12 @@ jobs:
           node-version: '20' # Use a modern LTS version for React/Vite
           
       - name: Install Frontend Dependencies
-        # FIX: Changed './frontend' to 'frontend' for working-directory
+        # Use the relative path to the repo root for working-directory
         working-directory: frontend 
         run: npm install
         
       - name: Build React Frontend
-        # FIX: Changed './frontend' to 'frontend' for working-directory
+        # Use the relative path to the repo root for working-directory
         working-directory: frontend
         run: npm run build
         
@@ -39,7 +39,7 @@ jobs:
           python-version: '3.13'
           
       - name: Install Backend Dependencies
-        # FIX: Changed './backend' to 'backend' for working-directory
+        # Use the relative path to the repo root for working-directory
         working-directory: backend
         run: pip install -r requirements.txt
 
@@ -55,6 +55,7 @@ jobs:
           package: . 
           # Ensure this secret name is correct and indented properly:
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_B4485BBD185742AAA1E9262EBEE7D61B }}
+
 
 
 
