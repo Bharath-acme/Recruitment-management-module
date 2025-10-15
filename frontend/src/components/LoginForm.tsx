@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import logo from '../media/thumbnail_image001.png';
+import login_image from '../media/login_img2.png';
 
 export function LoginForm() {
   const { signIn } = useAuth();
@@ -84,7 +85,7 @@ export function LoginForm() {
   };
 
   const roles = [
-    { value: 'admin', label: 'HR Admin / TA Lead' },
+    { value: 'admin', label: 'Manager' },
     { value: 'recruiter', label: 'Recruiter (TA Partner)' },
     { value: 'hiring_manager', label: 'Hiring Manager' },
     { value: 'interviewer', label: 'Interviewer / Panel' },
@@ -99,14 +100,26 @@ export function LoginForm() {
        
       {/* Left Section with Image */}
               
-      <div className="hidden md:flex bg-blue-900 rounded-e-3xl ">
-        
-                <img className='position-absolute top-0 left-0 h-15 ' src={logo}  />
+      <div className="hidden flex flex-col md:flex bg-white rounded-e-3xl ">
+        <img className='absolute top-0 left-0 h-15 ' src={logo}  />
+        <div style={{
+          height:'58%',
+          width:'100%',
+          
+        }}>
         <img
-          src="/your-image.png" 
+          src={login_image}
           alt="Recruitment Illustration"
-          className="w-3/4 max-h-[80%] object-contain"
+         
+          style={{width:"100%", height:"100%", marginTop:0}}
         />
+        </div>
+        <div className='bg-gray-100' style={{height:'40%'}} >
+          <div className='h-13 mt-5 mb-2 relative bg-white flex items-center justify-center  text-center  border border-blue-200 rounded-3xl w-50 '><span>Join ACME</span></div>
+           <div className='h-13 mb-2 relative left-40 bg-white flex items-center justify-center  text-center  border border-blue-200 rounded-3xl w-50 '>Raise a Job</div>
+            <div className='h-13 mb-2 relative left-80 bg-white flex items-center justify-center  text-center  border border-blue-200 rounded-3xl w-50 '>Relax</div>
+             <div className='h-13 mb-2 relative left-120 bg-white flex items-center justify-center  text-center  border border-blue-200 rounded-3xl w-50 '>Get Talent</div>
+        </div>
       </div>
      <div className=' bg-green-100 rounded-sm absolute '></div> 
 
@@ -114,9 +127,7 @@ export function LoginForm() {
       <div className="flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
-            <div className="flex justify-center mb-4">
-              Join ACME → Raise Job → Relax → We Handle → Get Talent
-            </div>
+           
             <h1 className="text-2xl font-bold text-gray-900">Talent Acquisition System</h1>
             <p className="text-gray-600">Enterprise Recruitment Management</p>
           </div>

@@ -142,7 +142,7 @@ export function RequisitionManager({ selectedCompany, selectedCountry }: Requisi
   // Add the missing handler function for creating a requisition
   const handleCreateRequisition = async (requisitionData:any) => {
     try {
-      const response = await fetch('http://127.0.0.1:8000/create-requisition', {
+      const response = await fetch('http://127.0.0.1:8000/requisitions/create-requisition', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -268,7 +268,7 @@ export function RequisitionManager({ selectedCompany, selectedCountry }: Requisi
         <CardContent className="p-0">
           <Table >
             <TableHeader >
-              <TableRow className='border-blue-200' >
+              <TableRow >
               <TableHead>Position</TableHead>
               <TableHead>Department</TableHead>
               <TableHead>Status</TableHead>

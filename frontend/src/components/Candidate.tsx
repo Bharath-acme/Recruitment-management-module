@@ -11,10 +11,24 @@ import { useNavigate } from 'react-router-dom';
 import CandidateForm from './CandidateForm';
 import { formatDate } from '../utils/Utils';
 
+interface CandidateLog {
+  id: number;
+  candidate_id: string;
+  requisition_id?: number;
+  action: string;
+  details: string;
+  timestamp: string;       // ISO string
+  username?: string | null; // user who performed the action
+}
+
+
+
 export default function CandidateProfile() {
   const { id } = useParams<{ id: string }>();
   const [resumeFile, setResumeFile] = useState<File | null>(null);
    const [showAddDialog, setShowAddDialog] = useState(false);
+   const [logs, setLogs] = useState<CandidateLog[]>([]);
+   const [logsLoading, setLogsLoading] = useState(true);
   const [candidate, setCandidate] = useState<Candidate>({
     id: '',
     name: '',
@@ -58,8 +72,26 @@ export default function CandidateProfile() {
         console.error("Error fetching candidate:", err);
         setLoading(false);
       });
+
+      fetchLogs();
   }, [id,]);
 
+
+  const fetchLogs = async () => {
+    try {
+      const res = await fetch(`http://127.0.0.1:8000/candidates/${id}/activity-logs`);
+      if (!res.ok) throw new Error("Failed to fetch candidate logs");
+      const data = await res.json();
+      setLogs(data);
+    } catch (err) {
+      console.error("Error fetching candidate logs:", err);
+    } finally {
+      setLogsLoading(false);
+    }
+  };
+
+  
+const token = localStorage.getItem('token');
   const handleRatingClick = (value: number) => {
     setCurrentRating(value);
     setCandidate({ ...candidate, rating: value });
@@ -76,6 +108,7 @@ export default function CandidateProfile() {
         method: "PUT", // or PATCH depending on your API
         headers: {
           "Content-Type": "application/json",
+           authorization: `Bearer ${token}`
         },
         body: JSON.stringify(updatedData),
       });
@@ -84,6 +117,8 @@ export default function CandidateProfile() {
         toast.success("Candidate updated successfully!");
         setCandidate(updatedCandidate); // update state
         setShowAddDialog(false); // close dialog
+        const res = await fetch(`http://127.0.0.1:8000/candidates/${candidate.id}/activity-logs`);
+        setLogs(await res.json());
       } else {
         toast.error("Failed to update candidate");
       }
@@ -194,17 +229,34 @@ export default function CandidateProfile() {
           </div>
 
           {/* Notes & Activity */}
-          <div className="bg-gray-50 p-6 rounded-xl border mb-8">
-            <h2 className="text-xl font-semibold mb-4">Notes & Activity</h2>
-            <p className="text-sm text-gray-600 mb-2">Last Activity: {formatDate(candidate.last_activity)}</p>
-            <textarea
-              name="notes"
-              value={candidate.notes}
-              onChange={handleEditChange}
-              className="w-full h-32 p-3 text-sm border rounded-lg"
-              placeholder="Add private notes..."
-            />
+          {/* Activity Log */}
+            <div className="bg-gray-50 p-6 rounded-xl border mb-8">
+  <h2 className="text-xl font-semibold mb-4">Activity Log</h2>
+
+            {logsLoading ? (
+              <p className="text-gray-500">Loading activity logs...</p>
+            ) : logs.length === 0 ? (
+              <p className="text-gray-400">No activity logs found.</p>
+            ) : (
+              <ul className="space-y-3">
+                {logs.map((log) => (
+                  <li key={log.id} className="border-l-4 border-blue-500 pl-3 pb-2">
+                    <div className="flex justify-between items-center">
+                      <span className="font-medium text-gray-800">
+                        {log.username}
+                      </span>
+                      <span className="text-sm text-gray-500">
+                        {new Date(log.timestamp).toLocaleString()}
+                      </span>
+                    </div>
+                    <p className="text-gray-600 text-sm">{log.details}</p>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
+
+
            </div>
           {/* Resume Section */}
 

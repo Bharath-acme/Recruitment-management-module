@@ -98,11 +98,15 @@ export function CandidateManager({ selectedCompany, selectedCountry }: Candidate
 
   }, [selectedCompany, selectedCountry, stageFilter]);
 
+  const token = localStorage.getItem('token');
+
  const loadCandidates = async () => {
   setLoading(true);
   try {
     const response = await fetch(`http://127.0.0.1:8000/candidates`, {
-      headers: { 'Content-Type': 'application/json' }
+      headers: { 'Content-Type': 'application/json',
+        authorization: `Bearer ${token}`
+       }
     });
 
     if (response.ok) {
@@ -124,9 +128,11 @@ export function CandidateManager({ selectedCompany, selectedCountry }: Candidate
   
   const handleAddCandidate = async (candidateData: any) => {
   try {
-    const response = await fetch("http://127.0.0.1:8000/create-candidate", {
+    const response = await fetch("http://127.0.0.1:8000/candidates/create-candidate", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json",
+        authorization: `Bearer ${token}`
+       },
       body: JSON.stringify(candidateData),
     });
 
