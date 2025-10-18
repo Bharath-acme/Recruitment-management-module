@@ -134,10 +134,15 @@ def read_users_me(current_user=Depends(get_current_user)):
 @app.get("/recruiter_team", response_model=List[schemas.RecruiterBase])
 def get_team_members(current_user=Depends(get_current_user), db: Session = Depends(get_db)):
     print('curent user:', current_user)
-    if current_user.role.lower() != "hiring_manager":
+    if current_user.role.lower() != "hiring_manager" and current_user.role.lower() != "admin":
         raise HTTPException(status_code=403, detail="Not authorized to view team members")
     return db.query(models.User.id, models.User.name).filter(models.User.role == "recruiter").all()
 
+@app.get("/hiring_managers", response_model=List[schemas.RecruiterBase])
+def get_hiring_managers(current_user=Depends(get_current_user), db: Session = Depends(get_db)):
+    if current_user.role.lower() != "admin":
+        raise HTTPException(status_code=403, detail="Not authorized to view hiring managers")
+    return db.query(models.User.id, models.User.name).filter(models.User.role == "hiring_manager").all()
 
 # Include routers for other modules
 app.include_router(candidates_api.router, prefix="/candidates", tags=["Candidates"])
