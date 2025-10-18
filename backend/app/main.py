@@ -154,4 +154,11 @@ app.include_router(offers_api.router, prefix="/offers", tags=["Offers"])
 
 app.mount("/", StaticFiles(directory=FRONTEND_BUILD_DIR, html=True), name="static")
 
+# app.mount("/static", StaticFiles(directory="frontend/build/static"), name="static")
+
+@app.get("/{full_path:path}")
+async def serve_react_app(full_path: str):
+    file_path = os.path.join("frontend", "build", "index.html")
+    return FileResponse(file_path)
+
 
