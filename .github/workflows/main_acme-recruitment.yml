@@ -33,7 +33,7 @@ jobs:
       - name: Set up Python version
         uses: actions/setup-python@v5
         with:
-          python-version: '3.13'
+          python-version: '3.11'
           
       - name: Install Backend Dependencies
         working-directory: backend
@@ -49,3 +49,4 @@ jobs:
           package: ./backend
 
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_282D2E4FB76943A69C194694A1A70C02 }}
+
