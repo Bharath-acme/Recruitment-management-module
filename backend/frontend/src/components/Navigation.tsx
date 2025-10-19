@@ -14,7 +14,7 @@ import {
   Globe,
 } from 'lucide-react';
 import logo from '../media/profile_logo.png';
-import { Link, useLocation } from 'react-router-dom';   // ✅ Router imports
+import { Link, useLocation, useNavigate } from 'react-router-dom';   // ✅ Router imports
 
 interface NavigationProps {
   selectedCompany: string;
@@ -35,6 +35,7 @@ export function Navigation({
 }: NavigationProps) {
   const { user, signOut } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
 
   const navItems = [
     { path: '/dashboard', label: 'Dashboard', icon: BarChart3, roles: ['admin', 'recruiter', 'hiring_manager', 'finance'] },
@@ -48,6 +49,11 @@ export function Navigation({
   ];
   const filteredNavItems = navItems.filter((item) => !userRole || item.roles.includes(userRole));
 
+  // 3. Create the asynchronous handler for sign out and navigation
+    const handleSignOut = async () => {
+        await signOut(); // Clear token and local state
+        navigate('/login'); // Redirect to the login page (or whichever page is appropriate)
+    }
   return (
     <nav style={{height:'100vh'}} className="flex flex-col mt-5 h-full w-full border-r">
       {/* Logo */}
@@ -73,7 +79,7 @@ export function Navigation({
         </div>
          <Button
         //  className="w-full flex items-center space-x-2 justify-start px-3 py-2 mb-1"
-         variant="ghost" size="sm" onClick={signOut}>
+         variant="ghost" size="sm" onClick={handleSignOut}>
           <LogOut className="h-4 w-4" />
         </Button>
        

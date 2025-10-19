@@ -98,7 +98,7 @@ class RequisitionCreate(RequisitionBase):
 
 # For updating requisition
 class RequisitionUpdate(RequisitionBase):
-    approval_status: Optional[str] = "Pending"
+    approval_status: Optional[str] = "pending"
     recruiter_id: Optional[int] = None
 
 
@@ -110,7 +110,7 @@ class RequisitionResponse(RequisitionBase):
     recruiter_id: Optional[int] = None   
     recruiter: Optional[RecruiterOut]
     candidates: List["CandidateResponse"] = [] 
-    approval_status: Optional[str] = "Pending"
+    approval_status: Optional[str] = "pending"
     # positions: List[PositionResponse] = []
     class Config:
         orm_mode = True

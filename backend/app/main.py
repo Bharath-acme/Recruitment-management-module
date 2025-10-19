@@ -112,7 +112,7 @@ app.include_router(requisitions_api.router, prefix="/requisitions", tags=["Requi
 app.include_router(interviews_api.router, prefix="/interviews", tags=["Interviews"])
 app.include_router(offers_api.router, prefix="/offers", tags=["Offers"])
 
-# ================== FRONTEND PATH SETUP ==================
+# ================== FRONTEND PATH SETUP (SIMPLIFIED FIX) ==================
 # 1️⃣ Define frontend build directory
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 FRONTEND_BUILD_DIR = os.path.abspath(os.path.join(BASE_DIR, '..', 'frontend', 'build'))
@@ -124,17 +124,14 @@ if os.path.exists(FRONTEND_BUILD_DIR) and os.path.exists(FRONTEND_INDEX_FILE):
 else:
     print(f"⚠️ Frontend build directory not found at {FRONTEND_BUILD_DIR}")
 
-# 3️⃣ Mount React static files
+# 3️⃣ Mount React static files (This should be the LAST mount/route)
 if os.path.exists(FRONTEND_BUILD_DIR):
     app.mount("/", StaticFiles(directory=FRONTEND_BUILD_DIR, html=True), name="frontend")
 else:
+    # Fallback for the root path if the build directory is missing
     @app.get("/", include_in_schema=False)
-    async def frontend_missing():
+    async def frontend_missing_fallback():
         return HTMLResponse("<h2>Frontend build not found. Run `npm run build` in frontend/</h2>")
 
-# 4️⃣ Catch-all route for React Router (for refresh support)
-@app.get("/{full_path:path}", include_in_schema=False)
-async def serve_react_app(full_path: str):
-    if os.path.exists(FRONTEND_INDEX_FILE):
-        return FileResponse(FRONTEND_INDEX_FILE)
-    return HTMLResponse("<h2>index.html not found. Run `npm run build` in frontend/</h2>")
+# 4️⃣ REMOVE THE EXPLICIT CATCH-ALL ROUTE!
+# The `html=True` in StaticFiles now handles the refresh/deep-linking
