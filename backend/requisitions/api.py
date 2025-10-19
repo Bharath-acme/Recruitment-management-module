@@ -7,6 +7,9 @@ from app.auth import get_current_user
 from app.database import get_db
 from typing import List, Optional
 from fastapi import APIRouter
+from app import celery_worker
+# from celery.results import AsyncResult
+
 
 router = APIRouter()
 
@@ -122,7 +125,8 @@ def update_requisition_approval(
         action="Approval Status Updated",
         details=f"Changed from '{old_status}' to '{approval_update.approval_status}'"
     )
-
+    # task = celery_worker.req_approval_task.delay(requisition.__dict__)
+    # print(f"Celery Task: {task}")
     return requisition
 
 @router.put("/{req_id}/assignTeam", response_model=RequisitionResponse)

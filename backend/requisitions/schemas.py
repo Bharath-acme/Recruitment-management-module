@@ -12,7 +12,7 @@ class RecruiterBase(BaseModel):
     name: str
    
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 
@@ -32,7 +32,7 @@ class UserResponse(UserBase):
     id: int
     requisitions: List["RequisitionMini"] = [] 
     class Config:
-        orm_mode = True
+        from_attributes = True
     # Resolve forward references
     
 
@@ -46,7 +46,7 @@ class RecruiterOut(BaseModel):
     email: str
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class PositionBase(BaseModel):
     requisition_id: int
@@ -61,7 +61,7 @@ class PositionCreate(PositionBase):
 class PositionResponse(PositionBase):
     id: int
     class Config:
-        orm_mode = True
+        from_attributes = True
     # Resolve forward references
     
 
@@ -113,7 +113,7 @@ class RequisitionResponse(RequisitionBase):
     approval_status: Optional[str] = "pending"
     # positions: List[PositionResponse] = []
     class Config:
-        orm_mode = True
+        from_attributes = True
    
 class RequisitionMini(BaseModel):
     id: int
@@ -121,7 +121,7 @@ class RequisitionMini(BaseModel):
     status: Status
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class RequisitionApprovalUpdate(BaseModel):
     approval_status: str
@@ -145,7 +145,7 @@ class ActivityLogResponse(ActivityLogBase):
     timestamp: datetime
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 UserResponse.update_forward_refs()
 RequisitionResponse.update_forward_refs()
