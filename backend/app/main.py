@@ -17,55 +17,17 @@ from interviews import api as interviews_api
 from offers import api as offers_api
 from datetime import datetime, timedelta
 
-# --- Database Setup ---
+# ================== DATABASE SETUP ==================
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
-# --- PATH LOGIC FOR FRONTEND ASSETS ---
-# Assuming app/main.py is in 'backend/app' and the frontend build is in 'frontend/build'
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-FRONTEND_BUILD_DIR = os.path.join(BASE_DIR, '..', 'frontend', 'build')
-FRONTEND_BUILD_DIR = os.path.abspath(FRONTEND_BUILD_DIR)
-FRONTEND_INDEX_FILE = os.path.join(FRONTEND_BUILD_DIR, 'index.html')
 
 
-# Serve React build
-if os.path.exists(FRONTEND_BUILD_DIR) and os.path.exists(FRONTEND_INDEX_FILE):
-    print(f"INFO: Frontend build directory found at: {FRONTEND_BUILD_DIR}")
-    
-    # CRITICAL CHANGE: Mount the entire build directory to the root ("/") 
-    # and set html=True. This makes StaticFiles handle the SPA routing:
-    # 1. It serves /index.html when / is requested.
-    # 2. It serves /assets/index-....js when requested.
-    # 3. If a request doesn't match a file (e.g., /candidates), 
-    #    it falls back to serving index.html (SPA routing mechanism).
-   
-    
-    # We no longer need the explicit @app.get("/{full_path:path}") fallback 
-    # because StaticFiles(html=True) handles it.
-else:
-    print(f"WARNING: Frontend build directory NOT found at {FRONTEND_BUILD_DIR}. Only API routes will be available.")
-    # Provide a simple error message if the frontend is missing.
-    @app.get("/", include_in_schema=False, response_class=HTMLResponse)
-    async def missing_frontend():
-        return """
-        <html>
-            <head><title>Backend Running</title></head>
-            <body>
-                <h1>FastAPI Backend is Running</h1>
-                <p><strong>Warning:</strong> The Frontend build directory (./frontend/build) was not found.</p>
-                <p>Please ensure your deployment process includes building the React application (e.g., running `npm run build` in the frontend directory).</p>
-                <p>All API endpoints are active. The build path currently checks: <code>{}</code></p>
-            </body>
-        </html>
-        """.format(FRONTEND_BUILD_DIR)
-
-
-# --- CORS Middleware ---
+# ================== CORS SETUP ==================
 origins = [
-    "http://localhost:3000",# React dev server
-    "http://127.0.0.1:8000", # sometimes React runs here
+    "http://localhost:3000",
+    "http://127.0.0.1:8000",
     "https://acme-recruitment-gyf3fnh3fbdbdka2.canadacentral-01.azurewebsites.net"
 ]
 
@@ -73,17 +35,17 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,
- 	allow_methods=["*"],
-  	allow_headers=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
-# =============================Authentication============================
-
+# ================== AUTH & USER LOGIC ==================
 SECRET_KEY = "supersecretkey"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
+
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None):
     to_encode = data.copy()
@@ -94,7 +56,6 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
 
 @app.post("/register", response_model=schemas.UserResponse)
 def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
-
     if user.password != user.confirm_password:
         raise HTTPException(status_code=400, detail="Passwords do not match")
 
@@ -133,20 +94,47 @@ def read_users_me(current_user=Depends(get_current_user)):
 
 @app.get("/recruiter_team", response_model=List[schemas.RecruiterBase])
 def get_team_members(current_user=Depends(get_current_user), db: Session = Depends(get_db)):
-    print('curent user:', current_user)
-    if current_user.role.lower() != "hiring_manager":
+    if current_user.role.lower() not in ["hiring_manager", "admin"]:
         raise HTTPException(status_code=403, detail="Not authorized to view team members")
     return db.query(models.User.id, models.User.name).filter(models.User.role == "recruiter").all()
 
 
-# Include routers for other modules
+@app.get("/hiring_managers", response_model=List[schemas.RecruiterBase])
+def get_hiring_managers(current_user=Depends(get_current_user), db: Session = Depends(get_db)):
+    if current_user.role.lower() != "admin":
+        raise HTTPException(status_code=403, detail="Not authorized to view hiring managers")
+    return db.query(models.User.id, models.User.name).filter(models.User.role == "hiring_manager").all()
+
+
+# ================== MODULE ROUTERS ==================
 app.include_router(candidates_api.router, prefix="/candidates", tags=["Candidates"])
 app.include_router(requisitions_api.router, prefix="/requisitions", tags=["Requisitions"])
 app.include_router(interviews_api.router, prefix="/interviews", tags=["Interviews"])
 app.include_router(offers_api.router, prefix="/offers", tags=["Offers"])
 
+# ================== FRONTEND PATH SETUP ==================
+# 1️⃣ Define frontend build directory
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+FRONTEND_BUILD_DIR = os.path.abspath(os.path.join(BASE_DIR, '..', 'frontend', 'build'))
+FRONTEND_INDEX_FILE = os.path.join(FRONTEND_BUILD_DIR, 'index.html')
 
+# 2️⃣ Debug info (optional)
+if os.path.exists(FRONTEND_BUILD_DIR) and os.path.exists(FRONTEND_INDEX_FILE):
+    print(f"✅ Frontend build directory found: {FRONTEND_BUILD_DIR}")
+else:
+    print(f"⚠️ Frontend build directory not found at {FRONTEND_BUILD_DIR}")
 
-app.mount("/", StaticFiles(directory=FRONTEND_BUILD_DIR, html=True), name="static")
+# 3️⃣ Mount React static files
+if os.path.exists(FRONTEND_BUILD_DIR):
+    app.mount("/", StaticFiles(directory=FRONTEND_BUILD_DIR, html=True), name="frontend")
+else:
+    @app.get("/", include_in_schema=False)
+    async def frontend_missing():
+        return HTMLResponse("<h2>Frontend build not found. Run `npm run build` in frontend/</h2>")
 
-
+# 4️⃣ Catch-all route for React Router (for refresh support)
+@app.get("/{full_path:path}", include_in_schema=False)
+async def serve_react_app(full_path: str):
+    if os.path.exists(FRONTEND_INDEX_FILE):
+        return FileResponse(FRONTEND_INDEX_FILE)
+    return HTMLResponse("<h2>index.html not found. Run `npm run build` in frontend/</h2>")

@@ -25,7 +25,6 @@ import {
   MessageSquare
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { projectId, publicAnonKey } from '../utils/supabase/info';
 import CandidateForm from './CandidateForm';
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -104,7 +103,7 @@ export function CandidateManager({ selectedCompany, selectedCountry }: Candidate
  const loadCandidates = async () => {
   setLoading(true);
   try {
-    const response = await fetch(`${API_BASE_URL}/candidates`, {
+    const response = await fetch(`${API_BASE_URL}/candidates/`, {
       headers: { 'Content-Type': 'application/json',
         authorization: `Bearer ${token}`
        }

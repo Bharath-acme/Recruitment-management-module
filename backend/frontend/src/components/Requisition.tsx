@@ -67,13 +67,14 @@ export default function RequisitionPage() {
    const [openPositionForm, setOpenPositionForm] = useState(false);
    const [positionData, setPositionData] = useState<any>('');
    const [recruitersTeam, setRecruitersTeam] = useState<any[]>([]);
+   const [hiringManagers, setHiringManagers] = useState<any[]>([]);
    const [selectedRecruiter, setSelectedRecruiter] = useState<string>("");
   const [selectedHM, setSelectedHM] = useState<string>("");
   const [logs, setLogs] = useState<ActivityLog[]>([]);
 
  useEffect(() => {
     if (!id) return;
-    fetch(`${API_BASE_URL}requisitions/${id}`)
+    fetch(`${API_BASE_URL}/requisitions/${id}`)
       .then((res) => res.json())
       .then((data: Requisition) => {
         setRequisition(data);
@@ -130,7 +131,7 @@ export default function RequisitionPage() {
 
    const getTeamData = async () => {
     try {
-      const response = await fetch("${API_BASE_URL}/recruiter_team", {
+      const response = await fetch(`${API_BASE_URL}/recruiter_team`, {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`
@@ -147,6 +148,24 @@ export default function RequisitionPage() {
     } catch (error) {
       console.error("Recruiters load error:", error);
     }
+
+    try {
+      const hmResponse = await fetch(`${API_BASE_URL}/hiring_managers`, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        }
+      })
+      if (hmResponse.ok) {
+        const hmData = await hmResponse.json();
+        setHiringManagers(hmData || []);
+        console.log("Hiring Managers:", hmData);
+      } else {
+        console.error("Failed to load hiring managers");
+      }
+  } catch (error) {
+      console.error("Hiring managers load error:", error);
+    } 
   };
  
  
@@ -328,7 +347,7 @@ const updateAssignments = async (recruiterId: number) => {
         {/* Metrics */}
         <section className="mb-8">
           <h2 className="text-xl font-semibold mb-4">Key Metrics</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-4 md:grid-cols-4 gap-4">
             {[
                 { label: "Openings", value:requisition?.positions_count },
                 { label: "Filled", value: filledCount() },
@@ -401,7 +420,7 @@ const updateAssignments = async (recruiterId: number) => {
                         <SelectValue placeholder="Select hiring manager" />
                       </SelectTrigger>
                       <SelectContent>
-                        {recruitersTeam.map((hm) => (
+                        {hiringManagers.map((hm) => (
                           <SelectItem key={hm.id} value={hm.id.toString()}>
                             {hm.name}
                           </SelectItem>

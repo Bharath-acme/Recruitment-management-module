@@ -56,7 +56,7 @@ class Requisitions(Base):
     # Priority & status
     priority = Column(Enum(Priority), nullable=False, default=Priority.MEDIUM)
     status = Column(Enum(Status), nullable=False, default=Status.OPEN)
-    approval_status = Column(String(100), nullable=True, default="Pending")  # e.g. Pending, Approved, Rejected
+    approval_status = Column(String(100), nullable=True, default="pending")  # e.g. Pending, Approved, Rejected
 
     # Salary details
     min_salary = Column(Float, nullable=True)

@@ -42,7 +42,7 @@ function AppContent() {
     < Routes>
     <Route path="/" element={<HomePage/>} />
     <Route path="/login" element={<LoginForm/>} />
-     <Route path="*" element={<Navigate to="/" replace />} />
+     {/* <Route path="*" element={<Navigate to="/" replace />} /> */}
     </ Routes>)
   }
 
@@ -77,7 +77,7 @@ function AppContent() {
           <Route path="/candidates/:id" element={<CandidateProfile />} />
           <Route path="/requisitions/:id" element={<RquisitionPage />} />
           {/* Redirect any unknown route to dashboard */}
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          <Route path="*" element={<Dashboard selectedCompany={selectedCompany} selectedCountry={selectedCountry} />}/>
         </Routes>
         <Toaster />
       </main>

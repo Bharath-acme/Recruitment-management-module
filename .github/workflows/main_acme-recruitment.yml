@@ -47,13 +47,6 @@ jobs:
           app-name: 'acme-recruitment'
           slot-name: 'Production'
           package: ./backend
-        
-          # Ensure this secret name is correct and indented properly:
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_B4485BBD185742AAA1E9262EBEE7D61B }}
 
-
-
-
-
-
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_282D2E4FB76943A69C194694A1A70C02 }}
 
