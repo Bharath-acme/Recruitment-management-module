@@ -22,15 +22,7 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
-# ================== FRONTEND PATH SETUP ==================
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-FRONTEND_BUILD_DIR = os.path.abspath(os.path.join(BASE_DIR, '..', 'frontend', 'build'))
-FRONTEND_INDEX_FILE = os.path.join(FRONTEND_BUILD_DIR, 'index.html')
 
-if os.path.exists(FRONTEND_BUILD_DIR) and os.path.exists(FRONTEND_INDEX_FILE):
-    print(f"✅ Frontend build directory found: {FRONTEND_BUILD_DIR}")
-else:
-    print(f"⚠️ Frontend build directory not found at {FRONTEND_BUILD_DIR}")
 
 # ================== CORS SETUP ==================
 origins = [
@@ -120,10 +112,29 @@ app.include_router(requisitions_api.router, prefix="/requisitions", tags=["Requi
 app.include_router(interviews_api.router, prefix="/interviews", tags=["Interviews"])
 app.include_router(offers_api.router, prefix="/offers", tags=["Offers"])
 
-# ================== FRONTEND (React Build) ==================
+# ================== FRONTEND PATH SETUP ==================
+# 1️⃣ Define frontend build directory
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+FRONTEND_BUILD_DIR = os.path.abspath(os.path.join(BASE_DIR, '..', 'frontend', 'build'))
+FRONTEND_INDEX_FILE = os.path.join(FRONTEND_BUILD_DIR, 'index.html')
+
+# 2️⃣ Debug info (optional)
+if os.path.exists(FRONTEND_BUILD_DIR) and os.path.exists(FRONTEND_INDEX_FILE):
+    print(f"✅ Frontend build directory found: {FRONTEND_BUILD_DIR}")
+else:
+    print(f"⚠️ Frontend build directory not found at {FRONTEND_BUILD_DIR}")
+
+# 3️⃣ Mount React static files
 if os.path.exists(FRONTEND_BUILD_DIR):
     app.mount("/", StaticFiles(directory=FRONTEND_BUILD_DIR, html=True), name="frontend")
 else:
     @app.get("/", include_in_schema=False)
     async def frontend_missing():
         return HTMLResponse("<h2>Frontend build not found. Run `npm run build` in frontend/</h2>")
+
+# 4️⃣ Catch-all route for React Router (for refresh support)
+@app.get("/{full_path:path}", include_in_schema=False)
+async def serve_react_app(full_path: str):
+    if os.path.exists(FRONTEND_INDEX_FILE):
+        return FileResponse(FRONTEND_INDEX_FILE)
+    return HTMLResponse("<h2>index.html not found. Run `npm run build` in frontend/</h2>")
