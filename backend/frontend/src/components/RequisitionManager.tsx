@@ -280,9 +280,9 @@ export function RequisitionManager({ selectedCompany, selectedCountry }: Requisi
         </Select>
       </div>
 
-      <Card className='border-blue-200'>
         <CardContent className="p-0">
-          <Table >
+          <div className="overflow-x-auto">
+            <Table className="w-full border-separate border-spacing-y-3">
             <TableHeader >
               <TableRow >
               <TableHead>Position</TableHead>
@@ -312,9 +312,16 @@ export function RequisitionManager({ selectedCompany, selectedCountry }: Requisi
               ) : (
                 filteredRequisitions.map((req) => (
                   
-                  <TableRow className='border-blue-200' onClick={()=>{ navigate(`/requisitions/${req.id}`)}} key={req.id}>
+                  <TableRow 
+                       onClick={()=>{ navigate(`/requisitions/${req.id}`)}} key={req.id}
+                       className="border border-gray-200 rounded-lg shadow-sm transition-all duration-200 ease-in-out hover:shadow-lg hover:bg-blue-50 hover:-translate-y-[2px] cursor-pointer"
+                   style={{ overflow: "hidden", }}>
+                
                     <TableCell >
-                      <div>
+                     <div className="relative pl-4 py-3">
+                       <div className="absolute left-0 top-0 bottom-0 w-1 bg-blue-500 rounded-sm"></div>
+                       <div className="absolute left-0 top-0 h-1 w-4 bg-blue-500 rounded-sm"></div>
+                       <div className="absolute left-0 bottom-0 h-1 w-4 bg-blue-500 rounded-sm"></div>
                         <div className="font-medium">{req.position}</div>
                         <div className="text-sm text-gray-500">{req.req_id}</div>
                        
@@ -371,8 +378,8 @@ export function RequisitionManager({ selectedCompany, selectedCountry }: Requisi
               )}
             </TableBody>
           </Table>
+          </div>
         </CardContent>
-      </Card>
     </div>
   );
 }
