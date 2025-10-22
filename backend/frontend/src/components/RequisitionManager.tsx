@@ -283,16 +283,16 @@ export function RequisitionManager({ selectedCompany, selectedCountry }: Requisi
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <Table className="w-full border-separate border-spacing-y-3">
-            <TableHeader >
+            <TableHeader className='border bg-blue-100 rounded-lg shadow-sm'>
               <TableRow >
-              <TableHead className="first:pl-10">Position</TableHead>
+              <TableHead className="first:pl-10 rounded-l-lg">Position</TableHead>
               <TableHead>Department</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Priority</TableHead>
               <TableHead>Progress</TableHead>
               <TableHead>Days Open</TableHead>
               <TableHead>Hiring Manager</TableHead>
-              <TableHead>Approval</TableHead>
+              <TableHead className='rounded-r-lg'>Approval</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
