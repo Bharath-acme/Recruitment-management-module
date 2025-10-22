@@ -6,7 +6,7 @@ import logo from '../media/thumbnail_image001.png';
 import req_img from '../media/req_img.png';
 import dash_img from '../media/dash_img.png';
 import analytics_img from '../media/analytics_img.png';
-import acme_white_logo from '../media/Component 1.png';
+import acme_white_logo from '../media/acme_logo.png';
 
 const HomePage: React.FC = () => {
   const navigate = useNavigate();

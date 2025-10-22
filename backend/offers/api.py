@@ -16,14 +16,14 @@ def require_roles(*roles):
         return user
     return _inner
 
-@router.post("/offers", response_model=OfferOut)
+@router.post("", response_model=OfferOut)
 def create_offer(payload: OfferCreate, db: Session = Depends(get_db), user = Depends(require_roles("recruiter", "admin"))):
     # Validate candidate & application exist? (left to integration)
     # create
     offer = crud.create_offer(db, payload, creator_user=user)
     return OfferOut.from_orm(offer)
 
-@router.post("/offers/{offer_id}/submit_for_approval")
+@router.post("/{offer_id}/submit_for_approval")
 def submit_offer_for_approval(offer_id: str, country: str = "IN", db: Session = Depends(get_db), user = Depends(require_roles("recruiter", "admin"))):
     offer = db.query(models.Offer).filter(models.Offer.offer_id == offer_id).one_or_none()
     if not offer:
@@ -31,7 +31,7 @@ def submit_offer_for_approval(offer_id: str, country: str = "IN", db: Session = 
     res = crud.submit_for_approval(db, offer, country)
     return res
 
-@router.post("/offers/{offer_id}/approvals")
+@router.post("/{offer_id}/approvals")
 def approver_action(offer_id: str, payload: ApproverAction, db: Session = Depends(get_db), user = Depends(require_roles("finance", "leadership", "hr", "admin"))):
     offer = db.query(models.Offer).filter(models.Offer.offer_id == offer_id).one_or_none()
     if not offer:
@@ -40,7 +40,7 @@ def approver_action(offer_id: str, payload: ApproverAction, db: Session = Depend
     updated = crud.record_approval(db, offer, payload.role, user["id"], payload.action, payload.comment)
     return {"message": "recorded", "offer_status": updated.status.value}
 
-@router.post("/offers/{offer_id}/generate_letter")
+@router.post("/{offer_id}/generate_letter")
 def generate_letter(offer_id: str, db: Session = Depends(get_db), user = Depends(require_roles("admin"))):
     offer = db.query(models.Offer).filter(models.Offer.offer_id == offer_id).one_or_none()
     if not offer:
@@ -50,7 +50,7 @@ def generate_letter(offer_id: str, db: Session = Depends(get_db), user = Depends
     res = crud.generate_letter(db, offer)
     return res
 
-@router.post("/offers/{offer_id}/candidate_action")
+@router.post("/{offer_id}/candidate_action")
 def candidate_action(offer_id: str, payload: CandidateAction, db: Session = Depends(get_db), user = Depends(require_roles("candidate", "admin"))):
     offer = db.query(models.Offer).filter(models.Offer.offer_id == offer_id).one_or_none()
     if not offer:
@@ -58,7 +58,7 @@ def candidate_action(offer_id: str, payload: CandidateAction, db: Session = Depe
     updated = crud.candidate_action(db, offer, payload.action, payload.counter_base, payload.counter_note)
     return {"message": "processed", "status": updated.status.value}
 
-@router.get("/offers/{offer_id}", response_model=OfferOut)
+@router.get("/{offer_id}", response_model=OfferOut)
 def get_offer(offer_id: str, db: Session = Depends(get_db), user = Depends(get_current_user)):
     offer = db.query(models.Offer).filter(models.Offer.offer_id == offer_id).one_or_none()
     if not offer:

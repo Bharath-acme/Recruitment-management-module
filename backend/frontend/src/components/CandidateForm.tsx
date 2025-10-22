@@ -31,46 +31,15 @@ export default function CandidateForm({ initialData, onSubmit, onCancel }: Candi
     dob: initialData?.dob || "",
     marital_status: initialData?.marital_status || "",
     recruiter: initialData?.recruiter || user?.name ,
+    resume : initialData?.resume || null,
     nationality: initialData?.nationality || "",
-    resume: initialData?.resume || "",
   });
 
-   const handleResumeUpload = async (file: File) => {
-    try {
-      handleChange("resume", file);
+   const handleResumeUpload = (file: File) => {
+    setFormData(prev => ({ ...prev, resume: file }));
+  };
+ 
 
-      const formData = new FormData();
-      formData.append("file", file);
-
-      const response = await fetch("http://127.0.0.1:8000/parse-resume/", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!response.ok) throw new Error("Failed to parse resume");
-      const data = await response.json();
-
-      const extracted = data.extracted || {};
-
-      // Autofill fields if empty
-      setFormData((prev) => ({
-        ...prev,
-        name: prev.name || extracted.name || "",
-        email: prev.email || extracted.email || "",
-        phone: prev.phone || extracted.phone || "",
-        experience: prev.experience || extracted.experience || "",
-        skills:
-          prev.skills ||
-          (extracted.skills && extracted.skills.length > 0
-            ? extracted.skills.join(", ")
-            : ""),
-      }));
-
-      console.log("✅ Resume parsed:", extracted);
-    } catch (error) {
-      console.error("❌ Error parsing resume:", error);
-    }
-  }; 
   const handleChange = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
@@ -241,10 +210,30 @@ export default function CandidateForm({ initialData, onSubmit, onCancel }: Candi
         onChange={e => handleChange("marital_status", e.target.value)}
       />
     </div>
-    
-          {/* Resume Upload */}
-    <div>
-      <Label htmlFor="resume">Upload Resume</Label>
+  </div>
+
+  <div>
+      <Label htmlFor="nationality">Nationality</Label>
+      <Input
+        id="nationality"
+        value={formData.nationality}
+        onChange={(e) => handleChange("nationality", e.target.value)}
+        placeholder="Enter your Nationality"
+        />
+    </div>
+
+  <div>
+    <Label htmlFor="skills">Skills (comma-separated)</Label>
+    <Input
+      id="skills"
+      placeholder="e.g., React, Node.js, Python"
+      value={formData.skills}
+      onChange={e => handleChange("skills", e.target.value)}
+    />
+  </div>
+
+  <div>
+     <Label htmlFor="resume">Upload Resume</Label>
       {!formData.resume && (
         <Input
           id="resume"
@@ -258,9 +247,8 @@ export default function CandidateForm({ initialData, onSubmit, onCancel }: Candi
           className="mt-1"
         />
       )}
-    
-      {/* Resume Upload button and box*/}
-      {formData.resume && (
+
+     {formData.resume && (
         <div className="relative mt-2 w-40 h-15 border border-gray-300 rounded-lg flex items-center justify-center bg-gray-50 shadow">
           <span className="text-sm text-gray-700 px-2 text-center truncate w-40">
             {formData.resume.name.length > 20
@@ -274,30 +262,10 @@ export default function CandidateForm({ initialData, onSubmit, onCancel }: Candi
             onClick={() => handleChange("resume", null)}
             className="absolute -top-2 -right-2 w-5 h-5  flex items-center justify-center text-white rounded full text-xs font-bold shadow-md hover:bg-purple-700 focus:outline-none cursor-pointer"
           >
-            ✖
-          </button>
-        </div>
+            Γ£û
+         </button>
+       </div>
       )}
-    </div>
-    
-    <div>
-      <Label htmlFor="nationality">Nationality</Label>
-      <Input
-        id="nationality"
-        value={formData.nationality}
-        onChange={(e) => handleChange("nationality", e.target.value)}
-        placeholder="Enter your Nationality"
-        />
-    </div>
-    </div>
-  <div>
-    <Label htmlFor="skills">Skills (comma-separated)</Label>
-    <Input
-      id="skills"
-      placeholder="e.g., React, Node.js, Python"
-      value={formData.skills}
-      onChange={e => handleChange("skills", e.target.value)}
-    />
   </div>
 
   <div className="flex justify-end space-x-2">

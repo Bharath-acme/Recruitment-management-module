@@ -41,6 +41,7 @@ class Candidate(Base):
     dob = Column(Date, nullable=True)
     marital_status = Column(String(50), nullable=True)
     interviews = relationship("Interview", back_populates="candidate")
+    
 
 
 class CandidateActivityLog(Base):

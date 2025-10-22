@@ -31,4 +31,4 @@ class InterviewResponse(InterviewBase):
     requisition: RequisitionMini
 
     class Config:
-        orm_mode = True
+        from_attributes = True

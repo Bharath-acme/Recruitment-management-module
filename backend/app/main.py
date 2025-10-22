@@ -16,6 +16,10 @@ from requisitions import api as requisitions_api
 from interviews import api as interviews_api
 from offers import api as offers_api
 from datetime import datetime, timedelta
+from fastapi import FastAPI, WebSocket, Depends
+from app.websocket import connect_user, disconnect_user
+
+
 
 # ================== DATABASE SETUP ==================
 Base.metadata.create_all(bind=engine)
@@ -45,7 +49,6 @@ ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
-
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None):
     to_encode = data.copy()
@@ -104,6 +107,16 @@ def get_hiring_managers(current_user=Depends(get_current_user), db: Session = De
     if current_user.role.lower() != "admin":
         raise HTTPException(status_code=403, detail="Not authorized to view hiring managers")
     return db.query(models.User.id, models.User.name).filter(models.User.role == "hiring_manager").all()
+
+@app.websocket("/ws/notifications/{user_id}")
+async def websocket_endpoint(websocket: WebSocket, user_id: int):
+    await connect_user(user_id, websocket)
+    try:
+        while True:
+            await websocket.receive_text()  # Keep connection alive
+    except Exception:
+        await disconnect_user(user_id)
+
 
 
 # ================== MODULE ROUTERS ==================

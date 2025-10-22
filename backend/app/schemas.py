@@ -11,7 +11,7 @@ class RecruiterBase(BaseModel):
     name: str
    
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 
@@ -31,7 +31,7 @@ class UserResponse(UserBase):
     id: int
     # requisitions: List["RequisitionMini"] = [] 
     class Config:
-        orm_mode = True
+        from_attributes = True
   
 
 class LoginRequest(BaseModel):
@@ -44,7 +44,7 @@ class RecruiterOut(BaseModel):
     email: str
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 UserResponse.update_forward_refs()
 

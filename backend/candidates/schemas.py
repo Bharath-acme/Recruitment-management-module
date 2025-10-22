@@ -61,7 +61,7 @@ class CandidateResponse(CandidateBase):
     requisition_id: Optional[int] = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class CandidateMini(BaseModel):
     id: str
@@ -71,7 +71,7 @@ class CandidateMini(BaseModel):
     requisition_id: Optional[int] = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 # Base schema for CandidateActivityLog
@@ -94,4 +94,4 @@ class CandidateActivityLogOut(CandidateActivityLogBase):
     created_at: datetime = Field(..., alias="timestamp")
 
     class Config:
-        orm_mode = True
+        from_attributes = True

@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from './AuthProvider';
 import { projectId, publicAnonKey } from '../utils/supabase/info';
+import { NotificationService, Notification } from '../utils/Utils';
 
 interface DashboardProps {
   selectedCompany: string;
@@ -434,6 +435,34 @@ export function Dashboard({ selectedCompany, selectedCountry  }: DashboardProps)
           </Card>
         </TabsContent>
       </Tabs>
+      {/* Notifications Panel */}
+      <NotificationsPanel userId={Number(user?.id || 0)} />
     </div>
   );
 }
+
+ const NotificationsPanel: React.FC<{ userId: number }> = ({ userId }) => {
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+
+  useEffect(() => {
+    const service = new NotificationService(userId, (notif) => {
+      setNotifications((prev) => [notif, ...prev]);
+    });
+
+    return () => {
+      service.close();
+    };
+  }, [userId]);
+
+  return (
+    <div className="notifications-panel">
+      {notifications.map((notif, idx) => (
+        <div key={idx} className="notification-item">
+          <strong>{notif.title}</strong>
+          <p>{notif.message}</p>
+          {notif.time && <small>{new Date(notif.time).toLocaleString()}</small>}
+        </div>
+      ))}
+    </div>
+  );
+};

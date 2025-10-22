@@ -24,6 +24,8 @@ import {
   MessageSquare
 } from 'lucide-react';
 import { toast } from 'sonner';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 
 interface InterviewManagerProps {
   selectedCompany: string;
@@ -82,7 +84,7 @@ export function InterviewManager({ selectedCompany, selectedCountry }: Interview
 >([]);
 
 useEffect(() => {
-  fetch("http://localhost:8000/candidates/")
+  fetch(`${API_BASE_URL}/candidates`)
     .then((res) => res.json())
     .then((data) => setCandidates(data));
 
@@ -97,7 +99,7 @@ console.log("Candidates:", candidates);
   const loadInterviews = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`http://localhost:8000/interviews`, {
+      const response = await fetch(`${API_BASE_URL}/interviews`, {
         headers: {
          
           'Content-Type': 'application/json'
@@ -137,7 +139,7 @@ console.log("Candidates:", candidates);
       location: newInterview.location,
       interviewers: newInterview.interviewers.split(",").map(i => i.trim())
     };
-    const response = await fetch("http://localhost:8000/interviews", {
+  const response = await fetch(`${API_BASE_URL}/interviews`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
