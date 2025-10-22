@@ -293,7 +293,7 @@ export function CandidateManager({ selectedCompany, selectedCountry }: Candidate
                   <TableRow onClick={()=>navigate(`/candidates/${candidate.id}`)} key={candidate.id}
                        className="border border-gray-200 rounded-lg shadow-sm transition-all duration-200 ease-in-out hover:shadow-lg hover:bg-blue-50 hover:-translate-y-[2px] cursor-pointer">
 
-                    <TableCell className="border-l-[5px] border-blue-500 pl-4 rounded-lg">
+                    <TableCell className="border-l-[5px] border-blue-600 pl-4 rounded-lg">
                       <div>
                       <div className="flex items-center space-x-3">
                         <Avatar className="h-10 w-10">

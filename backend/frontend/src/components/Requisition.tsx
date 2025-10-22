@@ -520,7 +520,7 @@ const updateAssignments = async (recruiterId: number) => {
       ) : (
         <ul className="divide-y divide-gray-200">
           {logs.map((log) => (
-            <li key={log.id} className="border-l-4 border-blue-500 pl-3 pb-2">
+             <li key={log.id} className="border-l-4 border-blue-500 pl-3 pb-2">
               <div className="flex justify-between items-center">
                 <span className="font-medium">{log.username}</span>
                 <span className="text-xs text-gray-500">{new Date(log.timestamp).toLocaleString()}</span>

@@ -109,31 +109,31 @@ useEffect(() => {
 
   const countries = ['UAE', 'Saudi Arabia', 'Qatar', 'Kuwait', 'Bahrain', 'Oman'];
 
-  return (
-     <div
-      className="relative min-h-screen bg-cover bg-top flex items-center justify-end"
-      style={{ backgroundImage: `url(${ activeTab == 'signup' ? signup_image : login_image})`,
-      transition: 'background-image 0.5s ease-in-out',
-       }}>
-      <img src={logo} alt="Logo" className="absolute top-4 left-6 w-32" />
+   return (
+      <div
+       className="relative min-h-screen bg-cover bg-top flex items-center justify-end"
+       style={{ backgroundImage: `url(${ activeTab == 'signup' ? signup_image : login_image})`,
+        transition: 'background-image 0.5s ease-in-out',
+        }}>
+       <img src={logo} alt="Logo" className="absolute top-4 left-6 w-32" />
 
-      {/* Login Form Overlay */}
-      <div className="bg-transparent p-8 rounded-xl w-full max-w-md mr-40">
-        <div className="text-center mb-6">
+       {/* Login Form Overlay */}
+        <div className="bg-transparent p-8 rounded-xl w-full max-w-md mr-40">
+         <div className="text-center mb-6">
           <h1 className="text-2xl font-bold text-white">Talent Acquisition System</h1>
-          <p className="text-gray-100">Enterprise Recruitment Management</p>
-        </div>
+           <p className="text-gray-100">Enterprise Recruitment Management</p>
+         </div>
 
-        <Card className="bg-transparent shadow-none border-none">
-          <CardHeader>
-            <CardTitle className="text-xl text-center text-white">Welcome</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-2 bg-white/20 text-white">
-                <TabsTrigger value="login">Sign In</TabsTrigger>
-                <TabsTrigger value="signup">Sign Up</TabsTrigger>
-              </TabsList>
+         <Card className="bg-transparent shadow-none border-none">
+           <CardHeader>
+             <CardTitle className="text-xl text-center text-white">Welcome</CardTitle>
+           </CardHeader>
+           <CardContent>
+             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+               <TabsList className="grid w-full grid-cols-2 bg-white/20 text-white">
+                 <TabsTrigger value="login">Sign In</TabsTrigger>
+                 <TabsTrigger value="signup">Sign Up</TabsTrigger>
+               </TabsList>
 
                 {/* Login Form */}
                 <TabsContent value="login" className="space-y-4 text-white">
