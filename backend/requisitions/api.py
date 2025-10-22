@@ -28,22 +28,22 @@ async def create_requisition(req: RequisitionCreate, db: Session = Depends(get_d
     )
 
     # Trigger async notification task
-    send_requisition_created.delay(requisition.id, current_user.id)
+    # send_requisition_created.delay(requisition.id, current_user.id)
 
-    # Create DB notification
-    notif = create_notification(
-        db,
-        user_id=current_user.id,
-        title="Requisition Created",
-        message=f"You created requisition '{requisition.position}'"
-    )
+    # # Create DB notification
+    # notif = create_notification(
+    #     db,
+    #     user_id=current_user.id,
+    #     title="Requisition Created",
+    #     message=f"You created requisition '{requisition.position}'"
+    # )
 
-    # Send real-time WebSocket message (if user is connected)
-    await websocket.send_notification(current_user.id,{
-        "title": "Requisition Created",
-        "message": f"You created requisition '{requisition.position}'",
-        "time": requisition.created_at.isoformat() if hasattr(requisition, 'created_at') else None
-        })
+    # # Send real-time WebSocket message (if user is connected)
+    # await websocket.send_notification(current_user.id,{
+    #     "title": "Requisition Created",
+    #     "message": f"You created requisition '{requisition.position}'",
+    #     "time": requisition.created_at.isoformat() if hasattr(requisition, 'created_at') else None
+    #     })
 
     return requisition
    
@@ -147,7 +147,7 @@ def update_requisition_approval(
         details=f"Changed from '{old_status}' to '{approval_update.approval_status}'"
     )
     # 3️ Trigger async notification task
-    send_requisition_approval_update.delay(requisition.id, current_user.id)
+    # send_requisition_approval_update.delay(requisition.id, current_user.id)
     return requisition
 
 @router.put("/{req_id}/assignTeam", response_model=RequisitionResponse)
@@ -185,7 +185,7 @@ def update_requisition_team(
         details=f"Recruiter ID {requisition.recruiter_id} assigned by {current_user.name}"
     )
     # 3️ Trigger async notification task
-    send_team_assignment_notification.delay(requisition.id, requisition.recruiter_id)
+    # send_team_assignment_notification.delay(requisition.id, requisition.recruiter_id)
 
     return requisition
 
@@ -196,7 +196,7 @@ def delete_requisition(requisition_id: int, db: Session = Depends(get_db)):
     if not db_req:
         raise HTTPException(status_code=404, detail="Requisition not found")
     # Trigger async notification task
-    send_requisition_deleted.delay(db_req.id)
+    # send_requisition_deleted.delay(db_req.id)
     return db_req
 
 
