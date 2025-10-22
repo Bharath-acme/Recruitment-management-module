@@ -75,6 +75,8 @@ class Requisitions(Base):
     # recruiters = relationship("User", secondary=requisition_recruiter, backref="assigned_requisitions")
     offers = relationship("Offer", back_populates="requisitions", cascade="all, delete-orphan")
     activity_logs = relationship("RequisitionActivityLog", back_populates="requisition", cascade="all, delete-orphan")
+    notifications = relationship("Notification", back_populates="requisition", cascade="all, delete-orphan")
+
     # positions = relationship("Position", back_populates="requisition", cascade="all, delete-orphan")
 
 

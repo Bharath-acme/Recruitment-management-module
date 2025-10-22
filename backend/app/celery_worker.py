@@ -1,26 +1,21 @@
 from celery import Celery
+import os
+
+REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 
 celery_app = Celery(
-    "acme_recruitment",
-    broker = "redis://localhost:6379/0",
-    backend = "redis://localhost:6379/0"
+    "recruitment_tasks",
+    broker=REDIS_URL,
+    backend=REDIS_URL,
 )
 
-@celery_app.task
-def req_approval_task(requisition_data):
-    # Simulate a time-consuming task
-    import time
-    time.sleep(5)  # Simulate delay
+celery_app.conf.update(
+    task_serializer="json",
+    accept_content=["json"],
+    result_serializer="json",
+    timezone="Asia/Kolkata",
+    enable_utc=True,
+)
 
-   
+celery_app.autodiscover_tasks(["app.tasks"])
 
-    # Here you would add logic to create the requisition in the database
-    # For example:
-    # db = SessionLocal()
-    # new_req = Requisition(**requisition_data)
-    # db.add(new_req)
-    # db.commit()
-    # db.refresh(new_req)
-    # db.close()
-
-    return f"Requisition for {requisition_data['position']} Approved by ACME Manager!"

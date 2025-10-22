@@ -58,6 +58,7 @@ export interface Candidate {
   current_company?: string;
   dob?: string;
   marital_status?: string;
+  nationality?: string;
 
 }
 
@@ -103,7 +104,7 @@ export function CandidateManager({ selectedCompany, selectedCountry }: Candidate
  const loadCandidates = async () => {
   setLoading(true);
   try {
-    const response = await fetch(`${API_BASE_URL}/candidates/`, {
+    const response = await fetch(`${API_BASE_URL}/candidates`, {
       headers: { 'Content-Type': 'application/json',
         authorization: `Bearer ${token}`
        }
@@ -128,7 +129,7 @@ export function CandidateManager({ selectedCompany, selectedCountry }: Candidate
   
   const handleAddCandidate = async (candidateData: any) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/candidates/create-candidate`, {
+    const response = await fetch(`${API_BASE_URL}/candidates`, {
       method: "POST",
       headers: { "Content-Type": "application/json",
         authorization: `Bearer ${token}`

@@ -120,7 +120,7 @@ export function RequisitionManager({ selectedCompany, selectedCountry }: Requisi
   try {
     const approvalStatus = queryvalues();
     const response = await fetch(
-      `${API_BASE_URL}/requisitions/?approval_status=${approvalStatus}&user_id=${user?.id}&role=${user?.role}`,
+      `${API_BASE_URL}/requisitions?approval_status=${approvalStatus}&user_id=${user?.id}&role=${user?.role}`,
       {
         headers: { 'Content-Type': 'application/json' }
       }
@@ -143,7 +143,7 @@ export function RequisitionManager({ selectedCompany, selectedCountry }: Requisi
   // Add the missing handler function for creating a requisition
   const handleCreateRequisition = async (requisitionData:any) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/requisitions/create-requisition`, {
+      const response = await fetch(`${API_BASE_URL}/requisitions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

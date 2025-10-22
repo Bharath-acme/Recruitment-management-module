@@ -8,7 +8,7 @@ from typing import List
 
 router = APIRouter()
 
-@router.post("/interviews/", response_model=InterviewResponse)
+@router.post("", response_model=InterviewResponse)
 def create_interview(interview: InterviewCreate, db: Session = Depends(get_db)):
     candidate = db.query(models.Candidate).filter(models.Candidate.id == interview.candidate_id).first()
     requisition = db.query(models.Requisitions).filter(models.Requisitions.id == interview.requisition_id).first()
@@ -20,7 +20,7 @@ def create_interview(interview: InterviewCreate, db: Session = Depends(get_db)):
 
     return crud.create_interview(db, interview)
 
-@router.get("/", response_model=List[InterviewResponse])
+@router.get("", response_model=List[InterviewResponse])
 def list_interviews(db: Session = Depends(get_db)):
     return crud.get_interviews(db)
 
