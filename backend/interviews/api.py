@@ -2,6 +2,7 @@ from fastapi import FastAPI, Depends, HTTPException, status, Query, APIRouter
 from sqlalchemy.orm import Session
 from .schemas import *
 from . import crud, models
+from requisitions.models import Requisitions
 from app.auth import oauth2_scheme
 from app.database import get_db
 from typing import List
@@ -11,7 +12,7 @@ router = APIRouter()
 @router.post("", response_model=InterviewResponse)
 def create_interview(interview: InterviewCreate, db: Session = Depends(get_db)):
     candidate = db.query(models.Candidate).filter(models.Candidate.id == interview.candidate_id).first()
-    requisition = db.query(models.Requisitions).filter(models.Requisitions.id == interview.requisition_id).first()
+    requisition = db.query(Requisitions).filter(Requisitions.id == interview.requisition_id).first()
 
     if not candidate:
         raise HTTPException(status_code=400, detail="Candidate not found")
