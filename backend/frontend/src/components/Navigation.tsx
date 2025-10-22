@@ -14,7 +14,7 @@ import {
   Globe,
 } from 'lucide-react';
 import logo from '../media/profile_logo.png';
-import companyLogo from '../media/component 1.png';
+import companyLogo from '../media/acme_logo.png';
 import { Link, useLocation, useNavigate } from 'react-router-dom';   // ✅ Router imports
 
 interface NavigationProps {
