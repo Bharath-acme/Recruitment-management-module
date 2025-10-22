@@ -43,9 +43,9 @@ export function Navigation({
     { path: '/candidates', label: 'Candidates', icon: Users, roles: ['admin', 'recruiter', 'hiring_manager', 'interviewer'] },
     { path: '/interviews', label: 'Interviews', icon: Calendar, roles: ['admin', 'recruiter', 'hiring_manager', 'interviewer'] },
     { path: '/offers', label: 'Offers', icon: HandHeart, roles: ['admin', 'recruiter', 'finance','hiring_manager'] },
-    { path: '/analytics', label: 'Analytics', icon: BarChart3, roles: ['admin', 'recruiter','hiring_manager'] },
+    // { path: '/analytics', label: 'Analytics', icon: BarChart3, roles: ['admin', 'recruiter','hiring_manager'] },
     // { path: '/vendors', label: 'Vendors', icon: Building2, roles: ['admin', 'recruiter','hiring_manager'] },
-    { path: '/admin', label: 'Admin', icon: Settings, roles: ['admin','hiring_manager'] },
+    // { path: '/admin', label: 'Admin', icon: Settings, roles: ['admin','hiring_manager'] },
   ];
   const filteredNavItems = navItems.filter((item) => !userRole || item.roles.includes(userRole));
 
