@@ -112,19 +112,20 @@ useEffect(() => {
    return (
       <div
        className="relative min-h-screen bg-cover bg-top flex items-center justify-end"
-       style={{ backgroundImage: `url(${ activeTab == 'signup' ? signup_image : login_image})`,
+       style={{ backgroundImage: `url(${  login_image})`,
         transition: 'background-image 0.5s ease-in-out',
-        }}>
-       <img src={logo} alt="Logo" className="absolute top-4 left-6 w-32" />
+        }}
+        >
+       <img src={logo} alt="Logo" className="absolute top-4 left-6 h-20 w-52" />
 
        {/* Login Form Overlay */}
         <div className="bg-transparent p-8 rounded-xl w-full max-w-md mr-40">
-         <div className="text-center mb-6">
+         <div className="text-center mb-3">
           <h1 className="text-2xl font-bold text-white">Talent Acquisition System</h1>
            <p className="text-gray-100">Enterprise Recruitment Management</p>
          </div>
 
-         <Card className="bg-transparent shadow-none border-none">
+         <Card className="bg-transparent shadow-none border-none flex flex-col items-center">
            <CardHeader>
              <CardTitle className="text-xl text-center text-white">Welcome</CardTitle>
            </CardHeader>
@@ -136,10 +137,10 @@ useEffect(() => {
                </TabsList>
 
                 {/* Login Form */}
-                <TabsContent value="login" className="space-y-4 text-white">
+                <TabsContent value="login" className="space-y-4 w-100 ">
                   <form onSubmit={handleLogin} className="space-y-4">
                     <div className="space-y-2">
-                      <Label>Email</Label>
+                      <Label className='text-white'>Email</Label>
                       <Input
                         type="email"
                         placeholder="your.email@company.com"
@@ -149,7 +150,7 @@ useEffect(() => {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label>Password</Label>
+                      <Label className='text-white'>Password</Label>
                       <Input
                         type="password"
                         placeholder="Enter your password"
@@ -165,11 +166,11 @@ useEffect(() => {
                 </TabsContent>
 
                 {/* Signup Form */}
-                <TabsContent value="signup" className="space-y-4 text-white">
+                <TabsContent  value="signup" className="space-y-4 w-100">
                   <form onSubmit={handleSignup} className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label>Full Name</Label>
+                        <Label className='text-white'>Full Name</Label>
                         <Input
                           placeholder="John Smith"
                           value={signupData.name}
@@ -178,7 +179,7 @@ useEffect(() => {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label>Email</Label>
+                        <Label className='text-white'>Email</Label>
                         <Input
                           type="email"
                           placeholder="john.smith@company.com"
@@ -188,7 +189,7 @@ useEffect(() => {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label>Role</Label>
+                        <Label className='text-white'>Role</Label>
                         <Select value={signupData.role} onValueChange={(v:any) => setSignupData({ ...signupData, role: v })}>
                           <SelectTrigger>
                             <SelectValue placeholder="Select role" />
@@ -203,7 +204,7 @@ useEffect(() => {
                         </Select>
                       </div>
                       <div className="space-y-2">
-                        <Label>Company Name</Label>
+                        <Label className='text-white'>Company Name</Label>
                         <Input
                           placeholder="ACME Corporation"
                           value={signupData.company}
@@ -212,7 +213,7 @@ useEffect(() => {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label>Company Size</Label>
+                        <Label className='text-white'>Company Size</Label>
                         <Input
                           placeholder="e.g. 100-500"
                           value={signupData.companySize}
@@ -221,7 +222,7 @@ useEffect(() => {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label>Company Description</Label>
+                        <Label className='text-white'>Company Description</Label>
                         <Input
                           placeholder="Describe your company"
                           value={signupData.companyDescription}
@@ -230,7 +231,7 @@ useEffect(() => {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label>Country</Label>
+                        <Label className='text-white'>Country</Label>
                         <Select value={signupData.country} onValueChange={(v:any) => setSignupData({ ...signupData, country: v })}>
                           <SelectTrigger>
                             <SelectValue placeholder="Select country" />
@@ -245,7 +246,7 @@ useEffect(() => {
                         </Select>
                       </div>
                       <div className="space-y-2">
-                        <Label>Password</Label>
+                        <Label className='text-white'>Password</Label>
                         <Input
                           type="password"
                           placeholder="Create a password"
@@ -255,7 +256,7 @@ useEffect(() => {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label>Confirm Password</Label>
+                        <Label className='text-white'>Confirm Password</Label>
                         <Input
                           type="password"
                           placeholder="Confirm your password"
