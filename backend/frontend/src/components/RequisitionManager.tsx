@@ -120,7 +120,7 @@ export function RequisitionManager({ selectedCompany, selectedCountry }: Requisi
   try {
     const approvalStatus = queryvalues();
     const response = await fetch(
-      `${API_BASE_URL}/requisitions/?approval_status=${approvalStatus}&user_id=${user?.id}&role=${user?.role}`,
+      `${API_BASE_URL}/requisitions?approval_status=${approvalStatus}&user_id=${user?.id}&role=${user?.role}`,
       {
         headers: { 'Content-Type': 'application/json' }
       }
@@ -143,7 +143,7 @@ export function RequisitionManager({ selectedCompany, selectedCountry }: Requisi
   // Add the missing handler function for creating a requisition
   const handleCreateRequisition = async (requisitionData:any) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/requisitions/create-requisition`, {
+      const response = await fetch(`${API_BASE_URL}/requisitions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -265,10 +265,10 @@ export function RequisitionManager({ selectedCompany, selectedCountry }: Requisi
         </Select>
       </div>
 
-      <Card className='border-blue-200'>
+      <Card>
         <CardContent className="p-0">
-          <Table >
-            <TableHeader >
+          <Table>
+            <TableHeader  >
               <TableRow >
               <TableHead>Position</TableHead>
               <TableHead>Department</TableHead>
@@ -297,16 +297,18 @@ export function RequisitionManager({ selectedCompany, selectedCountry }: Requisi
               ) : (
                 filteredRequisitions.map((req) => (
                   
-                  <TableRow className='border-blue-200' onClick={()=>{ navigate(`/requisitions/${req.id}`)}} key={req.id}>
-                    <TableCell >
-                      <div>
+                  <TableRow 
+                       onClick={()=>{ navigate(`/requisitions/${req.id}`)}} key={req.id}
+                       className="border border-gray-200 rounded-lg shadow-sm transition-all duration-200 ease-in-out hover:shadow-lg hover:bg-blue-50 hover:-translate-y-[2px] cursor-pointer">
+                
+                    <TableCell className="border-l-[5px] border-blue-600 pl-4 rounded-lg">
                         <div className="font-medium">{req.position}</div>
                         <div className="text-sm text-gray-500">{req.req_id}</div>
                        
                         <div className="text-sm text-gray-500 flex items-center gap-1">
                            <MapPin className="h-3 w-3" /> <span>{req.location}</span>
                         </div>
-                      </div>
+                      
                     </TableCell>
                     <TableCell>{req.department}</TableCell>
                     <TableCell>

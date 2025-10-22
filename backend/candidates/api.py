@@ -9,11 +9,11 @@ from app.models import User
 
 router = APIRouter()
 
-@router.post("/create-candidate", response_model=CandidateResponse)
+@router.post("", response_model=CandidateResponse)
 def create_candidate(candidate: CandidateCreate, db: Session = Depends(get_db)):
     return crud.create_candidate(db=db, candidate=candidate)
 
-@router.get("/", response_model=List[CandidateResponse])
+@router.get("", response_model=List[CandidateResponse])
 def read_candidates(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     return crud.get_candidates(db, skip=skip, limit=limit)
 
