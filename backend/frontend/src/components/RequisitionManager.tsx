@@ -297,9 +297,17 @@ export function RequisitionManager({ selectedCompany, selectedCountry }: Requisi
               ) : (
                 filteredRequisitions.map((req) => (
                   
+<<<<<<< Updated upstream
                   <TableRow className='border-blue-200' onClick={()=>{ navigate(`/requisitions/${req.id}`)}} key={req.id}>
                     <TableCell >
                       <div>
+=======
+                  <TableRow 
+                       onClick={()=>{ navigate(`/requisitions/${req.id}`)}} key={req.id}
+                       className="border border-gray-200 rounded-lg shadow-sm transition-all duration-200 ease-in-out hover:shadow-lg hover:bg-blue-50 hover:-translate-y-[2px] cursor-pointer">
+                
+                    <TableCell className="border-l-[5px] border-blue-600 pl-4 rounded-lg">
+>>>>>>> Stashed changes
                         <div className="font-medium">{req.position}</div>
                         <div className="text-sm text-gray-500">{req.req_id}</div>
                        
