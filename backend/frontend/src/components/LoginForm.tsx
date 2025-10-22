@@ -17,6 +17,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export function LoginForm() {
   const { signIn } = useAuth();
+  const { signUp } = useAuth();
   const navigate = useNavigate()
   const [loading, setLoading] = useState(false);
   const [loginData, setLoginData] = useState({
@@ -60,43 +61,38 @@ useEffect(() => {
       setLoading(false);
     }
   };
+const handleSignup = async (e: React.FormEvent) => {
+  e.preventDefault();
 
-  const handleSignup = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (signupData.password !== signupData.confirmPassword) {
-      toast.error("Passwords do not match");
-      return;
-    }
-    setLoading(true);
-    try {
-      const res = await fetch(`${API_BASE_URL}/register`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: signupData.email,
-          password: signupData.password,
-          confirm_password: signupData.confirmPassword,
-          name: signupData.name,
-          role: signupData.role,
-          company: signupData.company,
-          company_size: signupData.companySize,
-          company_description: signupData.companyDescription,
-          country: signupData.country,
-        }),
-      });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.detail || "Signup failed");
-      }
-      const data = await res.json();
-      toast.success(data.message);
+  if (signupData.password !== signupData.confirmPassword) {
+    toast.error("Passwords do not match");
+    return;
+  }
+
+  setLoading(true);
+  try {
+    const res = await signUp(signupData.email, signupData.password, {
+      name: signupData.name,
+      role: signupData.role,
+      company: signupData.company,
+      company_size: signupData.companySize,
+      company_description: signupData.companyDescription,
+      country: signupData.country,
+      confirm_password: signupData.confirmPassword,
+    });
+
+    if (res.error) {
+      toast.error(res.error);
+    } else {
+      toast.success("Signup successful!");
       navigate("/dashboard");
-    } catch (error: any) {
-      toast.error(error.message);
-    } finally {
-      setLoading(false);
     }
-  };
+  } catch (error: any) {
+    toast.error(error.message || "Something went wrong");
+  } finally {
+    setLoading(false);
+  }
+};
 
   const roles = [
     { value: 'admin', label: 'Manager' },
