@@ -40,7 +40,7 @@ const HomePage: React.FC = () => {
               className="hover:bg-blue-900 mr-2 p-2 border bg-blue-950 cursor-pointer h-10 w-30 shadow-2xl rounded-full "
               size="lg"
               style={{ background: '#0A2B78',  }}
-              onClick={() => navigate('/login')}
+              onClick={() => navigate('/login?tab=signup ')}
             >
              <span className="border-2 border-yellow-500 rounded-full  text-yellow-500 text-center p-1  w-50"
               style={{ background: '#0A2B78', borderColor:'#D9B900', color:'#D9B900' }}> Sign Up</span>
@@ -67,7 +67,7 @@ const HomePage: React.FC = () => {
               className="hover:bg-blue-900 mt-10 mr-2 p-2 border bg-blue-950 cursor-pointer h-12 w-52 shadow-2xl rounded-full "
               size="lg"
               style={{ background: '#0A2B78',  }}
-              onClick={() => navigate('/login')}
+              onClick={() => navigate('/login?tab=signup ')}
             >
              <span className="border-2 border-yellow-500 rounded-full h-10 text-yellow-500 text-center pt-2  w-50"
               style={{ background: '#0A2B78', borderColor:'#D9B900', color:'#D9B900' }}> Get Start with ACME</span>

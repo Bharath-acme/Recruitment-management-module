@@ -168,11 +168,26 @@ export function RequisitionManager({ selectedCompany, selectedCountry }: Requisi
 
  
 
-  const filteredRequisitions = requisitions.filter(req =>
-    req.position.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    req.department.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    req.id.toLowerCase().includes(searchTerm.toLowerCase())
+  //const filteredRequisitions = requisitions.filter(req =>
+   // req.position.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    //req.department.toLowerCase().includes(searchTerm.toLowerCase()) ||
+   // req.id.toLowerCase().includes(searchTerm.toLowerCase())
+ // );
+ const filteredRequisitions = requisitions.filter(requisition => {
+  const position = (requisition.position??"").toLowerCase();
+  const department = (requisition.department??"").toLowerCase();
+  const req_id = (requisition.req_id??"").toLowerCase();
+  const location = (requisition.location??"").toLowerCase();
+  
+
+  return (
+    position.includes(searchTerm.toLowerCase()) ||
+    department.includes(searchTerm.toLowerCase()) ||
+    req_id.includes(searchTerm.toLowerCase())  ||
+    location.includes(searchTerm.toLowerCase())
+    
   );
+});
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
@@ -265,19 +280,19 @@ export function RequisitionManager({ selectedCompany, selectedCountry }: Requisi
         </Select>
       </div>
 
-      <Card className='border-blue-200'>
         <CardContent className="p-0">
-          <Table >
-            <TableHeader >
+          <div className="overflow-x-auto">
+            <Table className="w-full border-separate border-spacing-y-3">
+            <TableHeader className='border bg-blue-100 rounded-lg shadow-sm'>
               <TableRow >
-              <TableHead>Position</TableHead>
+              <TableHead className="first:pl-10 rounded-l-lg">Position</TableHead>
               <TableHead>Department</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Priority</TableHead>
               <TableHead>Progress</TableHead>
               <TableHead>Days Open</TableHead>
               <TableHead>Hiring Manager</TableHead>
-              <TableHead>Approval</TableHead>
+              <TableHead className='rounded-r-lg'>Approval</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -307,8 +322,7 @@ export function RequisitionManager({ selectedCompany, selectedCountry }: Requisi
                        
                         <div className="text-sm text-gray-500 flex items-center gap-1">
                            <MapPin className="h-3 w-3" /> <span>{req.location}</span>
-                        </div>
-                      
+                        </div>  
                     </TableCell>
                     <TableCell>{req.department}</TableCell>
                     <TableCell>
@@ -358,8 +372,8 @@ export function RequisitionManager({ selectedCompany, selectedCountry }: Requisi
               )}
             </TableBody>
           </Table>
+          </div>
         </CardContent>
-      </Card>
     </div>
   );
 }

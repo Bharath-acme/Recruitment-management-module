@@ -260,18 +260,18 @@ export function CandidateManager({ selectedCompany, selectedCountry }: Candidate
         </Button> */}
       </div>
 
-      <Card>
         <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Candidate</TableHead>
+          <div className="overflow-x-auto">
+            <Table className="w-full border-separate border-spacing-y-3">
+            <TableHeader className='border bg-blue-100 rounded-lg shadow-sm'>
+              <TableRow >
+                <TableHead className="first:pl-18 border-l rounded-l-lg">Candidate</TableHead>
                 <TableHead>Position</TableHead>
                 <TableHead>Stage</TableHead>
                 <TableHead>Rating</TableHead>
                 <TableHead>Source</TableHead>
                 <TableHead>Applied</TableHead>
-                <TableHead>Recruiter</TableHead>
+                <TableHead className='rounded-r-lg'>Recruiter</TableHead>
                 {/* <TableHead>Actions</TableHead> */}
               </TableRow>
             </TableHeader>
@@ -291,8 +291,11 @@ export function CandidateManager({ selectedCompany, selectedCountry }: Candidate
                 ))
               ) : (
                 filteredCandidates.map((candidate) => (
-                  <TableRow onClick={()=>navigate(`/candidates/${candidate.id}`)} key={candidate.id}>
-                    <TableCell>
+                  <TableRow onClick={()=>navigate(`/candidates/${candidate.id}`)} key={candidate.id}
+                       className="border border-gray-200 rounded-lg shadow-sm transition-all duration-200 ease-in-out hover:shadow-lg hover:bg-blue-50 hover:-translate-y-[2px] cursor-pointer">
+
+                    <TableCell className="border-l-[5px] border-blue-800 pl-4 rounded-lg">
+                      <div>
                       <div className="flex items-center space-x-3">
                         <Avatar className="h-10 w-10">
                           <AvatarFallback>{candidate.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
@@ -307,6 +310,7 @@ export function CandidateManager({ selectedCompany, selectedCountry }: Candidate
                             <MapPin className="h-3 w-3" />
                             <span>{candidate.location}</span>
                           </div>
+                        </div>
                         </div>
                       </div>
                     </TableCell>
@@ -359,8 +363,8 @@ export function CandidateManager({ selectedCompany, selectedCountry }: Candidate
               )}
             </TableBody>
           </Table>
+          </div>
         </CardContent>
-      </Card>
     </div>
   );
 }
