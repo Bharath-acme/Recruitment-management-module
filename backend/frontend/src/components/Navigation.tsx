@@ -15,7 +15,8 @@ import {
 } from 'lucide-react';
 import logo from '../media/profile_logo.png';
 import companyLogo from '../media/acme_logo.png';
-import { Link, useLocation, useNavigate } from 'react-router-dom';   // ✅ Router imports
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Capitalize } from '../utils/Utils';   // ✅ Router imports
 
 interface NavigationProps {
   selectedCompany: string;
@@ -43,7 +44,7 @@ export function Navigation({
     { path: '/requisitions', label: 'Requisitions', icon: FileText, roles: ['admin', 'recruiter', 'hiring_manager'] },
     { path: '/candidates', label: 'Candidates', icon: Users, roles: ['admin', 'recruiter', 'hiring_manager', 'interviewer'] },
     { path: '/interviews', label: 'Interviews', icon: Calendar, roles: ['admin', 'recruiter', 'hiring_manager', 'interviewer'] },
-    { path: '/offers', label: 'Offers', icon: HandHeart, roles: ['admin', 'recruiter', 'finance','hiring_manager'] },
+    // { path: '/offers', label: 'Offers', icon: HandHeart, roles: ['admin', 'recruiter', 'finance','hiring_manager'] },
     // { path: '/analytics', label: 'Analytics', icon: BarChart3, roles: ['admin', 'recruiter','hiring_manager'] },
     // { path: '/vendors', label: 'Vendors', icon: Building2, roles: ['admin', 'recruiter','hiring_manager'] },
     // { path: '/admin', label: 'Admin', icon: Settings, roles: ['admin','hiring_manager'] },
@@ -75,7 +76,7 @@ export function Navigation({
           />
         </div>
         <div className="text-sm flex-1 min-w-0">
-          <p className="text-white-900 font-medium truncate">{user?.name}</p>
+          <p className="text-white-900 font-medium truncate">{Capitalize(user?.name||'')}</p>
           <p className="text-white-500 capitalize truncate">{userRole?.replace('_', ' ')}</p>
           
         </div>
@@ -95,7 +96,7 @@ export function Navigation({
                 className="w-full flex items-center space-x-2 justify-start px-3 py-2 mb-1"
               >
                 <Icon className="h-4 w-4" />
-                <span>{item.label}</span>
+                <span style={{fontSize:'15px'}}>{item.label}</span>
               </Button>
             </Link>
           );
@@ -103,7 +104,7 @@ export function Navigation({
          <Button
          className="w-full flex items-center space-x-2 justify-start px-3 py-2 mb-1"
          variant="ghost" size="sm" onClick={handleSignOut}>
-         <LogOut className="h-4 w-4" />  <span>Logout</span> 
+         <LogOut className="h-4 w-4 ml-2" />  <span style={{fontSize:'15px'}}>Logout</span> 
         </Button>
       </div>
      
