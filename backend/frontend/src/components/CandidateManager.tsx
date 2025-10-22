@@ -259,13 +259,12 @@ export function CandidateManager({ selectedCompany, selectedCountry }: Candidate
         </Button> */}
       </div>
 
-      <Card>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <Table className="w-full border-separate border-spacing-y-3">
             <TableHeader>
               <TableRow>
-                <TableHead>Candidate</TableHead>
+                <TableHead className="first:pl-18">Candidate</TableHead>
                 <TableHead>Position</TableHead>
                 <TableHead>Stage</TableHead>
                 <TableHead>Rating</TableHead>
@@ -292,11 +291,10 @@ export function CandidateManager({ selectedCompany, selectedCountry }: Candidate
               ) : (
                 filteredCandidates.map((candidate) => (
                   <TableRow onClick={()=>navigate(`/candidates/${candidate.id}`)} key={candidate.id}
-                       className="border border-gray-200 rounded-lg shadow-sm transition-all duration-200 ease-in-out hover:shadow-lg hover:bg-blue-50 hover:-translate-y-[2px] cursor-pointer"
-                   style={{ overflow: "hidden", }}>
+                       className="border border-gray-200 rounded-lg shadow-sm transition-all duration-200 ease-in-out hover:shadow-lg hover:bg-blue-50 hover:-translate-y-[2px] cursor-pointer">
 
-                    <TableCell>
-                      <div className="border-l-4 border-blue-500 pl-3 pb-2">
+                    <TableCell className="border-l-[5px] border-blue-500 pl-4 rounded-lg">
+                      <div>
                       <div className="flex items-center space-x-3">
                         <Avatar className="h-10 w-10">
                           <AvatarFallback>{candidate.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
@@ -312,7 +310,7 @@ export function CandidateManager({ selectedCompany, selectedCountry }: Candidate
                             <span>{candidate.location}</span>
                           </div>
                         </div>
-                      </div>
+                        </div>
                       </div>
                     </TableCell>
                     <TableCell>
@@ -366,7 +364,6 @@ export function CandidateManager({ selectedCompany, selectedCountry }: Candidate
           </Table>
           </div>
         </CardContent>
-      </Card>
     </div>
   );
 }

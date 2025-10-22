@@ -35,9 +35,42 @@ export default function CandidateForm({ initialData, onSubmit, onCancel }: Candi
     resume: initialData?.resume || "",
   });
 
-  const handleResumeUpload = (file: File) => {
-    setFormData(prev => ({ ...prev, resume: file }));
-  };
+   const handleResumeUpload = async (file: File) => {
+    try {
+      handleChange("resume", file);
+
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const response = await fetch("http://127.0.0.1:8000/parse-resume/", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) throw new Error("Failed to parse resume");
+      const data = await response.json();
+
+      const extracted = data.extracted || {};
+
+      // Autofill fields if empty
+      setFormData((prev) => ({
+        ...prev,
+        name: prev.name || extracted.name || "",
+        email: prev.email || extracted.email || "",
+        phone: prev.phone || extracted.phone || "",
+        experience: prev.experience || extracted.experience || "",
+        skills:
+          prev.skills ||
+          (extracted.skills && extracted.skills.length > 0
+            ? extracted.skills.join(", ")
+            : ""),
+      }));
+
+      console.log("✅ Resume parsed:", extracted);
+    } catch (error) {
+      console.error("❌ Error parsing resume:", error);
+    }
+  }; 
   const handleChange = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };

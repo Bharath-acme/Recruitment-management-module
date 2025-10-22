@@ -285,7 +285,7 @@ export function RequisitionManager({ selectedCompany, selectedCountry }: Requisi
             <Table className="w-full border-separate border-spacing-y-3">
             <TableHeader >
               <TableRow >
-              <TableHead>Position</TableHead>
+              <TableHead className="first:pl-10">Position</TableHead>
               <TableHead>Department</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Priority</TableHead>
@@ -314,21 +314,15 @@ export function RequisitionManager({ selectedCompany, selectedCountry }: Requisi
                   
                   <TableRow 
                        onClick={()=>{ navigate(`/requisitions/${req.id}`)}} key={req.id}
-                       className="border border-gray-200 rounded-lg shadow-sm transition-all duration-200 ease-in-out hover:shadow-lg hover:bg-blue-50 hover:-translate-y-[2px] cursor-pointer"
-                   style={{ overflow: "hidden", }}>
+                       className="border border-gray-200 rounded-lg shadow-sm transition-all duration-200 ease-in-out hover:shadow-lg hover:bg-blue-50 hover:-translate-y-[2px] cursor-pointer">
                 
-                    <TableCell >
-                     <div className="relative pl-4 py-3">
-                       <div className="absolute left-0 top-0 bottom-0 w-1 bg-blue-500 rounded-sm"></div>
-                       <div className="absolute left-0 top-0 h-1 w-4 bg-blue-500 rounded-sm"></div>
-                       <div className="absolute left-0 bottom-0 h-1 w-4 bg-blue-500 rounded-sm"></div>
+                    <TableCell className="border-l-[5px] border-blue-500 pl-4 rounded-lg">
                         <div className="font-medium">{req.position}</div>
                         <div className="text-sm text-gray-500">{req.req_id}</div>
                        
                         <div className="text-sm text-gray-500 flex items-center gap-1">
                            <MapPin className="h-3 w-3" /> <span>{req.location}</span>
-                        </div>
-                      </div>
+                        </div>  
                     </TableCell>
                     <TableCell>{req.department}</TableCell>
                     <TableCell>

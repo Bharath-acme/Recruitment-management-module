@@ -24,7 +24,6 @@ import {
   MessageSquare
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { projectId, publicAnonKey } from '../utils/supabase/info';
 
 interface InterviewManagerProps {
   selectedCompany: string;
@@ -83,7 +82,7 @@ export function InterviewManager({ selectedCompany, selectedCountry }: Interview
 >([]);
 
 useEffect(() => {
-  fetch("http://localhost:8000/candidates")
+  fetch("http://localhost:8000/candidates/")
     .then((res) => res.json())
     .then((data) => setCandidates(data));
 
@@ -98,7 +97,7 @@ console.log("Candidates:", candidates);
   const loadInterviews = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`http://localhost:8000/interviews/`, {
+      const response = await fetch(`http://localhost:8000/interviews`, {
         headers: {
          
           'Content-Type': 'application/json'
@@ -138,7 +137,7 @@ console.log("Candidates:", candidates);
       location: newInterview.location,
       interviewers: newInterview.interviewers.split(",").map(i => i.trim())
     };
-    const response = await fetch("http://localhost:8000/interviews/", {
+    const response = await fetch("http://localhost:8000/interviews", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)

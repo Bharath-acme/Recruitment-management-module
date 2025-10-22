@@ -11,7 +11,8 @@ import { Users } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import logo from '../media/thumbnail_image001.png';
-import login_image from '../media/login_img2.png';
+import login_image from '../media/LoginImg.png';
+import signup_image from '../media/signup_img.png';
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export function LoginForm() {
@@ -109,55 +110,33 @@ useEffect(() => {
   const countries = ['UAE', 'Saudi Arabia', 'Qatar', 'Kuwait', 'Bahrain', 'Oman'];
 
   return (
-    <div className="min-h-screen grid grid-cols-1 md:grid-cols-2">
-       
-      {/* Left Section with Image */}
-              
-      <div className="hidden flex flex-col md:flex bg-white rounded-e-3xl ">
-        <img className='absolute top-0 left-0 h-15 ' src={logo}  />
-        <div style={{
-          height:'58%',
-          width:'100%',
-          
-        }}>
-        <img
-          src={login_image}
-          alt="Recruitment Illustration"
-         
-          style={{width:"100%", height:"100%", marginTop:0}}
-        />
-        </div>
-        <div className='bg-gray-100' style={{height:'40%'}} >
-          <div className='h-13 mt-5 mb-2 relative bg-white flex items-center justify-center  text-center  border border-blue-200 rounded-3xl w-50 '><span>Join ACME</span></div>
-           <div className='h-13 mb-2 relative left-40 bg-white flex items-center justify-center  text-center  border border-blue-200 rounded-3xl w-50 '>Raise a Job</div>
-            <div className='h-13 mb-2 relative left-80 bg-white flex items-center justify-center  text-center  border border-blue-200 rounded-3xl w-50 '>Relax</div>
-             <div className='h-13 mb-2 relative left-120 bg-white flex items-center justify-center  text-center  border border-blue-200 rounded-3xl w-50 '>Get Talent</div>
-        </div>
-      </div>
-     <div className=' bg-green-100 rounded-sm absolute '></div> 
+     <div
+      className="relative min-h-screen bg-cover bg-top flex items-center justify-end"
+      style={{ backgroundImage: `url(${ activeTab == 'signup' ? signup_image : login_image})`,
+      transition: 'background-image 0.5s ease-in-out',
+       }}>
+      <img src={logo} alt="Logo" className="absolute top-4 left-6 w-32" />
 
-      {/* Right Section with Form */}
-      <div className="flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
-        <div className="w-full max-w-md">
-          <div className="text-center mb-8">
-           
-            <h1 className="text-2xl font-bold text-gray-900">Talent Acquisition System</h1>
-            <p className="text-gray-600">Enterprise Recruitment Management</p>
-          </div>
+      {/* Login Form Overlay */}
+      <div className="bg-transparent p-8 rounded-xl w-full max-w-md mr-40">
+        <div className="text-center mb-6">
+          <h1 className="text-2xl font-bold text-white">Talent Acquisition System</h1>
+          <p className="text-gray-100">Enterprise Recruitment Management</p>
+        </div>
 
-          <Card className="shadow-xl">
-            <CardHeader>
-              <CardTitle className="text-xl text-center">Welcome</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="login">Sign In</TabsTrigger>
-                  <TabsTrigger value="signup">Sign Up</TabsTrigger>
-                </TabsList>
+        <Card className="bg-transparent shadow-none border-none">
+          <CardHeader>
+            <CardTitle className="text-xl text-center text-white">Welcome</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList className="grid w-full grid-cols-2 bg-white/20 text-white">
+                <TabsTrigger value="login">Sign In</TabsTrigger>
+                <TabsTrigger value="signup">Sign Up</TabsTrigger>
+              </TabsList>
 
                 {/* Login Form */}
-                <TabsContent value="login" className="space-y-4">
+                <TabsContent value="login" className="space-y-4 text-white">
                   <form onSubmit={handleLogin} className="space-y-4">
                     <div className="space-y-2">
                       <Label>Email</Label>
@@ -186,7 +165,7 @@ useEffect(() => {
                 </TabsContent>
 
                 {/* Signup Form */}
-                <TabsContent value="signup" className="space-y-4">
+                <TabsContent value="signup" className="space-y-4 text-white">
                   <form onSubmit={handleSignup} className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
@@ -295,11 +274,11 @@ useEffect(() => {
             </CardContent>
           </Card>
 
-          <div className="mt-6 text-center text-sm text-gray-600">
+          <div className="mt-6 text-center text-sm text-gray-300">
             <p>Demo credentials available upon request</p>
           </div>
         </div>
       </div>
-    </div>
+
   );
 }
