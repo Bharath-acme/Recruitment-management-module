@@ -14,6 +14,7 @@ import {
   Globe,
 } from 'lucide-react';
 import logo from '../media/profile_logo.png';
+import companyLogo from '../media/component 1.png';
 import { Link, useLocation, useNavigate } from 'react-router-dom';   // ✅ Router imports
 
 interface NavigationProps {
@@ -57,9 +58,10 @@ export function Navigation({
   return (
     <nav style={{height:'100vh'}} className="flex flex-col mt-5 h-full w-full border-r">
       {/* Logo */}
-      <div className="flex items-center px-6 py-8 ">
-        <Users className="h-8 w-8 text-white-600" />
-        <span className="ml-2 text-xl font-bold text-white-900">ACME Talent</span>
+      <div className="flex items-center px-3 pt-3 pb-5 ">
+        {/* <Users className="h-8 w-8 text-white-600" />
+        <span className="ml-2 text-xl font-bold text-white-900">ACME Talent</span> */}
+        <img src={companyLogo} alt="Company Logo" className="h-20 w-auto" />
       </div>
 
        {/* User Info at bottom */}
@@ -77,11 +79,7 @@ export function Navigation({
           <p className="text-white-500 capitalize truncate">{userRole?.replace('_', ' ')}</p>
           
         </div>
-         <Button
-        //  className="w-full flex items-center space-x-2 justify-start px-3 py-2 mb-1"
-         variant="ghost" size="sm" onClick={handleSignOut}>
-          <LogOut className="h-4 w-4" />
-        </Button>
+        
        
       </div>
       {/* Nav Items */}
@@ -102,7 +100,11 @@ export function Navigation({
             </Link>
           );
         })}
-        
+         <Button
+         className="w-full flex items-center space-x-2 justify-start px-3 py-2 mb-1"
+         variant="ghost" size="sm" onClick={handleSignOut}>
+         <LogOut className="h-4 w-4" />  <span>Logout</span> 
+        </Button>
       </div>
      
       
