@@ -85,7 +85,7 @@ export function InterviewManager({ selectedCompany, selectedCountry }: Interview
 
 useEffect(() => {
   fetch(`${API_BASE_URL}/candidates`)
-  fetch("http://localhost:8000/candidates/")
+  fetch("http://localhost:8000/candidates")
     .then((res) => res.json())
     .then((data) => setCandidates(data));
 
@@ -101,12 +101,11 @@ console.log("Candidates:", candidates);
     setLoading(true);
     try {
       const response = await fetch(`${API_BASE_URL}/interviews`, {
-      const response = await fetch(`http://localhost:8000/interviews`, {
         headers: {
          
           'Content-Type': 'application/json'
         }
-      });
+      })
 
       if (response.ok) {
         const data = await response.json();
@@ -142,7 +141,7 @@ console.log("Candidates:", candidates);
       interviewers: newInterview.interviewers.split(",").map(i => i.trim())
     };
   const response = await fetch(`${API_BASE_URL}/interviews`, {
-    const response = await fetch("http://localhost:8000/interviews", {
+   
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)

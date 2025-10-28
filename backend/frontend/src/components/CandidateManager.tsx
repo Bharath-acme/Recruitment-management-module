@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import CandidateForm from './CandidateForm';
+import { useAuth } from './AuthProvider';
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 interface CandidateManagerProps {
@@ -69,7 +70,7 @@ export function CandidateManager({ selectedCompany, selectedCountry }: Candidate
   const [stageFilter, setStageFilter] = useState('all');
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null);
-
+  const { user } = useAuth();
   const [newCandidate, setNewCandidate] = useState({
     name: '',
     email: '',
@@ -203,7 +204,8 @@ export function CandidateManager({ selectedCompany, selectedCountry }: Candidate
           <h1 className="text-3xl font-bold text-gray-900">Candidate Management</h1>
           <p className="text-gray-600">Manage candidate pipeline and applications</p>
         </div>
-        <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+       {/* {user?.role =='recruiter' &&  */}
+       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="h-4 w-4 mr-2" />
@@ -222,6 +224,7 @@ export function CandidateManager({ selectedCompany, selectedCountry }: Candidate
             />
           </DialogContent>
         </Dialog>
+        {/* // } */}
       </div>
 
       <div className="flex space-x-4">
@@ -263,15 +266,15 @@ export function CandidateManager({ selectedCompany, selectedCountry }: Candidate
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <Table className="w-full border-separate border-spacing-y-3">
-            <TableHeader>
-              <TableRow>
-                <TableHead className="first:pl-18">Candidate</TableHead>
+            <TableHeader className='border bg-blue-100 rounded-lg shadow-sm'>
+              <TableRow >
+                <TableHead className="first:pl-18 border-l rounded-l-lg">Candidate</TableHead>
                 <TableHead>Position</TableHead>
                 <TableHead>Stage</TableHead>
                 <TableHead>Rating</TableHead>
                 <TableHead>Source</TableHead>
                 <TableHead>Applied</TableHead>
-                <TableHead>Recruiter</TableHead>
+                <TableHead className='rounded-r-lg'>Recruiter</TableHead>
                 {/* <TableHead>Actions</TableHead> */}
               </TableRow>
             </TableHeader>
@@ -294,7 +297,7 @@ export function CandidateManager({ selectedCompany, selectedCountry }: Candidate
                   <TableRow onClick={()=>navigate(`/candidates/${candidate.id}`)} key={candidate.id}
                        className="border border-gray-200 rounded-lg shadow-sm transition-all duration-200 ease-in-out hover:shadow-lg hover:bg-blue-50 hover:-translate-y-[2px] cursor-pointer">
 
-                    <TableCell className="border-l-[5px] border-blue-600 pl-4 rounded-lg">
+                    <TableCell className="border-l-[5px] border-blue-800 pl-4 rounded-lg">
                       <div>
                       <div className="flex items-center space-x-3">
                         <Avatar className="h-10 w-10">

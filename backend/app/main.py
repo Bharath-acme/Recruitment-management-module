@@ -18,6 +18,10 @@ from offers import api as offers_api
 from datetime import datetime, timedelta
 from fastapi import FastAPI, WebSocket, Depends
 from app.websocket import connect_user, disconnect_user
+from requisitions.models import Requisitions
+from candidates.models import Candidate 
+from interviews.models import Interview
+
 
 
 
@@ -116,6 +120,74 @@ async def websocket_endpoint(websocket: WebSocket, user_id: int):
             await websocket.receive_text()  # Keep connection alive
     except Exception:
         await disconnect_user(user_id)
+
+
+@app.get("/summary")
+def get_dashboard_summary(db: Session = Depends(get_db)):
+    # 1️⃣ Counts
+    open_positions = db.query(Requisitions).filter(Requisitions.status == "open").count()
+    active_candidates = db.query(Candidate).filter(Candidate.status == "active").count()
+    scheduled_interviews = db.query(Interview).filter(Interview.status == "Scheduled").count()
+
+    # 2️⃣ Recent Requisitions (latest 5)
+    recent_requisitions = (
+        db.query(Requisitions)
+        .order_by(Requisitions.created_date.desc())
+        .limit(5)
+        .all()
+    )
+
+    # 3️⃣ Upcoming Interviews (next 7 days)
+    today = datetime.utcnow()
+    upcoming_interviews = (
+        db.query(Interview)
+        .filter(
+            Interview.status == "Scheduled",
+            Interview.datetime >= today,
+            Interview.datetime <= today + timedelta(days=7),
+        )
+        .order_by(Interview.datetime.asc())
+        .limit(5)
+        .all()
+    )
+
+    # 4️⃣ Pending Approvals
+    pending_approvals = (
+        db.query(Requisitions)
+        .filter(Requisitions.approval_status == "pending")
+        .order_by(Requisitions.created_date.desc())
+        .limit(5)
+        .all()
+    )
+
+    return {
+        "summary": {
+            "open_positions": open_positions,
+            "active_candidates": active_candidates,
+            "scheduled_interviews": scheduled_interviews,
+        },
+        "recent_requisitions": [
+            {"id": r.id, 
+            "position": r.position, 
+            "status": r.status, 
+            "created_date": r.created_date, 
+            'department': r.department,
+            'priority':r.priority,
+            'req_id':r.req_id,
+            'applications_count': len(r.candidates),
+
+            }
+            for r in recent_requisitions
+        ],
+        "upcoming_interviews": [
+            {"id": i.id, "candidate_id": i.candidate_id, "scheduled_date": i.datetime}
+            for i in upcoming_interviews
+        ],
+        "pending_approvals": [
+            {"id": p.id, "position": p.position, "created_date": p.created_date, 'req_id':p.req_id, }
+            for p in pending_approvals
+        ],
+    }
 
 
 

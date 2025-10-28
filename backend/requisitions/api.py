@@ -28,22 +28,22 @@ async def create_requisition(req: RequisitionCreate, db: Session = Depends(get_d
     )
 
     # Trigger async notification task
-    send_requisition_created.delay(requisition.id, current_user.id)
+    # send_requisition_created.delay(requisition.id, current_user.id)
 
-    # Create DB notification
-    notif = create_notification(
-        db,
-        user_id=current_user.id,
-        title="Requisition Created",
-        message=f"You created requisition '{requisition.position}'"
-    )
+    # # Create DB notification
+    # notif = create_notification(
+    #     db,
+    #     user_id=current_user.id,
+    #     title="Requisition Created",
+    #     message=f"You created requisition '{requisition.position}'"
+    # )
 
-    # Send real-time WebSocket message (if user is connected)
-    await websocket.send_notification(current_user.id,{
-        "title": "Requisition Created",
-        "message": f"You created requisition '{requisition.position}'",
-        "time": requisition.created_at.isoformat() if hasattr(requisition, 'created_at') else None
-        })
+    # # Send real-time WebSocket message (if user is connected)
+    # await websocket.send_notification(current_user.id,{
+    #     "title": "Requisition Created",
+    #     "message": f"You created requisition '{requisition.position}'",
+    #     "time": requisition.created_at.isoformat() if hasattr(requisition, 'created_at') else None
+    #     })
 
     return requisition
    
@@ -84,6 +84,26 @@ def read_requisitions(
         result.append(req_dict)
 
     return result
+
+@router.get("/req", response_model=list[RequisitionMini])
+def get_req(
+    skip: int = 0,
+    limit: int = 10,
+    db: Session = Depends(get_db),
+    role: Optional[str] = Query(None),
+    user_id: Optional[int] = Query(None),
+    approval_status: str = Query("approved")
+):
+    db_reqs = crud.get_requisitions(
+        db,
+        skip=skip,
+        limit=limit,
+        role=role,
+        user_id=user_id,
+        approval_status=approval_status
+    )
+
+    return db_reqs
 
 @router.get("/{requisition_id}", response_model=RequisitionResponse)
 def read_requisition(requisition_id: int, db: Session = Depends(get_db)):
@@ -147,7 +167,7 @@ def update_requisition_approval(
         details=f"Changed from '{old_status}' to '{approval_update.approval_status}'"
     )
     # 3️ Trigger async notification task
-    send_requisition_approval_update.delay(requisition.id, current_user.id)
+    # send_requisition_approval_update.delay(requisition.id, current_user.id)
     return requisition
 
 @router.put("/{req_id}/assignTeam", response_model=RequisitionResponse)
@@ -185,7 +205,7 @@ def update_requisition_team(
         details=f"Recruiter ID {requisition.recruiter_id} assigned by {current_user.name}"
     )
     # 3️ Trigger async notification task
-    send_team_assignment_notification.delay(requisition.id, requisition.recruiter_id)
+    # send_team_assignment_notification.delay(requisition.id, requisition.recruiter_id)
 
     return requisition
 
@@ -196,7 +216,7 @@ def delete_requisition(requisition_id: int, db: Session = Depends(get_db)):
     if not db_req:
         raise HTTPException(status_code=404, detail="Requisition not found")
     # Trigger async notification task
-    send_requisition_deleted.delay(db_req.id)
+    # send_requisition_deleted.delay(db_req.id)
     return db_req
 
 

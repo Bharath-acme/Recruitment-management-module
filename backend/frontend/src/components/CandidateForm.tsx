@@ -1,10 +1,11 @@
 // CandidateForm.tsx
-import { useState } from "react";
+import { useState,useEffect, use } from "react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { useAuth } from "./AuthProvider";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 interface CandidateFormProps {
   initialData?: any; // Candidate data (for edit)
@@ -14,6 +15,7 @@ interface CandidateFormProps {
 
 export default function CandidateForm({ initialData, onSubmit, onCancel }: CandidateFormProps) {
     const { user } = useAuth();
+    const [requisitions, setRequisitions] = useState<Array<any>>([]);
   const [formData, setFormData] = useState({
     name: initialData?.name || "",
     email: initialData?.email || "",
@@ -31,11 +33,43 @@ export default function CandidateForm({ initialData, onSubmit, onCancel }: Candi
     dob: initialData?.dob || "",
     marital_status: initialData?.marital_status || "",
     recruiter: initialData?.recruiter || user?.name ,
+    resume : initialData?.resume || null,
     nationality: initialData?.nationality || "",
-    resume: initialData?.resume || "",
   });
 
+<<<<<<< HEAD
 <<<<<<< Updated upstream
+=======
+  useEffect(() => {
+     load_requisitions();
+  }, []);
+
+   const queryvalues = () => {
+    if (user?.role === 'admin' || user?.role === 'hiring_manager') {
+      return 'all';
+    } else {
+      return 'approved';
+    }
+ }
+   
+  const load_requisitions = async () => { 
+    const approvalStatus = queryvalues();
+    try {
+      const response = await fetch(`${API_BASE_URL}/requisitions/req?approval_status=${approvalStatus}&user_id=${user?.id}&role=${user?.role}`, {
+        headers: {  
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      const data = await response.json();
+      setRequisitions(data);
+      // Process requisitions data as needed
+    } catch (error) {
+      console.error('Error fetching requisitions:', error);
+    } 
+  };
+
+>>>>>>> e561f9799a65bfecdaaa04822805a896b14baa17
    const handleResumeUpload = (file: File) => {
 =======
   useEffect(() => {
@@ -154,22 +188,41 @@ export default function CandidateForm({ initialData, onSubmit, onCancel }: Candi
   </div>
 
   <div className="grid grid-cols-2 gap-4">
+   
     <div>
+      <Label htmlFor="requisitionId">Requisition ID</Label>
+
+          <Select
+              value={formData.requisition_id}
+              onValueChange={(val: any) => {
+                handleChange("requisition_id", val);
+                const selectedReq = requisitions.find((req) => req.id === val);
+                if (selectedReq) {
+                  handleChange("position", selectedReq.position || "");
+                }
+              }}
+            >
+          <SelectTrigger>
+            <SelectValue placeholder="Select Requisition ID" />
+          </SelectTrigger>
+          <SelectContent>
+            {requisitions.map((req) => (
+              <SelectItem key={req.id} value={req.id}>
+                {req.req_id}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+    </div>
+
+     <div>
       <Label htmlFor="position">Position Applied For</Label>
       <Input
         id="position"
         placeholder="Enter applied position"
         value={formData.position}
         onChange={e => handleChange("position", e.target.value)}
-      />
-    </div>
-    <div>
-      <Label htmlFor="requisitionId">Requisition ID</Label>
-      <Input
-        id="requisitionId"
-        placeholder="Enter requisition ID (e.g., REQ-2025-001)"
-        value={formData.requisition_id}
-        onChange={e => handleChange("requisition_id", e.target.value)}
       />
     </div>
   </div>
@@ -265,55 +318,6 @@ export default function CandidateForm({ initialData, onSubmit, onCancel }: Candi
         value={formData.marital_status}
         onChange={e => handleChange("marital_status", e.target.value)}
       />
-    </div>
-    
-          {/* Resume Upload */}
-    <div>
-      <Label htmlFor="resume">Upload Resume</Label>
-      {!formData.resume && (
-        <Input
-          id="resume"
-          type="file"
-          accept=".pdf,.doc,.docx"
-          onChange={(e) => {
-            if (e.target.files && e.target.files[0]) {
-              handleResumeUpload(e.target.files[0]);
-            }
-          }}
-          className="mt-1"
-        />
-      )}
-    
-      {/* Resume Upload button and box*/}
-      {formData.resume && (
-        <div className="relative mt-2 w-40 h-15 border border-gray-300 rounded-lg flex items-center justify-center bg-gray-50 shadow">
-          <span className="text-sm text-gray-700 px-2 text-center truncate w-40">
-            {formData.resume.name.length > 20
-              ? formData.resume.name.substring(0, 15) +
-                "..." +
-                formData.resume.name.split(".").pop()
-              : formData.resume.name}
-          </span>
-          <button
-            type="button"
-            onClick={() => handleChange("resume", null)}
-            className="absolute -top-2 -right-2 w-5 h-5  flex items-center justify-center text-white rounded full text-xs font-bold shadow-md hover:bg-purple-700 focus:outline-none cursor-pointer"
-          >
-            ✖
-          </button>
-        </div>
-      )}
-    </div>
-    
-    <div>
-      <Label htmlFor="nationality">Nationality</Label>
-      <Input
-        id="nationality"
-        value={formData.nationality}
-        onChange={(e) => handleChange("nationality", e.target.value)}
-        placeholder="Enter your Nationality"
-        />
-    </div>
     </div>
   </div>
 

@@ -6,7 +6,12 @@ from app.database import get_db
 from typing import List
 from app.auth import get_current_user
 from app.models import User
+<<<<<<< HEAD
 <<<<<<< Updated upstream
+=======
+from requisitions.schemas import RequisitionMini
+from requisitions.crud import get_requisitions  
+>>>>>>> e561f9799a65bfecdaaa04822805a896b14baa17
 
 router = APIRouter()
 
@@ -33,8 +38,25 @@ def parse_resume_endpoint(file: UploadFile = File(...)):
 
 >>>>>>> Stashed changes
 @router.post("", response_model=CandidateResponse)
-def create_candidate(candidate: CandidateCreate, db: Session = Depends(get_db)):
-    return crud.create_candidate(db=db, candidate=candidate)
+def create_candidate(
+    candidate: CandidateCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    db_candidate = crud.create_candidate(db=db, candidate=candidate)
+
+    if not db_candidate:
+        raise HTTPException(status_code=500, detail="Candidate creation failed")
+
+    crud.create_candidate_activity_log(
+        db=db,
+        candidate_id=db_candidate.id,
+        user=current_user,
+        action="Created Candidate",
+        details=f"Profile created by {current_user.name}"
+    )
+
+    return db_candidate
 
 @router.get("", response_model=List[CandidateResponse])
 def read_candidates(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
@@ -87,9 +109,16 @@ def get_candidate_activity_logs(candidate_id: str, db: Session = Depends(get_db)
     return logs
 
 
+<<<<<<< HEAD
 <<<<<<< Updated upstream
 =======
 
 
 
 >>>>>>> Stashed changes
+=======
+
+
+
+
+>>>>>>> e561f9799a65bfecdaaa04822805a896b14baa17

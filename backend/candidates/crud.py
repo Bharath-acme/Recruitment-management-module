@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from app import models, schemas
+# from app import models, schemas
 from datetime import datetime, date  # Ensure proper import of date
 from typing import List, Optional
 from . import models, schemas
@@ -13,7 +13,15 @@ def get_candidate(db: Session, candidate_id: str):
 def get_candidates(db: Session, skip: int = 0, limit: int = 100):
     return db.query(models.Candidate).offset(skip).limit(limit).all()
 
-def create_candidate(db: Session, candidate: schemas.CandidateCreate, current_user:User):
+def create_candidate(db: Session, candidate: schemas.CandidateCreate):
+    existing_candidate = db.query(models.Candidate).filter(
+        models.Candidate.email == candidate.email
+    ).first()
+    if existing_candidate:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Candidate with email '{candidate.email}' already exists."
+        )
     db_candidate = models.Candidate(
         name=candidate.name,
         position=candidate.position,
@@ -39,20 +47,17 @@ def create_candidate(db: Session, candidate: schemas.CandidateCreate, current_us
         last_activity=datetime.utcnow(),
         created_date=datetime.utcnow(),
     )
-    db.add(db_candidate)
-    db.commit()
-    db.refresh(db_candidate)
+    try:
+        db.add(db_candidate)
+        db.commit()
+        db.refresh(db_candidate)
+        return db_candidate
+    except Exception as e:
+        db.rollback()
+        print(f"❌ Error creating candidate: {e}")
+        raise HTTPException(status_code=500, detail="Database error")
 
-    # 🔹 Create log
-    create_candidate_activity_log(
-        db=db,
-        candidate_id=db_candidate.id,
-        user=current_user,
-        action="Created Candidate",
-        details=f"Profile is created by {current_user.name}"
-    )
-
-    return db_candidate
+    
 
 def clean_dict(data: dict) -> dict:
     cleaned_data = {}

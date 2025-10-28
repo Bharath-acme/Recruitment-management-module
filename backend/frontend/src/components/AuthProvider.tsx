@@ -89,21 +89,43 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setUserRole(null);
   };
 
-  const signUp = async (email: string, password: string, userData: any) => {
-    const response = await fetch(`${API_BASE_URL}/register`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        email,
-        password,
-        ...userData
-      })
+const signUp = async (email: string, password: string, userData: any) => {
+  const res = await fetch(`${API_BASE_URL}/register`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password, ...userData }),
+  });
+
+  if (!res.ok) {
+    const err = await res.json();
+    return { error: err.detail || "Signup failed" };
+  }
+
+  const result = await res.json();
+
+  // If backend returns token
+  if (result.access_token) {
+    localStorage.setItem("token", result.access_token);
+
+    const userRes = await fetch(`${API_BASE_URL}/me`, {
+      headers: { Authorization: `Bearer ${result.access_token}` },
     });
-    const result = await response.json();
-    return result;
-  };
+    const userInfo = await userRes.json();
+
+    setUser(userInfo);
+    setUserRole(userInfo.role);
+
+    return { data: userInfo };
+  } else {
+    // fallback: auto-login using signIn
+    const loginRes = await signIn(email, password);
+    if (loginRes.error) {
+      return { error: "Signup succeeded but login failed. Please log in manually." };
+    }
+    return loginRes;
+  }
+};
+
 
   const value = {
     user,

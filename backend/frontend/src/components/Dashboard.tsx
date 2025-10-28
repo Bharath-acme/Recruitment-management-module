@@ -21,6 +21,7 @@ import {
 import { useAuth } from './AuthProvider';
 import { projectId, publicAnonKey } from '../utils/supabase/info';
 import { NotificationService, Notification } from '../utils/Utils';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 interface DashboardProps {
   selectedCompany: string;
@@ -52,16 +53,17 @@ interface RequisitionItem {
 export function Dashboard({ selectedCompany, selectedCountry  }: DashboardProps) {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
-  const [metrics, setMetrics] = useState<MetricCard[]>([]);
+  // const [metrics, setMetrics] = useState<MetricCard[]>([]);
   const [recentRequisitions, setRecentRequisitions] = useState<RequisitionItem[]>([]);
   const [upcomingInterviews, setUpcomingInterviews] = useState<any[]>([]);
   const [pendingApprovals, setPendingApprovals] = useState<any[]>([]);
+  const [dashCount, setDashCount] = useState<any>();
   const navigate = useNavigate();
  
 
   useEffect(() => {
-    loadDemoData();
-   
+      dashboardData();
+      loadDemoData();
   }, [selectedCompany, selectedCountry]);
 
   // Icon mapping for server responses
@@ -75,13 +77,43 @@ export function Dashboard({ selectedCompany, selectedCountry  }: DashboardProps)
   };
 
 
- 
+  const dashboardData = async ()=>{
+      setLoading(true);
+      try{
+        const response = await fetch(`${API_BASE_URL}/summary`,
+        { method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            // 'Authorization':  
+            // Include auth token if required
+          },
+        }
+        );
+        if(!response.ok){
+          throw new Error('Failed to fetch dashboard data');
+        }
+        const data = await response.json();
+        console.log('count',data);
+        setDashCount(data.summary);  
+        setRecentRequisitions(data.recent_requisitions);
+        setUpcomingInterviews(data.upcoming_interviews);
+        setPendingApprovals(data.pending_approvals);
+        console.log('Dashboard data:', data);
+        // Process and set metrics
+      }
+      catch(error){
+        console.error('Error fetching dashboard data:', error);
+      }
+    finally{
+        setLoading(false);
+    }}
 
-  const loadDemoData = () => {
-    setMetrics([
+      console.log('DashCount:', dashCount?.open_positions);
+
+  const metrics = [
       {
         title: 'Open Positions',
-        value: 24,
+        value: dashCount?.open_positions || 0,
         change: '+12%',
         changeType: 'increase',
         icon: FileText,
@@ -89,7 +121,7 @@ export function Dashboard({ selectedCompany, selectedCountry  }: DashboardProps)
       },
       {
         title: 'Active Candidates',
-        value: 187,
+        value: dashCount?.active_candidates || 0,
         change: '+8%',
         changeType: 'increase',
         icon: Users,
@@ -97,7 +129,7 @@ export function Dashboard({ selectedCompany, selectedCountry  }: DashboardProps)
       },
       {
         title: 'Scheduled Interviews',
-        value: 15,
+        value: dashCount?.scheduled_interviews || 0,
         change: '+3',
         changeType: 'increase',
         icon: Calendar,
@@ -127,50 +159,52 @@ export function Dashboard({ selectedCompany, selectedCountry  }: DashboardProps)
         icon: Target,
         route: "/analytics"
       }
-    ]);
+    ]
+  const loadDemoData = () => {
+   
 
-    setRecentRequisitions([
-      {
-        id: 'REQ-2025-001',
-        title: 'Senior Software Engineer',
-        department: 'Engineering',
-        status: 'Active',
-        daysOpen: 12,
-        applicants: 23,
-        stage: 'Screening',
-        priority: 'high'
-      },
-      {
-        id: 'REQ-2025-002', 
-        title: 'Product Manager',
-        department: 'Product',
-        status: 'Active',
-        daysOpen: 8,
-        applicants: 31,
-        stage: 'Interview',
-        priority: 'high'
-      },
-      {
-        id: 'REQ-2025-003',
-        title: 'UI/UX Designer',
-        department: 'Design',
-        status: 'Pending Approval',
-        daysOpen: 3,
-        applicants: 0,
-        stage: 'Draft',
-        priority: 'medium'
-      },
-      {
-        id: 'REQ-2025-004',
-        title: 'Sales Manager - KSA',
-        department: 'Sales',
-        status: 'Active',
-        daysOpen: 15,
-        applicants: 18,
-        stage: 'Offer',
-        priority: 'high'
-      }
-    ]);
+    // setRecentRequisitions([
+    //   {
+    //     id: 'REQ-2025-001',
+    //     title: 'Senior Software Engineer',
+    //     department: 'Engineering',
+    //     status: 'Active',
+    //     daysOpen: 12,
+    //     applicants: 23,
+    //     stage: 'Screening',
+    //     priority: 'high'
+    //   },
+    //   {
+    //     id: 'REQ-2025-002', 
+    //     title: 'Product Manager',
+    //     department: 'Product',
+    //     status: 'Active',
+    //     daysOpen: 8,
+    //     applicants: 31,
+    //     stage: 'Interview',
+    //     priority: 'high'
+    //   },
+    //   {
+    //     id: 'REQ-2025-003',
+    //     title: 'UI/UX Designer',
+    //     department: 'Design',
+    //     status: 'Pending Approval',
+    //     daysOpen: 3,
+    //     applicants: 0,
+    //     stage: 'Draft',
+    //     priority: 'medium'
+    //   },
+    //   {
+    //     id: 'REQ-2025-004',
+    //     title: 'Sales Manager - KSA',
+    //     department: 'Sales',
+    //     status: 'Active',
+    //     daysOpen: 15,
+    //     applicants: 18,
+    //     stage: 'Offer',
+    //     priority: 'high'
+    //   }
+    // ]);
 
     setUpcomingInterviews([
       {
@@ -202,24 +236,24 @@ export function Dashboard({ selectedCompany, selectedCountry  }: DashboardProps)
       }
     ]);
 
-    setPendingApprovals([
-      {
-        id: 1,
-        type: 'Requisition',
-        title: 'Senior Data Engineer',
-        requester: 'Tech Lead',
-        daysWaiting: 2,
-        priority: 'high'
-      },
-      {
-        id: 2,
-        type: 'Offer',
-        title: 'Marketing Specialist - UAE',
-        requester: 'HR Manager',
-        daysWaiting: 1,
-        priority: 'medium'
-      }
-    ]);
+    // setPendingApprovals([
+    //   {
+    //     id: 1,
+    //     type: 'Requisition',
+    //     title: 'Senior Data Engineer',
+    //     requester: 'Tech Lead',
+    //     daysWaiting: 2,
+    //     priority: 'high'
+    //   },
+    //   {
+    //     id: 2,
+    //     type: 'Offer',
+    //     title: 'Marketing Specialist - UAE',
+    //     requester: 'HR Manager',
+    //     daysWaiting: 1,
+    //     priority: 'medium'
+    //   }
+    // ]);
   };
 
 
@@ -247,6 +281,14 @@ export function Dashboard({ selectedCompany, selectedCountry  }: DashboardProps)
       default: return 'bg-gray-100 text-gray-800';
     }
   };
+
+     const daysOpen = (createdDate: string) => {
+    const created = new Date(createdDate);
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - created.getTime());
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  };
+
 
   if (loading) {
     return (
@@ -332,7 +374,7 @@ export function Dashboard({ selectedCompany, selectedCountry  }: DashboardProps)
         <TabsList>
           <TabsTrigger value="requisitions">Recent Requisitions</TabsTrigger>
           <TabsTrigger value="interviews">Upcoming Interviews</TabsTrigger>
-          <TabsTrigger value="approvals">Pending Approvals</TabsTrigger>
+          {/* <TabsTrigger value="approvals">Pending Approvals</TabsTrigger> */}
         </TabsList>
 
         <TabsContent value="requisitions">
@@ -349,15 +391,15 @@ export function Dashboard({ selectedCompany, selectedCountry  }: DashboardProps)
                   <div key={req.id} className="flex items-center justify-between p-4 border rounded-lg">
                     <div className="flex-1">
                       <div className="flex items-center space-x-2 mb-2">
-                        <h3 className="font-medium">{req.title}</h3>
+                        <h3 className="font-medium">{req.position}</h3>
                         <Badge className={getStatusColor(req.status)}>{req.status}</Badge>
                         <Badge className={getPriorityColor(req.priority)}>{req.priority}</Badge>
                       </div>
                       <div className="flex items-center text-sm text-gray-600 space-x-4">
                         <span>{req.department}</span>
-                        <span>{req.id}</span>
-                        <span>{req.daysOpen} days open</span>
-                        <span>{req.applicants} applicants</span>
+                        <span>{req.req_id}</span>
+                        <span>{daysOpen(req.created_date)} days open</span>
+                        <span>{req.applications_count} applicants</span>
                       </div>
                     </div>
                     <div className="text-right">
@@ -399,7 +441,7 @@ export function Dashboard({ selectedCompany, selectedCountry  }: DashboardProps)
           </Card>
         </TabsContent>
 
-        <TabsContent value="approvals">
+        {/* <TabsContent value="approvals">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center">
@@ -413,7 +455,7 @@ export function Dashboard({ selectedCompany, selectedCountry  }: DashboardProps)
                   <div key={approval.id} className="flex items-center justify-between p-4 border rounded-lg">
                     <div className="flex-1">
                       <div className="flex items-center space-x-2 mb-1">
-                        <h3 className="font-medium">{approval.title}</h3>
+                        <h3 className="font-medium">{approval.position}</h3>
                         <Badge className={getPriorityColor(approval.priority)}>{approval.priority}</Badge>
                       </div>
                       <div className="flex items-center text-sm text-gray-600 space-x-2">
@@ -433,7 +475,7 @@ export function Dashboard({ selectedCompany, selectedCountry  }: DashboardProps)
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
+        </TabsContent> */}
       </Tabs>
       {/* Notifications Panel */}
       <NotificationsPanel userId={Number(user?.id || 0)} />
