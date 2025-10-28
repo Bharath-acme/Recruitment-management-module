@@ -53,12 +53,24 @@ interface CandidateLog {
   username?: string | null; // user who performed the action
 }
 
+interface InterviewFeedback {
+  id: number;
+  interviewer: string;
+  date: string;
+  stage: string;
+  rating: number;
+  strengths: string[];
+  areasOfImprovement: string[];
+  comments: string;
+  recommendation: string;
+}
 
 export default function CandidateProfile() {
 
 const { id } = useParams<{ id: string }>();
   const [resumeFile, setResumeFile] = useState<File | null>(null);
    const [showAddDialog, setShowAddDialog] = useState(false);
+   const [showFeedback, setShowFeedback] = useState(false);
    const [logs, setLogs] = useState<CandidateLog[]>([]);
    const [logsLoading, setLogsLoading] = useState(true);
    const { user } = useAuth();
@@ -199,9 +211,20 @@ const token = localStorage.getItem('token');
       .toUpperCase();
   };
 
-  const formatDate = (dateString: string) => {
+  const formatDateDisplay = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+  };
+
+  const getRecommendationColor = (recommendation: string) => {
+    const colors: { [key: string]: string } = {
+      'Move Forward': 'bg-blue-100 text-blue-700 border-blue-200',
+      'Highly Recommended': 'bg-green-100 text-green-700 border-green-200',
+      'Approve Offer': 'bg-purple-100 text-purple-700 border-purple-200',
+      'On Hold': 'bg-yellow-100 text-yellow-700 border-yellow-200',
+      'Reject': 'bg-red-100 text-red-700 border-red-200',
+    };
+    return colors[recommendation] || 'bg-gray-100 text-gray-700 border-gray-200';
   };
 
   return (
@@ -291,6 +314,7 @@ const token = localStorage.getItem('token');
                 </div>
 
                 {/* Quick Stats */}
+                <div className="flex flex-col items-center space-y-6">
                 <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg p-4 border border-blue-100">
                   {/* <div className="text-center mb-2">
                     <p className="text-gray-600 mb-1">Candidate ID</p>
@@ -300,13 +324,379 @@ const token = localStorage.getItem('token');
                   <div className="text-center">
                     <p className="text-gray-600 mb-1">Requisition ID</p>
                     <p className="text-gray-900">{candidate.requisition_id}</p>
-                  </div>
+                   </div>
+                </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full bg-white hover:bg-blue-50"
+                    onClick={() => setShowFeedback(!showFeedback)}
+                  >
+                    <MessageSquare className="h-4 w-4 mr-2" />
+                    {showFeedback ? 'Hide Feedback' : 'View Feedback'}
+                  </Button>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </Card>
+
+      {/* Feedback Section */}
+      
+      {showFeedback && (
+        <Card className="bg-white shadow-lg border-0">
+          <div className="p-6">
+            <div className="flex items-center gap-2 mb-6">
+              <MessageSquare className="h-5 w-5 text-blue-500" />
+              <h2 className="text-gray-900">Interview Feedback</h2>
+            </div>
+            
+            <Tabs defaultValue="all" className="w-full">
+              <TabsList className="grid w-full grid-cols-4 mb-6">
+                <TabsTrigger value="all">All Feedback</TabsTrigger>
+                <TabsTrigger value="technical">Technical</TabsTrigger>
+                <TabsTrigger value="hr">HR Round</TabsTrigger>
+                <TabsTrigger value="final">Final</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="all" className="space-y-4">
+                {feedbacks.map((feedback) => (
+                  <Card key={feedback.id} className="border border-gray-200 overflow-hidden">
+                    <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 border-b">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <div className="flex items-center gap-2 mb-2">
+                            <Avatar className="h-8 w-8">
+                              <AvatarFallback className="bg-blue-500 text-white">
+                                {feedback.interviewer.split(' ').map(n => n[0]).join('')}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <p className="text-gray-900">{feedback.interviewer}</p>
+                              <p className="text-gray-600">{feedback.stage}</p>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex flex-col items-end gap-2">
+                          <div className="flex items-center gap-1">
+                            {[...Array(5)].map((_, i) => (
+                              <Star
+                                key={i}
+                                className={`h-4 w-4 ${
+                                  i < feedback.rating
+                                    ? 'fill-amber-400 text-amber-400'
+                                    : 'text-gray-300'
+                                }`}
+                              />
+                            ))}
+                          </div>
+                          <p className="text-gray-600">{formatDateDisplay(feedback.date)}</p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <CardContent className="p-4 space-y-4">
+                      {/* Strengths */}
+                      {feedback.strengths.length > 0 && (
+                        <div>
+                          <div className="flex items-center gap-2 mb-2">
+                            <ThumbsUp className="h-4 w-4 text-green-600" />
+                            <h3 className="text-gray-900">Strengths</h3>
+                          </div>
+                          <ul className="space-y-1 ml-6">
+                            {feedback.strengths.map((strength, idx) => (
+                              <li key={idx} className="text-gray-700 list-disc">{strength}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+
+                      {/* Areas of Improvement*/} 
+                      {feedback.areasOfImprovement.length > 0 && (
+                        <div>
+                          <div className="flex items-center gap-2 mb-2">
+                            <AlertCircle className="h-4 w-4 text-orange-600" />
+                            <h3 className="text-gray-900">Areas of Improvement</h3>
+                          </div>
+                          <ul className="space-y-1 ml-6">
+                            {feedback.areasOfImprovement.map((area, idx) => (
+                              <li key={idx} className="text-gray-700 list-disc">{area}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+
+                      {/* Comments */}
+                      <div>
+                        <h3 className="text-gray-900 mb-2">Overall Comments</h3>
+                        <p className="text-gray-700 bg-gray-50 p-3 rounded-lg">{feedback.comments}</p>
+                      </div>
+
+                      {/* Recommendation */}
+                      <div className="flex items-center justify-between pt-2 border-t">
+                        <span className="text-gray-600">Recommendation:</span>
+                        <Badge className={`${getRecommendationColor(feedback.recommendation)} border`}>
+                          {feedback.recommendation}
+                        </Badge>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </TabsContent>
+
+              <TabsContent value="technical" className="space-y-4">
+                {feedbacks
+                  .filter((f) => f.stage === "Technical Interview")
+                  .map((feedback) => (
+                    <Card key={feedback.id} className="border border-gray-200 overflow-hidden">
+                      <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 border-b">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <div className="flex items-center gap-2 mb-2">
+                              <Avatar className="h-8 w-8">
+                                <AvatarFallback className="bg-blue-500 text-white">
+                                  {feedback.interviewer.split(' ').map(n => n[0]).join('')}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <p className="text-gray-900">{feedback.interviewer}</p>
+                                <p className="text-gray-600">{feedback.stage}</p>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex flex-col items-end gap-2">
+                            <div className="flex items-center gap-1">
+                              {[...Array(5)].map((_, i) => (
+                                <Star
+                                  key={i}
+                                  className={`h-4 w-4 ${
+                                    i < feedback.rating
+                                      ? 'fill-amber-400 text-amber-400'
+                                      : 'text-gray-300'
+                                  }`}
+                                />
+                              ))}
+                            </div>
+                            <p className="text-gray-600">{formatDateDisplay(feedback.date)}</p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <CardContent className="p-4 space-y-4">
+                        {feedback.strengths.length > 0 && (
+                          <div>
+                            <div className="flex items-center gap-2 mb-2">
+                              <ThumbsUp className="h-4 w-4 text-green-600" />
+                              <h3 className="text-gray-900">Strengths</h3>
+                            </div>
+                            <ul className="space-y-1 ml-6">
+                              {feedback.strengths.map((strength, idx) => (
+                                <li key={idx} className="text-gray-700 list-disc">{strength}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+
+                        {feedback.areasOfImprovement.length > 0 && (
+                          <div>
+                            <div className="flex items-center gap-2 mb-2">
+                              <AlertCircle className="h-4 w-4 text-orange-600" />
+                              <h3 className="text-gray-900">Areas of Improvement</h3>
+                            </div>
+                            <ul className="space-y-1 ml-6">
+                              {feedback.areasOfImprovement.map((area, idx) => (
+                                <li key={idx} className="text-gray-700 list-disc">{area}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+
+                        <div>
+                          <h3 className="text-gray-900 mb-2">Overall Comments</h3>
+                          <p className="text-gray-700 bg-gray-50 p-3 rounded-lg">{feedback.comments}</p>
+                        </div>
+
+                        <div className="flex items-center justify-between pt-2 border-t">
+                          <span className="text-gray-600">Recommendation:</span>
+                          <Badge className={`${getRecommendationColor(feedback.recommendation)} border`}>
+                            {feedback.recommendation}
+                          </Badge>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+              </TabsContent>
+
+              <TabsContent value="hr" className="space-y-4">
+                {feedbacks
+                  .filter((f) => f.stage === "HR Round")
+                  .map((feedback) => (
+                    <Card key={feedback.id} className="border border-gray-200 overflow-hidden">
+                      <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 border-b">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <div className="flex items-center gap-2 mb-2">
+                              <Avatar className="h-8 w-8">
+                                <AvatarFallback className="bg-blue-500 text-white">
+                                  {feedback.interviewer.split(' ').map(n => n[0]).join('')}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <p className="text-gray-900">{feedback.interviewer}</p>
+                                <p className="text-gray-600">{feedback.stage}</p>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex flex-col items-end gap-2">
+                            <div className="flex items-center gap-1">
+                              {[...Array(5)].map((_, i) => (
+                                <Star
+                                  key={i}
+                                  className={`h-4 w-4 ${
+                                    i < feedback.rating
+                                      ? 'fill-amber-400 text-amber-400'
+                                      : 'text-gray-300'
+                                  }`}
+                                />
+                              ))}
+                            </div>
+                            <p className="text-gray-600">{formatDateDisplay(feedback.date)}</p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <CardContent className="p-4 space-y-4">
+                        {feedback.strengths.length > 0 && (
+                          <div>
+                            <div className="flex items-center gap-2 mb-2">
+                              <ThumbsUp className="h-4 w-4 text-green-600" />
+                              <h3 className="text-gray-900">Strengths</h3>
+                            </div>
+                            <ul className="space-y-1 ml-6">
+                              {feedback.strengths.map((strength, idx) => (
+                                <li key={idx} className="text-gray-700 list-disc">{strength}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+
+                        {feedback.areasOfImprovement.length > 0 && (
+                          <div>
+                            <div className="flex items-center gap-2 mb-2">
+                              <AlertCircle className="h-4 w-4 text-orange-600" />
+                              <h3 className="text-gray-900">Areas of Improvement</h3>
+                            </div>
+                            <ul className="space-y-1 ml-6">
+                              {feedback.areasOfImprovement.map((area, idx) => (
+                                <li key={idx} className="text-gray-700 list-disc">{area}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+
+                        <div>
+                          <h3 className="text-gray-900 mb-2">Overall Comments</h3>
+                          <p className="text-gray-700 bg-gray-50 p-3 rounded-lg">{feedback.comments}</p>
+                        </div>
+
+                        <div className="flex items-center justify-between pt-2 border-t">
+                          <span className="text-gray-600">Recommendation:</span>
+                          <Badge className={`${getRecommendationColor(feedback.recommendation)} border`}>
+                            {feedback.recommendation}
+                          </Badge>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+              </TabsContent>
+
+              <TabsContent value="final" className="space-y-4">
+                {feedbacks
+                  .filter((f) => f.stage === "Final Interview")
+                  .map((feedback) => (
+                    <Card key={feedback.id} className="border border-gray-200 overflow-hidden">
+                      <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 border-b">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <div className="flex items-center gap-2 mb-2">
+                              <Avatar className="h-8 w-8">
+                                <AvatarFallback className="bg-blue-500 text-white">
+                                  {feedback.interviewer.split(' ').map(n => n[0]).join('')}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <p className="text-gray-900">{feedback.interviewer}</p>
+                                <p className="text-gray-600">{feedback.stage}</p>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex flex-col items-end gap-2">
+                            <div className="flex items-center gap-1">
+                              {[...Array(5)].map((_, i) => (
+                                <Star
+                                  key={i}
+                                  className={`h-4 w-4 ${
+                                    i < feedback.rating
+                                      ? 'fill-amber-400 text-amber-400'
+                                      : 'text-gray-300'
+                                  }`}
+                                />
+                              ))}
+                            </div>
+                            <p className="text-gray-600">{formatDateDisplay(feedback.date)}</p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <CardContent className="p-4 space-y-4">
+                        {feedback.strengths.length > 0 && (
+                          <div>
+                            <div className="flex items-center gap-2 mb-2">
+                              <ThumbsUp className="h-4 w-4 text-green-600" />
+                              <h3 className="text-gray-900">Strengths</h3>
+                            </div>
+                            <ul className="space-y-1 ml-6">
+                              {feedback.strengths.map((strength, idx) => (
+                                <li key={idx} className="text-gray-700 list-disc">{strength}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+
+                        {feedback.areasOfImprovement.length > 0 && (
+                          <div>
+                            <div className="flex items-center gap-2 mb-2">
+                              <AlertCircle className="h-4 w-4 text-orange-600" />
+                              <h3 className="text-gray-900">Areas of Improvement</h3>
+                            </div>
+                            <ul className="space-y-1 ml-6">
+                              {feedback.areasOfImprovement.map((area, idx) => (
+                                <li key={idx} className="text-gray-700 list-disc">{area}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+
+                        <div>
+                          <h3 className="text-gray-900 mb-2">Overall Comments</h3>
+                          <p className="text-gray-700 bg-gray-50 p-3 rounded-lg">{feedback.comments}</p>
+                        </div>
+
+                        <div className="flex items-center justify-between pt-2 border-t">
+                          <span className="text-gray-600">Recommendation:</span>
+                          <Badge className={`${getRecommendationColor(feedback.recommendation)} border`}>
+                            {feedback.recommendation}
+                          </Badge>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+              </TabsContent>
+            </Tabs>
+          </div>
+        </Card>
+      )}
 
       {/* Main Content */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -592,4 +982,3 @@ const token = localStorage.getItem('token');
     </div>
   );
 }
-
