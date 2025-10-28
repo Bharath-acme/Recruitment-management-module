@@ -17,12 +17,8 @@ import { Dashboard } from "./components/Dashboard";
 import CandidateProfile from "./components/Candidate";
 import RquisitionPage2 from "./components/Requisition2";
 import HomePage from "./components/landingPage";
-<<<<<<< Updated upstream
 import { Menu } from "lucide-react"; 
 
-=======
-import {InterviewDetail} from "./components/InterviewDetail";
->>>>>>> Stashed changes
 
 
 function AppContent() {
@@ -99,12 +95,7 @@ function AppContent() {
           )}
           <Route path="/open-positions" element={<OpenPositions />} />
           <Route path="/candidates/:id" element={<CandidateProfile />} />
-<<<<<<< Updated upstream
           <Route path="/requisitions/:id" element={<RquisitionPage2 />} />
-=======
-          <Route path="/requisitions/:id" element={<RquisitionPage />} />
-          <Route path="/interviews/:id" element={<InterviewDetail />} />
->>>>>>> Stashed changes
           {/* Redirect any unknown route to dashboard */}
           <Route path="*" element={<Dashboard selectedCompany={selectedCompany} selectedCountry={selectedCountry} />}/>
         </Routes>

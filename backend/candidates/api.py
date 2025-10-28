@@ -6,15 +6,10 @@ from app.database import get_db
 from typing import List
 from app.auth import get_current_user
 from app.models import User
-<<<<<<< Updated upstream
-from requisitions.schemas import RequisitionMini
-from requisitions.crud import get_requisitions  
-=======
 from fastapi import UploadFile, File
 import tempfile
 from app.utils.parse_resume import parse_resume
 
->>>>>>> Stashed changes
 
 router = APIRouter()
 
