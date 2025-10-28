@@ -118,6 +118,7 @@ class RequisitionResponse(RequisitionBase):
 class RequisitionMini(BaseModel):
     id: int
     position: str
+    req_id: str
     status: Status
 
     class Config:

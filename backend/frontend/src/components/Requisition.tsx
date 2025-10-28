@@ -354,7 +354,7 @@ const updateAssignments = async (recruiterId: number) => {
                 { label: "Days Open", value: daysOpen(requisition?.created_date) },
                 { label: "Applicants", value:candidateCount },
             ].map((metric) => (
-              <Card key={metric.label}>
+              <Card key={metric.label} className=" bg-gradient-to-r from-blue-50 to-cyan-50">
                 <CardContent className="p-4">
                   <p className="text-sm text-slate-500">{metric.label}</p>
                   <p className="text-3xl font-bold">{formatNumber(metric.value)}</p>
@@ -368,7 +368,7 @@ const updateAssignments = async (recruiterId: number) => {
         <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Card>
             <CardHeader>
-              <CardTitle className="font-medium text-xl">Job Information</CardTitle>
+              <CardTitle className="font-medium text-xl border-b pb-3">Job Information</CardTitle>
             </CardHeader>
             <CardContent>
               <dl className="grid grid-cols-2 sm:grid-cols-2 gap-4">
@@ -405,7 +405,7 @@ const updateAssignments = async (recruiterId: number) => {
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-xl">Hiring Team</CardTitle>
+              <CardTitle className="text-xl border-b pb-3">Hiring Team</CardTitle>
             </CardHeader>
             <CardContent>
               <dl className="grid grid-cols-2 sm:grid-cols-2 gap-4">
@@ -471,7 +471,7 @@ const updateAssignments = async (recruiterId: number) => {
 
           <Card className="lg:col-span-2">
             <CardHeader>
-              <CardTitle className="font-medium text-xl">Timeline & Status</CardTitle>
+              <CardTitle className="font-medium text-xl border-b pb-3">Timeline & Status</CardTitle>
             </CardHeader>
             <CardContent>
               <dl className="grid grid-cols-2 sm:grid-cols-2 gap-4">
@@ -498,7 +498,7 @@ const updateAssignments = async (recruiterId: number) => {
 
            <Card>
             <CardHeader>
-              <CardTitle className="text-xl">Job Description</CardTitle>
+              <CardTitle className="text-xl border-b pb-3">Job Description</CardTitle>
             </CardHeader>
             <CardContent>
               <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -520,7 +520,7 @@ const updateAssignments = async (recruiterId: number) => {
       ) : (
         <ul className="divide-y divide-gray-200">
           {logs.map((log) => (
-             <li key={log.id} className="border-l-4 border-blue-500 pl-3 pb-2">
+             <li key={log.id} className=" pl-3 pb-2">
               <div className="flex justify-between items-center">
                 <span className="font-medium">{log.username}</span>
                 <span className="text-xs text-gray-500">{new Date(log.timestamp).toLocaleString()}</span>
