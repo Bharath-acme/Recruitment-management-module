@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import CandidateForm from './CandidateForm';
+import { useAuth } from './AuthProvider';
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 interface CandidateManagerProps {
@@ -69,7 +70,7 @@ export function CandidateManager({ selectedCompany, selectedCountry }: Candidate
   const [stageFilter, setStageFilter] = useState('all');
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null);
-
+  const { user } = useAuth();
   const [newCandidate, setNewCandidate] = useState({
     name: '',
     email: '',
@@ -203,7 +204,8 @@ export function CandidateManager({ selectedCompany, selectedCountry }: Candidate
           <h1 className="text-3xl font-bold text-gray-900">Candidate Management</h1>
           <p className="text-gray-600">Manage candidate pipeline and applications</p>
         </div>
-        <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+       {/* {user?.role =='recruiter' &&  */}
+       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="h-4 w-4 mr-2" />
@@ -222,6 +224,7 @@ export function CandidateManager({ selectedCompany, selectedCountry }: Candidate
             />
           </DialogContent>
         </Dialog>
+        {/* // } */}
       </div>
 
       <div className="flex space-x-4">

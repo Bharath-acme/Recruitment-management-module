@@ -85,6 +85,26 @@ def read_requisitions(
 
     return result
 
+@router.get("/req", response_model=list[RequisitionMini])
+def get_req(
+    skip: int = 0,
+    limit: int = 10,
+    db: Session = Depends(get_db),
+    role: Optional[str] = Query(None),
+    user_id: Optional[int] = Query(None),
+    approval_status: str = Query("approved")
+):
+    db_reqs = crud.get_requisitions(
+        db,
+        skip=skip,
+        limit=limit,
+        role=role,
+        user_id=user_id,
+        approval_status=approval_status
+    )
+
+    return db_reqs
+
 @router.get("/{requisition_id}", response_model=RequisitionResponse)
 def read_requisition(requisition_id: int, db: Session = Depends(get_db)):
     db_req = crud.get_requisition(db, requisition_id)

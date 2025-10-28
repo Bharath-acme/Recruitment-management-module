@@ -15,14 +15,17 @@ import { Toaster } from "./components/ui/sonner";
 import { Card } from "./components/ui/card";
 import { Dashboard } from "./components/Dashboard";
 import CandidateProfile from "./components/Candidate";
-import RquisitionPage from "./components/Requisition";
+import RquisitionPage2 from "./components/Requisition2";
 import HomePage from "./components/landingPage";
+import { Menu } from "lucide-react"; 
+
 
 
 function AppContent() {
   const { user, loading, userRole } = useAuth();
   const [selectedCompany, setSelectedCompany] = React.useState<string>("");
   const [selectedCountry, setSelectedCountry] = React.useState<string>("");
+  const [isCollapsed, setIsCollapsed] = React.useState(false);
 
   if (loading) {
     return (
@@ -49,17 +52,34 @@ function AppContent() {
   return (
     <div className="min-h-screen bg-slate-50 flex">
       {/* Left: Sidebar Navigation */}
-      <aside style={{background:'navy',color:'#ffff', position:'fixed'}} className="w-64 min-h-screen border-r">
+       <aside
+        style={{ background: "navy", color: "#fff", position: "fixed" }}
+        className={`transition-all duration-300 ${
+          isCollapsed ? "w-20" : "w-64"
+        } min-h-screen border-r flex flex-col`}
+      >
+        {/* Top menu toggle */}
+        <div className={`relative  w-6 left-5 top-2 `}>
+          <button
+            className="text-white hover:text-gray-300"
+            onClick={() => setIsCollapsed(!isCollapsed)}
+          >
+            <Menu className="h-6 w-6" />
+          </button>
+        </div>
+
         <Navigation
           selectedCompany={selectedCompany}
           selectedCountry={selectedCountry}
           onCompanyChange={setSelectedCompany}
           onCountryChange={setSelectedCountry}
           userRole={userRole}
+          isCollapsed={isCollapsed} // 👈 Pass as prop
         />
       </aside>
+
       {/* Right: Main Content */}
-      <main style={{marginLeft:200}} className="flex-1 p-6">
+      <main style={{ marginLeft: isCollapsed ? 60 : 200 }} className="flex-1 p-6 transition-all duration-300">
         <Routes>
           <Route path="/dashboard" element={<Dashboard selectedCompany={selectedCompany} selectedCountry={selectedCountry}  />} />
           <Route path="/requisitions" element={<RequisitionManager selectedCompany={selectedCompany} selectedCountry={selectedCountry} />} />
@@ -75,7 +95,7 @@ function AppContent() {
           )}
           <Route path="/open-positions" element={<OpenPositions />} />
           <Route path="/candidates/:id" element={<CandidateProfile />} />
-          <Route path="/requisitions/:id" element={<RquisitionPage />} />
+          <Route path="/requisitions/:id" element={<RquisitionPage2 />} />
           {/* Redirect any unknown route to dashboard */}
           <Route path="*" element={<Dashboard selectedCompany={selectedCompany} selectedCountry={selectedCountry} />}/>
         </Routes>

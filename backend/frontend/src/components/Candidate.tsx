@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 // import * as Dialog from '@radix-ui/react-dialog';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
-import { Card, CardContent } from './ui/card';
+
+import { Card, CardHeader, CardTitle, CardContent } from './ui/card';
 import { Button } from "./ui/button";
 import { Star, Upload, X } from "lucide-react";
 import { Candidate } from './CandidateManager';
@@ -28,7 +29,8 @@ import {
   Heart,
   Globe,
   Download,
-  MessageSquare
+  MessageSquare,
+  Activity,
 } from "lucide-react";
 
 import { Badge } from "./ui/badge";
@@ -37,6 +39,7 @@ import { AvatarImage, AvatarFallback } from "./ui/avatar";
 
 import { Separator } from "./ui/separator";
 import { Progress } from "./ui/progress";
+import { useAuth } from './AuthProvider';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -58,6 +61,7 @@ const { id } = useParams<{ id: string }>();
    const [showAddDialog, setShowAddDialog] = useState(false);
    const [logs, setLogs] = useState<CandidateLog[]>([]);
    const [logsLoading, setLogsLoading] = useState(true);
+   const { user } = useAuth();
   const [candidate, setCandidate] = useState<Candidate>({
     id: '',
     name: '',
@@ -216,7 +220,8 @@ const token = localStorage.getItem('token');
               </Avatar>
               <div className="mt-4 flex gap-2">
               
-                  <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+               {/* {user?.role == 'recruiter' &&   */}
+                <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
                 <DialogTrigger asChild>
                   <Button variant="outline" size="sm" className="bg-blue-50 border-blue-200 hover:bg-blue-100">
                     Edit Profile
@@ -235,6 +240,7 @@ const token = localStorage.getItem('token');
                       />
                 </DialogContent>
               </Dialog>
+              {/* // } */}
               
               {/* <Button variant="outline" size="sm" className="bg-purple-50 border-purple-200 hover:bg-purple-100">
                 <Download className="h-4 w-4 mr-2" />
@@ -387,6 +393,34 @@ const token = localStorage.getItem('token');
             </div>
           </Card>
 
+           {/* Timeline */}
+          <Card className="bg-white shadow-md border-0">
+            <div className="p-6 bg-gradient-to-r from-indigo-50 to-blue-50 border-b border-indigo-100">
+              <h2 className="text-gray-900 flex items-center gap-2">
+                <Clock className="h-5 w-5 text-indigo-600" />
+                Timeline
+              </h2>
+            </div>
+            <div className="p-6  space-y-4 flex flex-row justify-between md:flex-col">
+              <div>
+                <p className="text-gray-600 mb-1">Applied Date</p>
+                <p className="text-gray-900">{formatDate(candidate.applied_date)}</p>
+              </div>
+              {/* <Separator /> */}
+              <div>
+                <p className="text-gray-600 mb-1">Last Activity</p>
+                <p className="text-gray-900">{formatDate(candidate.last_activity)}</p>
+              </div>
+              {/* <Separator /> */}
+              <div>
+                <p className="text-gray-600 mb-1">Days in Pipeline</p>
+                <p className="text-gray-900">
+                  {Math.floor((new Date(candidate.last_activity).getTime() - new Date(candidate.applied_date).getTime()) / (1000 * 60 * 60 * 24))} days
+                </p>
+              </div>
+            </div>
+          </Card>
+
           {/* Notes */}
           {candidate.notes && (
             <Card className="bg-white shadow-md border-0">
@@ -402,7 +436,7 @@ const token = localStorage.getItem('token');
             </Card>
           )}
 
-             <div className="bg-gray-50 p-6 rounded-xl border mb-8">
+             {/* <div className="bg-gray-50 p-6 rounded-xl border mb-8">
             <h2 className="text-xl font-semibold mb-4">Activity Log</h2>
 
             {logsLoading ? (
@@ -432,7 +466,7 @@ const token = localStorage.getItem('token');
                 ))}
               </ul>
             )}
-          </div>
+          </div> */}
         </div>
 
         {/* Right Column - 1/3 width */}
@@ -472,36 +506,10 @@ const token = localStorage.getItem('token');
             </div>
           </Card>
 
-          {/* Timeline */}
-          <Card className="bg-white shadow-md border-0">
-            <div className="p-6 bg-gradient-to-r from-indigo-50 to-blue-50 border-b border-indigo-100">
-              <h2 className="text-gray-900 flex items-center gap-2">
-                <Clock className="h-5 w-5 text-indigo-600" />
-                Timeline
-              </h2>
-            </div>
-            <div className="p-6 space-y-4">
-              <div>
-                <p className="text-gray-600 mb-1">Applied Date</p>
-                <p className="text-gray-900">{formatDate(candidate.applied_date)}</p>
-              </div>
-              <Separator />
-              <div>
-                <p className="text-gray-600 mb-1">Last Activity</p>
-                <p className="text-gray-900">{formatDate(candidate.last_activity)}</p>
-              </div>
-              <Separator />
-              <div>
-                <p className="text-gray-600 mb-1">Days in Pipeline</p>
-                <p className="text-gray-900">
-                  {Math.floor((new Date(candidate.last_activity).getTime() - new Date(candidate.applied_date).getTime()) / (1000 * 60 * 60 * 24))} days
-                </p>
-              </div>
-            </div>
-          </Card>
+         
 
           {/* Rating Breakdown */}
-          <Card className="bg-white shadow-md border-0">
+          {/* <Card className="bg-white shadow-md border-0">
             <div className="p-6 bg-gradient-to-r from-rose-50 to-pink-50 border-b border-rose-100">
               <h2 className="text-gray-900 flex items-center gap-2">
                 <Star className="h-5 w-5 text-rose-600" />
@@ -532,9 +540,55 @@ const token = localStorage.getItem('token');
                 ))}
               </div>
             </div>
-          </Card>
+          </Card> */}
         </div>
       </div>
+        <Card className="bg-white border border-indigo-100 shadow-sm hover:shadow-md transition-shadow lg:col-span-2">
+              <CardHeader className="bg-gradient-to-r from-indigo-50 to-blue-50 border-b border-indigo-100">
+                <CardTitle className="flex items-center gap-2 text-indigo-900">
+                  <Activity className="w-5 h-5" />
+                  Activity Logs
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-6">
+                {logs.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Activity className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                    <p className="text-sm text-slate-500">No activities yet.</p>
+                  </div>
+                ) : (
+                  <ul className="space-y-3">
+                    {logs.map((log, index) => (
+                      <li 
+                        key={log.id} 
+                        className={`p-4 rounded-lg border ${
+                          index % 2 === 0 
+                            ? 'bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-100' 
+                            : 'bg-gradient-to-r from-purple-50 to-pink-50 border-purple-100'
+                        }`}
+                      >
+                        <div className="flex justify-between items-start mb-1">
+                          <span className="text-slate-900 flex items-center gap-2">
+                            <User className="w-4 h-4 text-indigo-500" />
+                            {log.username}
+                          </span>
+                          <span className="text-xs text-slate-500 flex items-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            {new Date(log.timestamp).toLocaleString()}
+                          </span>
+                        </div>
+                        <p className="text-sm text-slate-700 ml-6">{log.action}</p>
+                        {log.details && (
+                          <p className="text-xs text-slate-600 italic ml-6 mt-1 bg-white/50 px-2 py-1 rounded">
+                            {log.details}
+                          </p>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </CardContent>
+            </Card>
     </div>
   );
 }
