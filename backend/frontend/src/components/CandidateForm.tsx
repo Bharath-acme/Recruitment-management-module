@@ -35,9 +35,65 @@ export default function CandidateForm({ initialData, onSubmit, onCancel }: Candi
     resume: initialData?.resume || "",
   });
 
+<<<<<<< Updated upstream
    const handleResumeUpload = (file: File) => {
-    setFormData(prev => ({ ...prev, resume: file }));
+=======
+  useEffect(() => {
+     load_requisitions();
+  }, []);
+
+   const queryvalues = () => {
+    if (user?.role === 'admin' || user?.role === 'hiring_manager') {
+      return 'all';
+    } else {
+      return 'approved';
+    }
+ }
+   
+  const load_requisitions = async () => { 
+    const approvalStatus = queryvalues();
+    try {
+      const response = await fetch(`${API_BASE_URL}/requisitions/req?approval_status=${approvalStatus}&user_id=${user?.id}&role=${user?.role}`, {
+        headers: {  
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      const data = await response.json();
+      setRequisitions(data);
+      // Process requisitions data as needed
+    } catch (error) {
+      console.error('Error fetching requisitions:', error);
+    } 
   };
+
+    const handleResumeUpload = async (file: File) => {
+>>>>>>> Stashed changes
+    setFormData(prev => ({ ...prev, resume: file }));
+
+  const formData = new FormData();
+  formData.append("file", file);
+
+  try {
+    const res = await fetch("http://127.0.0.1:8000/candidates/parse-resume", {
+      method: "POST",
+      body: formData,
+    });
+    const data = await res.json();
+
+    if (data) {
+      setFormData(prev => ({
+        ...prev,
+        name: data.name || prev.name,
+        email: data.email || prev.email,
+        phone: data.phone || prev.phone,
+        skills: data.skills || prev.skills,
+      }));
+    }
+  } catch (error) {
+    console.error("Resume parsing failed:", error);
+  }
+};
  
 
   const handleChange = (field: string, value: any) => {
@@ -311,7 +367,7 @@ export default function CandidateForm({ initialData, onSubmit, onCancel }: Candi
             onClick={() => handleChange("resume", null)}
             className="absolute -top-2 -right-2 w-5 h-5  flex items-center justify-center text-white rounded full text-xs font-bold shadow-md hover:bg-purple-700 focus:outline-none cursor-pointer"
           >
-            Γ£û
+             ✖
          </button>
        </div>
       )}
