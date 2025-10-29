@@ -27,7 +27,7 @@ import {
 // import { DashboardSection } from "./landingsections/DashboardSection";
 import { FeaturesSection } from "./landingsections/FeaturesSection";
 import { BenefitsSection } from "./landingsections/BenefitsSection";
-import { CTASection } from "./landingsections/CTAsection";
+import { CTASection } from "./landingsections/CTASection";
 import { Footer } from "./landingsections/Footer"
 
 
