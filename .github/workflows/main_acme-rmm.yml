@@ -1,0 +1,79 @@
+# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
+# More GitHub Actions for Azure: https://github.com/Azure/actions
+# More info on Python, GitHub Actions, and Azure App Service: https://aka.ms/python-webapps-actions
+
+name: Build and deploy FastAPI + React app to Azure Web App - acme-rmm
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # -----------------------------
+      # 🔹 Step 1: Build React frontend
+      # -----------------------------
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install and build React app
+        run: |
+          cd backend/frontend
+          npm ci
+          npm run build
+
+      # -----------------------------
+      # 🔹 Step 2: Set up Python backend
+      # -----------------------------
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install backend dependencies
+        run: |
+          cd backend
+          python -m venv antenv
+          source antenv/bin/activate
+          pip install -r requirements.txt
+
+      # -----------------------------
+      # 🔹 Step 3: Upload combined artifact
+      # -----------------------------
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-app
+          path: backend/
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: python-app
+          path: backend
+
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: 'acme-rmm'
+          slot-name: 'Production'
+          package: backend
+
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_E0783F761C26472BA3EFE3210B5ED744 }}
+
+
