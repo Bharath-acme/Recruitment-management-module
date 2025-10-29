@@ -1,22 +1,34 @@
-// CandidateForm.tsx
-import { useState,useEffect, use } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
 import { useAuth } from "./AuthProvider";
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 interface CandidateFormProps {
-  initialData?: any; // Candidate data (for edit)
-  onSubmit: (data: any) => void; // Callback to parent
+  initialData?: any;
+  onSubmit: (data: any) => void;
   onCancel?: () => void;
 }
 
-export default function CandidateForm({ initialData, onSubmit, onCancel }: CandidateFormProps) {
-    const { user } = useAuth();
-    const [requisitions, setRequisitions] = useState<Array<any>>([]);
-  const [formData, setFormData] = useState({
+export default function CandidateForm({
+  initialData,
+  onSubmit,
+  onCancel,
+}: CandidateFormProps) {
+  const { user } = useAuth();
+  const [requisitions, setRequisitions] = useState<any[]>([]);
+  const isEditMode = Boolean(initialData); // ✅ Detect edit mode
+
+  const [formData, setFormData] = useState(() => ({
     name: initialData?.name || "",
     email: initialData?.email || "",
     phone: initialData?.phone || "",
@@ -32,302 +44,311 @@ export default function CandidateForm({ initialData, onSubmit, onCancel }: Candi
     current_company: initialData?.current_company || "",
     dob: initialData?.dob || "",
     marital_status: initialData?.marital_status || "",
-    recruiter: initialData?.recruiter || user?.name ,
-    resume : initialData?.resume || null,
+    recruiter: initialData?.recruiter || user?.name || "",
+    resume: initialData?.resume || null,
     nationality: initialData?.nationality || "",
-  });
+  }));
 
+  // 🔹 Load requisitions
   useEffect(() => {
-     load_requisitions();
-  }, []);
+    (async () => {
+      try {
+        const approvalStatus =
+          user?.role === "admin" || user?.role === "hiring_manager"
+            ? "all"
+            : "approved";
 
-   const queryvalues = () => {
-    if (user?.role === 'admin' || user?.role === 'hiring_manager') {
-      return 'all';
-    } else {
-      return 'approved';
-    }
- }
-   
-  const load_requisitions = async () => { 
-    const approvalStatus = queryvalues();
+        const res = await fetch(
+          `${API_BASE_URL}/requisitions/req?approval_status=${approvalStatus}&user_id=${user?.id}&role=${user?.role}`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        const data = await res.json();
+        setRequisitions(data);
+      } catch (err) {
+        console.error("Error fetching requisitions:", err);
+      }
+    })();
+  }, [user]);
+
+  // 🔹 Handle resume upload (only parse if not in edit mode)
+  const handleResumeUpload = async (file: File) => {
+    setFormData((prev) => ({ ...prev, resume: file }));
+
+    if (isEditMode) return; // ✅ Skip parsing when editing
+
+    const uploadData = new FormData();
+    uploadData.append("file", file);
+
     try {
-      const response = await fetch(`${API_BASE_URL}/requisitions/req?approval_status=${approvalStatus}&user_id=${user?.id}&role=${user?.role}`, {
-        headers: {  
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Content-Type': 'application/json'
-        }
+      const res = await fetch(`${API_BASE_URL}/candidates/parse-resume`, {
+        method: "POST",
+        body: uploadData,
       });
-      const data = await response.json();
-      setRequisitions(data);
-      // Process requisitions data as needed
+      const data = await res.json();
+
+      if (data) {
+        setFormData((prev) => ({
+          ...prev,
+          name: data.name || prev.name,
+          email: data.email || prev.email,
+          phone: data.phone || prev.phone,
+          skills: data.skills || prev.skills,
+        }));
+      }
     } catch (error) {
-      console.error('Error fetching requisitions:', error);
-    } 
+      console.error("Resume parsing failed:", error);
+    }
   };
 
-   const handleResumeUpload = (file: File) => {
-    setFormData(prev => ({ ...prev, resume: file }));
-  };
- 
-
-  const handleChange = (field: string, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
+  const handleChange = (field: string, value: any) =>
+    setFormData((prev) => ({ ...prev, [field]: value }));
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit({
-      ...formData,
-      skills: formData.skills.split(",").map((s: string) => s.trim()).filter((s: any) => s),
-    });
+    const skillsArray = formData.skills
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+
+    onSubmit({ ...formData, skills: skillsArray });
   };
 
   return (
-    <div className="space-y-4">
-  <div className="grid grid-cols-2 gap-4">
-    <div>
-      <Label htmlFor="name">Full Name</Label>
-      <Input
-        id="name"
-        placeholder="Enter full name"
-        value={formData.name}
-        onChange={e => handleChange("name", e.target.value)}
-      />
-    </div>
-    <div>
-      <Label htmlFor="email">Email</Label>
-      <Input
-        id="email"
-        type="email"
-        placeholder="Enter email address"
-        value={formData.email}
-        onChange={e => handleChange("email", e.target.value)}
-      />
-    </div>
-  </div>
+    <form onSubmit={handleSubmit} className="space-y-4">
+      {/* Basic Info */}
+      <div className="grid grid-cols-2 gap-4">
+        <FormInput
+          label="Full Name"
+          id="name"
+          value={formData.name}
+          onChange={(e) => handleChange("name", e.target.value)}
+        />
+        <FormInput
+          label="Email"
+          id="email"
+          type="email"
+          value={formData.email}
+          onChange={(e) => handleChange("email", e.target.value)}
+        />
+      </div>
 
-  <div className="grid grid-cols-2 gap-4">
-    <div>
-      <Label htmlFor="phone">Phone</Label>
-      <Input
-        id="phone"
-        placeholder="Enter phone number"
-        value={formData.phone}
-        onChange={e => handleChange("phone", e.target.value)}
-      />
-    </div>
-    <div>
-      <Label htmlFor="location">Location</Label>
-      <Input
-        id="location"
-        placeholder="Enter location"
-        value={formData.location}
-        onChange={e => handleChange("location", e.target.value)}
-      />
-    </div>
-  </div>
+      <div className="grid grid-cols-2 gap-4">
+        <FormInput
+          label="Phone"
+          id="phone"
+          value={formData.phone}
+          onChange={(e) => handleChange("phone", e.target.value)}
+        />
+        <FormInput
+          label="Location"
+          id="location"
+          value={formData.location}
+          onChange={(e) => handleChange("location", e.target.value)}
+        />
+      </div>
 
-  <div className="grid grid-cols-2 gap-4">
-   
-    <div>
-      <Label htmlFor="requisitionId">Requisition ID</Label>
-
+      {/* Requisition */}
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label>Requisition ID</Label>
           <Select
-              value={formData.requisition_id}
-              onValueChange={(val: any) => {
-                handleChange("requisition_id", val);
-                const selectedReq = requisitions.find((req) => req.id === val);
-                if (selectedReq) {
-                  handleChange("position", selectedReq.position || "");
-                }
-              }}
-            >
-          <SelectTrigger>
-            <SelectValue placeholder="Select Requisition ID" />
-          </SelectTrigger>
-          <SelectContent>
-            {requisitions.map((req) => (
-              <SelectItem key={req.id} value={req.id}>
-                {req.req_id}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+            value={formData.requisition_id}
+            onValueChange={(val) => {
+              handleChange("requisition_id", val);
+              const selectedReq = requisitions.find((r) => r.id === val);
+              if (selectedReq)
+                handleChange("position", selectedReq.position || "");
+            }}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select Requisition ID" />
+            </SelectTrigger>
+            <SelectContent>
+              {requisitions.map((req) => (
+                <SelectItem key={req.id} value={req.id}>
+                  {req.req_id}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
-    </div>
+        <FormInput
+          label="Position Applied For"
+          id="position"
+          value={formData.position}
+          onChange={(e) => handleChange("position", e.target.value)}
+        />
+      </div>
 
-     <div>
-      <Label htmlFor="position">Position Applied For</Label>
-      <Input
-        id="position"
-        placeholder="Enter applied position"
-        value={formData.position}
-        onChange={e => handleChange("position", e.target.value)}
-      />
-    </div>
-  </div>
+      {/* Experience & Source */}
+      <div className="grid grid-cols-2 gap-4">
+        <FormInput
+          label="Years of Experience"
+          id="experience"
+          value={formData.experience}
+          onChange={(e) => handleChange("experience", e.target.value)}
+        />
 
-  <div className="grid grid-cols-2 gap-4">
-    <div>
-      <Label htmlFor="experience">Years of Experience</Label>
-      <Input
-        id="experience"
-        placeholder="Enter total years of experience"
-        value={formData.experience}
-        onChange={e => handleChange("experience", e.target.value)}
-      />
-    </div>
-    <div>
-      <Label htmlFor="source">Source</Label>
-      <Select
-        value={formData.source}
-        onValueChange={(val: any) => handleChange("source", val)}
-      >
-        <SelectTrigger>
-          <SelectValue placeholder="Select source" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="direct">Direct</SelectItem>
-          <SelectItem value="linkedin">LinkedIn</SelectItem>
-          <SelectItem value="job-board">Job Board</SelectItem>
-          <SelectItem value="referral">Referral</SelectItem>
-          <SelectItem value="agency">Agency</SelectItem>
-        </SelectContent>
-      </Select>
-    </div>
-  </div>
+        <div>
+          <Label>Source</Label>
+          <Select
+            value={formData.source}
+            onValueChange={(val) => handleChange("source", val)}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select source" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="direct">Direct</SelectItem>
+              <SelectItem value="linkedin">LinkedIn</SelectItem>
+              <SelectItem value="job-board">Job Board</SelectItem>
+              <SelectItem value="referral">Referral</SelectItem>
+              <SelectItem value="agency">Agency</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
 
-  <div className="grid grid-cols-2 gap-4">
-    <div>
-      <Label htmlFor="currentCTC">Current CTC</Label>
-      <Input
-        id="currentCTC"
-        placeholder="Enter current CTC"
-        value={formData.current_ctc}
-        onChange={e => handleChange("current_ctc", e.target.value)}
-      />
-    </div>
-    <div>
-      <Label htmlFor="expectedCTC">Expected CTC</Label>
-      <Input
-        id="expectedCTC"
-        placeholder="Enter expected CTC"
-        value={formData.expected_ctc}
-        onChange={e => handleChange("expected_ctc", e.target.value)}
-      />
-    </div>
-  </div>
+      {/* CTC */}
+      <div className="grid grid-cols-2 gap-4">
+        <FormInput
+          label="Current CTC"
+          id="currentCTC"
+          value={formData.current_ctc}
+          onChange={(e) => handleChange("current_ctc", e.target.value)}
+        />
+        <FormInput
+          label="Expected CTC"
+          id="expectedCTC"
+          value={formData.expected_ctc}
+          onChange={(e) => handleChange("expected_ctc", e.target.value)}
+        />
+      </div>
 
-  <div className="grid grid-cols-2 gap-4">
-    <div>
-      <Label htmlFor="noticePeriod">Notice Period</Label>
-      <Input
-        id="noticePeriod"
-        placeholder="Enter notice period"
-        value={formData.notice_period}
-        onChange={e => handleChange("notice_period", e.target.value)}
-      />
-    </div>
-    <div>
-      <Label htmlFor="currentCompany">Current Company</Label>
-      <Input
-        id="currentCompany"
-        placeholder="Enter current company"
-        value={formData.current_company}
-        onChange={e => handleChange("current_company", e.target.value)}
-      />
-    </div>
-  </div>
+      {/* Notice & Company */}
+      <div className="grid grid-cols-2 gap-4">
+        <FormInput
+          label="Notice Period"
+          id="noticePeriod"
+          value={formData.notice_period}
+          onChange={(e) => handleChange("notice_period", e.target.value)}
+        />
+        <FormInput
+          label="Current Company"
+          id="currentCompany"
+          value={formData.current_company}
+          onChange={(e) => handleChange("current_company", e.target.value)}
+        />
+      </div>
 
-  <div className="grid grid-cols-2 gap-4">
-    <div>
-      <Label htmlFor="dob">DOB</Label>
-      <Input
-        id="dob"
-        type="date"
-        placeholder="Select date of birth"
-        value={formData.dob}
-        onChange={e => handleChange("dob", e.target.value)}
-      />
-    </div>
-    <div>
-      <Label htmlFor="maritalStatus">Marital Status</Label>
-      <Input
-        id="maritalStatus"
-        placeholder="Enter marital status"
-        value={formData.marital_status}
-        onChange={e => handleChange("marital_status", e.target.value)}
-      />
-    </div>
-  </div>
+      {/* DOB & Marital Status */}
+      <div className="grid grid-cols-2 gap-4">
+        <FormInput
+          label="Date of Birth"
+          id="dob"
+          type="date"
+          value={formData.dob}
+          onChange={(e) => handleChange("dob", e.target.value)}
+        />
+        <FormInput
+          label="Marital Status"
+          id="maritalStatus"
+          value={formData.marital_status}
+          onChange={(e) => handleChange("marital_status", e.target.value)}
+        />
+      </div>
 
-  <div>
-      <Label htmlFor="nationality">Nationality</Label>
-      <Input
+      <FormInput
+        label="Nationality"
         id="nationality"
         value={formData.nationality}
         onChange={(e) => handleChange("nationality", e.target.value)}
-        placeholder="Enter your Nationality"
-        />
+      />
+
+      {/* Skills */}
+      <FormInput
+        label="Skills (comma-separated)"
+        id="skills"
+        value={formData.skills}
+        placeholder="e.g., React, Node.js, Python"
+        onChange={(e) => handleChange("skills", e.target.value)}
+      />
+
+      {/* Resume Upload */}
+      <div>
+        <Label htmlFor="resume">Upload Resume</Label>
+        {!formData.resume ? (
+          <Input
+            id="resume"
+            type="file"
+            accept=".pdf,.doc,.docx"
+            onChange={(e) => {
+              if (e.target.files?.[0]) handleResumeUpload(e.target.files[0]);
+            }}
+          />
+        ) : (
+          <div className="relative mt-2 w-fit border border-gray-300 rounded-lg px-4 py-2 bg-gray-50 shadow-sm flex items-center">
+            <span className="text-sm text-gray-700 truncate max-w-[180px]">
+              {formData.resume.name}
+            </span>
+            <button
+              type="button"
+              onClick={() => handleChange("resume", null)}
+              className="ml-3 text-red-500 hover:text-red-700"
+            >
+              ✖
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Buttons */}
+      <div className="flex justify-end space-x-2 pt-4">
+        {onCancel && (
+          <Button variant="outline" type="button" onClick={onCancel}>
+            Cancel
+          </Button>
+        )}
+        <Button type="submit">
+          {isEditMode ? "Update Candidate" : "Add Candidate"}
+        </Button>
+      </div>
+    </form>
+  );
+}
+
+// 🔹 Reusable small input component
+function FormInput({
+  label,
+  id,
+  type = "text",
+  value,
+  placeholder,
+  onChange,
+}: {
+  label: string;
+  id: string;
+  type?: string;
+  value: any;
+  placeholder?: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+}) {
+  return (
+    <div>
+      <Label htmlFor={id}>{label}</Label>
+      <Input
+        id={id}
+        type={type}
+        placeholder={placeholder}
+        value={value}
+        onChange={onChange}
+      />
     </div>
-
-  <div>
-    <Label htmlFor="skills">Skills (comma-separated)</Label>
-    <Input
-      id="skills"
-      placeholder="e.g., React, Node.js, Python"
-      value={formData.skills}
-      onChange={e => handleChange("skills", e.target.value)}
-    />
-  </div>
-
-  <div>
-     <Label htmlFor="resume">Upload Resume</Label>
-      {!formData.resume && (
-        <Input
-          id="resume"
-          type="file"
-          accept=".pdf,.doc,.docx"
-          onChange={(e) => {
-            if (e.target.files && e.target.files[0]) {
-              handleResumeUpload(e.target.files[0]);
-            }
-          }}
-          className="mt-1"
-        />
-      )}
-
-     {formData.resume && (
-        <div className="relative mt-2 w-40 h-15 border border-gray-300 rounded-lg flex items-center justify-center bg-gray-50 shadow">
-          <span className="text-sm text-gray-700 px-2 text-center truncate w-40">
-            {formData.resume.name.length > 20
-              ? formData.resume.name.substring(0, 15) +
-                "..." +
-                formData.resume.name.split(".").pop()
-              : formData.resume.name}
-          </span>
-          <button
-            type="button"
-            onClick={() => handleChange("resume", null)}
-            className="absolute -top-2 -right-2 w-5 h-5  flex items-center justify-center text-white rounded full text-xs font-bold shadow-md hover:bg-purple-700 focus:outline-none cursor-pointer"
-          >
-            Γ£û
-         </button>
-       </div>
-      )}
-  </div>
-
-  <div className="flex justify-end space-x-2">
-    {onCancel && (
-      <Button variant="outline" onClick={onCancel}>
-        Cancel
-      </Button>
-    )}
-    <Button onClick={handleSubmit}>
-      {initialData ? "Update Candidate" : "Add Candidate"}
-    </Button>
-  </div>
-  </div>
   );
 }

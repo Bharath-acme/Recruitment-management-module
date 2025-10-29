@@ -27,7 +27,9 @@ import {
 // import { DashboardSection } from "./landingsections/DashboardSection";
 import { FeaturesSection } from "./landingsections/FeaturesSection";
 import { BenefitsSection } from "./landingsections/BenefitsSection";
-import { CTASection } from "./landingsections/CTASection";
+import { CTASection } from "./landingsections/CTAsection";
+import { Footer } from "./landingsections/Footer"
+
 
 const exploreData = [
   {
@@ -198,8 +200,13 @@ const HomePage: React.FC = () => {
               Get Started
              <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
           </Button>
+          
+        </div>
+        <div>
+          <img src=''/>
         </div>
       </header>
+      {/* <div className="absolute h-10 w-10 bg-red-200 bottom-[-5rem] ">yes</div> */}
     <section className="relative py-20 px-6 overflow-hidden">
       {/* Background with gradient */}
       <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-100/40"></div>
@@ -447,6 +454,7 @@ const HomePage: React.FC = () => {
       <BenefitsSection />
       <FeaturesSection />
       <CTASection />
+      <Footer/>
    
     </div>
 
@@ -455,9 +463,6 @@ const HomePage: React.FC = () => {
   //     <ProblemStatement />
   //     <WorkflowSection />
   //     <DashboardSection />
-  //     <FeaturesSection />
-  //     <BenefitsSection />
-  //     <CTASection />
   //   </div>
    );
 };

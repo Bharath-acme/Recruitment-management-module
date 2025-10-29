@@ -1,61 +1,58 @@
-from fastapi import FastAPI, Depends, HTTPException, status, Query, APIRouter
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from sqlalchemy.orm import Session
-from .schemas import *
-from . import crud, models
-from app.database import get_db
 from typing import List
+from . import schemas, crud,models
+from app.database import get_db
 from app.auth import get_current_user
 from app.models import User
-from requisitions.schemas import RequisitionMini
-from requisitions.crud import get_requisitions  
 
 router = APIRouter()
 
-@router.post("", response_model=CandidateResponse)
-def create_candidate(
-    candidate: CandidateCreate,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
-    db_candidate = crud.create_candidate(db=db, candidate=candidate)
 
-    if not db_candidate:
-        raise HTTPException(status_code=500, detail="Candidate creation failed")
-
-    crud.create_candidate_activity_log(
-        db=db,
-        candidate_id=db_candidate.id,
-        user=current_user,
-        action="Created Candidate",
-        details=f"Profile created by {current_user.name}"
-    )
-
-    return db_candidate
-
-@router.get("", response_model=List[CandidateResponse])
+@router.get("", response_model=List[schemas.CandidateResponse])
 def read_candidates(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     return crud.get_candidates(db, skip=skip, limit=limit)
 
-@router.get("/{candidate_id}", response_model=CandidateResponse)
+
+@router.get("/{candidate_id}", response_model=schemas.CandidateResponse)
 def read_candidate(candidate_id: str, db: Session = Depends(get_db)):
     db_candidate = crud.get_candidate(db, candidate_id)
     if not db_candidate:
         raise HTTPException(status_code=404, detail="Candidate not found")
     return db_candidate
 
-@router.put("/{candidate_id}", response_model=CandidateResponse)
-def update_candidate(candidate_id: str, candidate: CandidateUpdate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    db_candidate = crud.update_candidate(db, candidate_id, candidate, current_user)
-    if not db_candidate:
-        raise HTTPException(status_code=404, detail="Candidate not found")
-    return db_candidate
+
+@router.post("", response_model=schemas.CandidateCreate)
+def create_candidate(
+    candidate: schemas.CandidateCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    # ✅ Parse resume only during creation (if required)
+    return crud.create_candidate(db=db, candidate=candidate, current_user=current_user)
+
+
+@router.put("/{candidate_id}", response_model=schemas.CandidateCreate)
+def update_candidate(
+    candidate_id: str,
+    candidate: schemas.CandidateUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    # ✅ Resume parsing skipped intentionally
+    updated_candidate = crud.update_candidate(db, candidate_id, candidate, current_user)
+    return updated_candidate
+
 
 @router.delete("/{candidate_id}")
-def delete_candidate(candidate_id: str, db: Session = Depends(get_db)):
-    db_candidate = crud.delete_candidate(db, candidate_id)
-    if not db_candidate:
-        raise HTTPException(status_code=404, detail="Candidate not found")
-    return {"detail": "Candidate deleted successfully"}
+def delete_candidate(
+    candidate_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    crud.delete_candidate(db, candidate_id, current_user)
+    return {"message": f"Candidate {candidate_id} deleted successfully"}
+
 
 def get_candidate_logs(db: Session, candidate_id: int):
     return (
@@ -65,15 +62,7 @@ def get_candidate_logs(db: Session, candidate_id: int):
         .all()
     )
 
-# @router.get("/{candidate_id}/activity-logs", response_model=List[CandidateActivityLogBase])
-# def read_candidate_logs(candidate_id: str, db: Session = Depends(get_db)):
-#     db_candidate = crud.get_candidate(db, candidate_id)
-#     if not db_candidate:
-#         raise HTTPException(status_code=404, detail="Candidate not found")
-#     logs = get_candidate_logs(db, candidate_id)
-#     return logs
-
-@router.get("/{candidate_id}/activity-logs", response_model=List[CandidateActivityLogOut])
+@router.get("/{candidate_id}/activity-logs", response_model=List[schemas.CandidateActivityLogOut])
 def get_candidate_activity_logs(candidate_id: str, db: Session = Depends(get_db)):
     """Retrieve activity logs for a specific candidate."""
     logs = db.query(models.CandidateActivityLog)\
@@ -81,9 +70,3 @@ def get_candidate_activity_logs(candidate_id: str, db: Session = Depends(get_db)
         .order_by(models.CandidateActivityLog.timestamp.desc())\
         .all()
     return logs
-
-
-
-
-
-

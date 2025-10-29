@@ -27,6 +27,7 @@ import {
 import { toast } from 'sonner';
 import CandidateForm from './CandidateForm';
 import { useAuth } from './AuthProvider';
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 interface CandidateManagerProps {
@@ -253,10 +254,10 @@ export function CandidateManager({ selectedCompany, selectedCountry }: Candidate
             <SelectItem value="rejected">Rejected</SelectItem>
           </SelectContent>
         </Select>
-        <Button variant="outline">
+        {/* <Button variant="outline">
           <Filter className="h-4 w-4 mr-2" />
           More Filters
-        </Button>
+        </Button> */}
         {/* <Button variant="outline">
           <Download className="h-4 w-4 mr-2" />
           Export
@@ -297,7 +298,7 @@ export function CandidateManager({ selectedCompany, selectedCountry }: Candidate
                   <TableRow onClick={()=>navigate(`/candidates/${candidate.id}`)} key={candidate.id}
                        className="border border-gray-200 rounded-lg shadow-sm transition-all duration-200 ease-in-out hover:shadow-lg hover:bg-blue-50 hover:-translate-y-[2px] cursor-pointer">
 
-                    <TableCell className="border-l-[5px] border-blue-800 pl-4 rounded-lg">
+                    <TableCell className="border-l-[5px] border-blue-800 pl-4 rounded-l-lg">
                       <div>
                       <div className="flex items-center space-x-3">
                         <Avatar className="h-10 w-10">

@@ -130,8 +130,8 @@ export function Navigation({
 
         {/* Logout Button */}
         <Button
-          className={`w-full flex items-center justify-start px-3 py-3 mb-1 space-x-2 transition-all duration-300 ${
-            isCollapsed ? "justify-center px-0" : "px-3"
+          className={` absolute bottom-10 flex items-center justify-start px-3 py-3 mb-1 space-x-2 transition-all duration-300 ${
+            isCollapsed ? "justify-center px-0 w-[85%]" : " w-[95%] px-3"
           }`}
           variant="ghost"
           size="sm"
