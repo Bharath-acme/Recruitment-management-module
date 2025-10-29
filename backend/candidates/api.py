@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from sqlalchemy.orm import Session
 from typing import List
-from . import schemas, crud
+from . import schemas, crud,models
 from app.database import get_db
 from app.auth import get_current_user
 from app.models import User
@@ -9,7 +9,7 @@ from app.models import User
 router = APIRouter()
 
 
-@router.get("/", response_model=List[schemas.CandidateResponse])
+@router.get("", response_model=List[schemas.CandidateResponse])
 def read_candidates(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     return crud.get_candidates(db, skip=skip, limit=limit)
 
@@ -22,7 +22,7 @@ def read_candidate(candidate_id: str, db: Session = Depends(get_db)):
     return db_candidate
 
 
-@router.post("/", response_model=schemas.CandidateCreate)
+@router.post("", response_model=schemas.CandidateCreate)
 def create_candidate(
     candidate: schemas.CandidateCreate,
     db: Session = Depends(get_db),
@@ -52,3 +52,21 @@ def delete_candidate(
 ):
     crud.delete_candidate(db, candidate_id, current_user)
     return {"message": f"Candidate {candidate_id} deleted successfully"}
+
+
+def get_candidate_logs(db: Session, candidate_id: int):
+    return (
+        db.query(models.CandidateActivityLog)
+        .filter(models.CandidateActivityLog.candidate_id == candidate_id)
+        .order_by(models.CandidateActivityLog.created_at.desc())
+        .all()
+    )
+
+@router.get("/{candidate_id}/activity-logs", response_model=List[schemas.CandidateActivityLogOut])
+def get_candidate_activity_logs(candidate_id: str, db: Session = Depends(get_db)):
+    """Retrieve activity logs for a specific candidate."""
+    logs = db.query(models.CandidateActivityLog)\
+        .filter(models.CandidateActivityLog.candidate_id == candidate_id)\
+        .order_by(models.CandidateActivityLog.timestamp.desc())\
+        .all()
+    return logs
