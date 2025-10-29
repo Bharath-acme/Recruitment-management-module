@@ -16,18 +16,10 @@ import { Card } from "./components/ui/card";
 import { Dashboard } from "./components/Dashboard";
 import CandidateProfile from "./components/Candidate";
 import RquisitionPage2 from "./components/Requisition2";
-import HomePage from "./components/landingPage";
-<<<<<<< HEAD
-<<<<<<< Updated upstream
-=======
+import HomePage from "./components/landingPage"
 import { Menu } from "lucide-react"; 
 import { InterviewDetail } from "./components/InterviewDetail";
 
->>>>>>> Stashed changes
-=======
-import { Menu } from "lucide-react"; 
-
->>>>>>> e561f9799a65bfecdaaa04822805a896b14baa17
 
 
 function AppContent() {
@@ -104,16 +96,15 @@ function AppContent() {
           )}
           <Route path="/open-positions" element={<OpenPositions />} />
           <Route path="/candidates/:id" element={<CandidateProfile />} />
-<<<<<<< HEAD
-<<<<<<< Updated upstream
-          <Route path="/requisitions/:id" element={<RquisitionPage />} />
-=======
+
+          {/* <Route path="/requisitions/:id" element={<RquisitionPage />} /> */}
+
           <Route path="/requisitions/:id" element={<RquisitionPage2 />} />
           <Route path="/interviews/:id" element={<InterviewDetail />} />
->>>>>>> Stashed changes
-=======
+
+
           <Route path="/requisitions/:id" element={<RquisitionPage2 />} />
->>>>>>> e561f9799a65bfecdaaa04822805a896b14baa17
+
           {/* Redirect any unknown route to dashboard */}
           <Route path="*" element={<Dashboard selectedCompany={selectedCompany} selectedCountry={selectedCountry} />}/>
         </Routes>

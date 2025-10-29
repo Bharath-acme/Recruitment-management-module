@@ -6,18 +6,9 @@ from app.database import get_db
 from typing import List
 from app.auth import get_current_user
 from app.models import User
-<<<<<<< HEAD
-<<<<<<< Updated upstream
-=======
+
 from requisitions.schemas import RequisitionMini
 from requisitions.crud import get_requisitions  
->>>>>>> e561f9799a65bfecdaaa04822805a896b14baa17
-
-router = APIRouter()
-
-=======
-from requisitions.schemas import RequisitionMini
-from requisitions.crud import get_requisitions 
 from fastapi import UploadFile, File
 import tempfile
 from app.utils.parse_resume import parse_resume
@@ -36,7 +27,6 @@ def parse_resume_endpoint(file: UploadFile = File(...)):
     result = parse_resume(tmp_path)
     return result
 
->>>>>>> Stashed changes
 @router.post("", response_model=CandidateResponse)
 def create_candidate(
     candidate: CandidateCreate,
@@ -106,19 +96,7 @@ def get_candidate_activity_logs(candidate_id: str, db: Session = Depends(get_db)
         .filter(models.CandidateActivityLog.candidate_id == candidate_id)\
         .order_by(models.CandidateActivityLog.timestamp.desc())\
         .all()
-    return logs
+    return logs 
+ 
 
 
-<<<<<<< HEAD
-<<<<<<< Updated upstream
-=======
-
-
-
->>>>>>> Stashed changes
-=======
-
-
-
-
->>>>>>> e561f9799a65bfecdaaa04822805a896b14baa17

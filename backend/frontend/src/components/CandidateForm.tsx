@@ -1,5 +1,4 @@
-// CandidateForm.tsx
-import { useState,useEffect, use } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
@@ -8,14 +7,15 @@ import { useAuth } from "./AuthProvider";
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 interface CandidateFormProps {
-  initialData?: any; // Candidate data (for edit)
-  onSubmit: (data: any) => void; // Callback to parent
+  initialData?: any;
+  onSubmit: (data: any) => void;
   onCancel?: () => void;
 }
 
 export default function CandidateForm({ initialData, onSubmit, onCancel }: CandidateFormProps) {
-    const { user } = useAuth();
-    const [requisitions, setRequisitions] = useState<Array<any>>([]);
+  const { user } = useAuth();
+  const [requisitions, setRequisitions] = useState<Array<any>>([]);
+
   const [formData, setFormData] = useState({
     name: initialData?.name || "",
     email: initialData?.email || "",
@@ -32,113 +32,81 @@ export default function CandidateForm({ initialData, onSubmit, onCancel }: Candi
     current_company: initialData?.current_company || "",
     dob: initialData?.dob || "",
     marital_status: initialData?.marital_status || "",
-    recruiter: initialData?.recruiter || user?.name ,
-    resume : initialData?.resume || null,
+    recruiter: initialData?.recruiter || user?.name,
+    resume: initialData?.resume || null,
     nationality: initialData?.nationality || "",
   });
 
-<<<<<<< HEAD
-<<<<<<< Updated upstream
-=======
   useEffect(() => {
-     load_requisitions();
+    loadRequisitions();
   }, []);
 
-   const queryvalues = () => {
-    if (user?.role === 'admin' || user?.role === 'hiring_manager') {
-      return 'all';
+  const queryValues = () => {
+    if (user?.role === "admin" || user?.role === "hiring_manager") {
+      return "all";
     } else {
-      return 'approved';
+      return "approved";
     }
- }
-   
-  const load_requisitions = async () => { 
-    const approvalStatus = queryvalues();
-    try {
-      const response = await fetch(`${API_BASE_URL}/requisitions/req?approval_status=${approvalStatus}&user_id=${user?.id}&role=${user?.role}`, {
-        headers: {  
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      const data = await response.json();
-      setRequisitions(data);
-      // Process requisitions data as needed
-    } catch (error) {
-      console.error('Error fetching requisitions:', error);
-    } 
   };
 
->>>>>>> e561f9799a65bfecdaaa04822805a896b14baa17
-   const handleResumeUpload = (file: File) => {
-=======
-  useEffect(() => {
-     load_requisitions();
-  }, []);
-
-   const queryvalues = () => {
-    if (user?.role === 'admin' || user?.role === 'hiring_manager') {
-      return 'all';
-    } else {
-      return 'approved';
-    }
- }
-   
-  const load_requisitions = async () => { 
-    const approvalStatus = queryvalues();
+  const loadRequisitions = async () => {
+    const approvalStatus = queryValues();
     try {
-      const response = await fetch(`${API_BASE_URL}/requisitions/req?approval_status=${approvalStatus}&user_id=${user?.id}&role=${user?.role}`, {
-        headers: {  
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Content-Type': 'application/json'
+      const response = await fetch(
+        `${API_BASE_URL}/requisitions/req?approval_status=${approvalStatus}&user_id=${user?.id}&role=${user?.role}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            "Content-Type": "application/json",
+          },
         }
-      });
+      );
       const data = await response.json();
       setRequisitions(data);
-      // Process requisitions data as needed
     } catch (error) {
-      console.error('Error fetching requisitions:', error);
-    } 
+      console.error("Error fetching requisitions:", error);
+    }
   };
 
-    const handleResumeUpload = async (file: File) => {
->>>>>>> Stashed changes
-    setFormData(prev => ({ ...prev, resume: file }));
+  const handleResumeUpload = async (file: File) => {
+    setFormData((prev) => ({ ...prev, resume: file }));
 
-  const formData = new FormData();
-  formData.append("file", file);
+    const uploadData = new FormData();
+    uploadData.append("file", file);
 
-  try {
-    const res = await fetch("http://127.0.0.1:8000/candidates/parse-resume", {
-      method: "POST",
-      body: formData,
-    });
-    const data = await res.json();
+    try {
+      const res = await fetch(`${API_BASE_URL}/candidates/parse-resume`, {
+        method: "POST",
+        body: uploadData,
+      });
+      const data = await res.json();
 
-    if (data) {
-      setFormData(prev => ({
-        ...prev,
-        name: data.name || prev.name,
-        email: data.email || prev.email,
-        phone: data.phone || prev.phone,
-        skills: data.skills || prev.skills,
-      }));
+      if (data) {
+        setFormData((prev) => ({
+          ...prev,
+          name: data.name || prev.name,
+          email: data.email || prev.email,
+          phone: data.phone || prev.phone,
+          skills: data.skills || prev.skills,
+        }));
+      }
+    } catch (error) {
+      console.error("Resume parsing failed:", error);
     }
-  } catch (error) {
-    console.error("Resume parsing failed:", error);
-  }
-};
- 
+  };
 
   const handleChange = (field: string, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit({
       ...formData,
-      skills: formData.skills.split(",").map((s: string) => s.trim()).filter((s: any) => s),
+      skills: formData.skills
+        .split(",")
+        .map((s: string) => s.trim())
+        .filter((s: any) => s),
     });
   };
 
