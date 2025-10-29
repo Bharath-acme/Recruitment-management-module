@@ -27,7 +27,8 @@ import {
 // import { DashboardSection } from "./landingsections/DashboardSection";
 import { FeaturesSection } from "./landingsections/FeaturesSection";
 import { BenefitsSection } from "./landingsections/BenefitsSection";
-import { CTASection } from "./landingsections/CTASection";
+import { CTASection } from "./landingsections/CTAsection";
+import { Footer } from "./landingsections/Footer"
 
 
 const exploreData = [
@@ -453,6 +454,7 @@ const HomePage: React.FC = () => {
       <BenefitsSection />
       <FeaturesSection />
       <CTASection />
+      <Footer/>
    
     </div>
 
@@ -461,9 +463,6 @@ const HomePage: React.FC = () => {
   //     <ProblemStatement />
   //     <WorkflowSection />
   //     <DashboardSection />
-  //     <FeaturesSection />
-  //     <BenefitsSection />
-  //     <CTASection />
   //   </div>
    );
 };

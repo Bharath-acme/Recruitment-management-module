@@ -18,7 +18,7 @@ import CandidateProfile from "./components/Candidate";
 import RquisitionPage2 from "./components/Requisition2";
 import HomePage from "./components/landingPage"
 import { Menu } from "lucide-react"; 
-import { InterviewDetail } from "./components/InterviewDetail";
+import {InterviewDetail} from "./components/InterviewDetail";
 
 
 
@@ -101,10 +101,6 @@ function AppContent() {
 
           <Route path="/requisitions/:id" element={<RquisitionPage2 />} />
           <Route path="/interviews/:id" element={<InterviewDetail />} />
-
-
-          <Route path="/requisitions/:id" element={<RquisitionPage2 />} />
-
           {/* Redirect any unknown route to dashboard */}
           <Route path="*" element={<Dashboard selectedCompany={selectedCompany} selectedCountry={selectedCountry} />}/>
         </Routes>

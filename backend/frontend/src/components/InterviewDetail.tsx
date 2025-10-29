@@ -29,7 +29,7 @@ import {
   MessagesSquare,
 } from "lucide-react";
 import { motion } from "framer-motion";
-import { toast } from "sonner@2.0.3";
+import { toast } from "sonner";
 
 const API_BASE_URL = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_BASE_URL) || "http://localhost:8000";
 
@@ -385,7 +385,7 @@ export function InterviewDetail() {
         </Card>
 
         {/* Tabs Section */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6 shadow-sm">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6 sha">
            <TabsList className=" border rounded-lg flex space-x-4 p-2">
            <TabsTrigger
       value="overview"

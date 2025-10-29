@@ -13,7 +13,7 @@ class CandidateBase(BaseModel):
     phone: Optional[str] = None
     location: Optional[str] = None
     experience: Optional[int] = None
-    skills: Optional[List[str]] = []
+    skills: Optional[List[str]] = Field(default_factory=list)
     rating: Optional[int] = 0
     notes: Optional[str] = None
     resume_url: Optional[str] = None
@@ -27,12 +27,12 @@ class CandidateBase(BaseModel):
     current_company: Optional[str] = None
     dob: Optional[date] = None
     marital_status: Optional[str] = None
+    resume_file_id: Optional[str] = None 
 
 class CandidateCreate(CandidateBase):
     requisition_id: Optional[int] = None
 
 class CandidateUpdate(CandidateBase):
-    id: Optional[str] = None  # Added id field
     name: Optional[str] = None
     position: Optional[str] = None
     email: Optional[EmailStr] = None
@@ -52,6 +52,8 @@ class CandidateUpdate(CandidateBase):
     current_company: Optional[str] = None
     dob: Optional[date] = None
     marital_status: Optional[str] = None
+    # add this:
+    resume_file_id: Optional[str] = None  # link to File table if needed
 
 class CandidateResponse(CandidateBase):
     id: str

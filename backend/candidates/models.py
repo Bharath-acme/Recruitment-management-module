@@ -41,6 +41,9 @@ class Candidate(Base):
     dob = Column(Date, nullable=True)
     marital_status = Column(String(50), nullable=True)
     interviews = relationship("Interview", back_populates="candidate")
+
+    files = relationship("File", back_populates="candidate", cascade="all, delete-orphan")
+
    
     
 
@@ -59,3 +62,17 @@ class CandidateActivityLog(Base):
 
     candidate = relationship("Candidate", backref="activity_logs")
     user = relationship("User", backref="candidate_activity_logs")
+
+
+class File(Base):
+    __tablename__ = "files"
+
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    file_name = Column(String(255), nullable=False)
+    file_type = Column(String(50), nullable=True)  # e.g., resume, jd, others
+    file_url = Column(String(1000), nullable=False)  # path or S3/public URL
+    uploaded_at = Column(DateTime, default=datetime.utcnow)
+
+    # Relationship to Candidate (if file belongs to candidate)
+    candidate_id = Column(String(36), ForeignKey("candidates.id", ondelete="CASCADE"), nullable=True)
+    candidate = relationship("Candidate", back_populates="files")
