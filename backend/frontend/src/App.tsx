@@ -94,10 +94,10 @@ function AppContent() {
           {userRole === "admin" && (
             <Route path="/admin" element={<AdminPanel />} />
           )}
-           <Route path="/open-positions" element={<OpenPositions />} />
-           <Route path="/candidates/:id" element={<CandidateProfile />} />
-           <Route path="/requisitions/:id" element={<RquisitionPage2 />} />
-           <Route path="/interviews/:id" element={<InterviewDetail />} />
+          <Route path="/open-positions" element={<OpenPositions />} />
+          <Route path="/candidates/:id" element={<CandidateProfile />} />
+          <Route path="/requisitions/:id" element={<RquisitionPage2 />} />
+          <Route path="/interviews/:id" element={<InterviewDetail />} />
           {/* Redirect any unknown route to dashboard */}
           <Route path="*" element={<Dashboard selectedCompany={selectedCompany} selectedCountry={selectedCountry} />}/>
         </Routes>

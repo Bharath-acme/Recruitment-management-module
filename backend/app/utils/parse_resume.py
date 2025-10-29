@@ -51,39 +51,14 @@ def parse_resume(file_path: str) -> Dict[str, str]:
 
     # ---- SKILLS ----
     skills_keywords = [
-        "Python", "Java", "React", "Node", "Django", "C++", "SQL", "NoSQL", "GitHub",
-        "RESTAPIs", "Linux", "DBMS", "C", "AWS", "Azure", "HTML", "CSS", "JavaScript",
-        "Machine Learning", "Data Analysis", "Docker", "Kubernetes", "Git", "Agile",
-        "Angular", "Vue", "TypeScript", "Ruby", "PHP", "Swift", "MATLAB", "SQlite",
-        "PostgreSQL", "MongoDB", "TensorFlow", "PyTorch"
+        "Python", "Java", "React", "Node", "Django", "C++", "SQL", 
+        "AWS", "Azure", "HTML", "CSS", "JavaScript", "Machine Learning", "Data Analysis"
     ]
     skills_found = [s for s in skills_keywords if s.lower() in text.lower()]
 
-# ---- EXPERIENCE ----
-    # Look for patterns like "X years", "X+ years", "X months", etc.
-    exp_match = re.findall(r"(\d+\+?\s?(?:year|years|yr|yrs|month|months))", text, re.IGNORECASE)
-    experience = exp_match[0] if exp_match else ""
-
-    # ---- CURRENT COMPANY ----
-    # Look for patterns like "Currently working at <Company>" or "Present" near company names
-    company = ""
-    company_patterns = [
-        r"currently working at\s+([A-Z][A-Za-z0-9&\s,.]+)",
-        r"working at\s+([A-Z][A-Za-z0-9&\s,.]+)",
-        r"at\s+([A-Z][A-Za-z0-9&\s,.]+)\s+\(Present\)",
-        r"([A-Z][A-Za-z0-9&\s,.]+)\s+\(Present\)"
-    ]
-
-    for pattern in company_patterns:
-        match = re.search(pattern, text, re.IGNORECASE)
-        if match:
-            company = match.group(1).strip().rstrip(",.")
-            break
     return {
         "name": name,
         "email": email[0] if email else "",
         "phone": phone[0] if phone else "",
-        "skills": ", ".join(skills_found),
-        "experience": experience,
-        "current_company": company
+        "skills": ", ".join(skills_found)
     }

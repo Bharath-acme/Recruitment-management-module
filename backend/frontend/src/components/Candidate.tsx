@@ -348,7 +348,7 @@ const token = localStorage.getItem('token');
 
       {/* Feedback Section */}
       
-     {/* {showFeedback && (
+      {showFeedback && (
         <Card className="bg-white shadow-lg border-0">
           <div className="p-6">
             <div className="flex items-center gap-2 mb-6">
@@ -401,7 +401,7 @@ const token = localStorage.getItem('token');
                     </div>
                     
                     <CardContent className="p-4 space-y-4">
-                      {/* Strengths 
+                      {/* Strengths */}
                       {feedback.strengths.length > 0 && (
                         <div>
                           <div className="flex items-center gap-2 mb-2">
@@ -416,7 +416,7 @@ const token = localStorage.getItem('token');
                         </div>
                       )}
 
-                      {/* Areas of Improvement 
+                      {/* Areas of Improvement*/} 
                       {feedback.areasOfImprovement.length > 0 && (
                         <div>
                           <div className="flex items-center gap-2 mb-2">
@@ -431,13 +431,13 @@ const token = localStorage.getItem('token');
                         </div>
                       )}
 
-                      {/* Comments 
+                      {/* Comments */}
                       <div>
                         <h3 className="text-gray-900 mb-2">Overall Comments</h3>
                         <p className="text-gray-700 bg-gray-50 p-3 rounded-lg">{feedback.comments}</p>
                       </div>
 
-                      {/* Recommendation 
+                      {/* Recommendation */}
                       <div className="flex items-center justify-between pt-2 border-t">
                         <span className="text-gray-600">Recommendation:</span>
                         <Badge className={`${getRecommendationColor(feedback.recommendation)} border`}>
@@ -700,7 +700,7 @@ const token = localStorage.getItem('token');
             </Tabs>
           </div>
         </Card>
-      )} */}
+      )}
 
       {/* Main Content */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

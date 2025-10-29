@@ -105,89 +105,18 @@ export default function CandidateForm({
     }
   };
 
-<<<<<<< HEAD
   const handleChange = (field: string, value: any) =>
     setFormData((prev) => ({ ...prev, [field]: value }));
-=======
-    const handleResumeUpload = async (file: File) => {
-  setFormData(prev => ({ ...prev, resume: file }));
 
-  const formData = new FormData();
-  formData.append("file", file);
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const skillsArray = formData.skills
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
 
-  try {
-    const res = await fetch("http://127.0.0.1:8000/candidates/parse-resume", {
-      method: "POST",
-      body: formData,
-    });
-    const data = await res.json();
-
-    if (data) {
-      setFormData(prev => ({
-        ...prev,
-        name: data.name || prev.name,
-        email: data.email || prev.email,
-        phone: data.phone || prev.phone,
-        skills: data.skills || prev.skills,
-      }));
-    }
-  } catch (error) {
-    console.error("Resume parsing failed:", error);
-  }
-};
-
->>>>>>> a5888acac09cf0a12d7e98944f7d6e1d7c0daa79
-
- const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-
-  const skillsArray = formData.skills
-    .split(",")
-    .map((s) => s.trim())
-    .filter(Boolean);
-
-  const updatedData = { ...formData, skills: skillsArray };
-
-  let payload;
-  let headers = {};
-
-  if (formData.resume instanceof File) {
-    // ✅ Case: New resume file uploaded → use FormData
-    payload = new FormData();
-
-    Object.entries(updatedData).forEach(([key, value]) => {
-      if (key === "skills") payload.append(key, JSON.stringify(value));
-      else if (value !== null && value !== undefined)
-        payload.append(key, value as any);
-    });
-  } else {
-    // ✅ Case: No new resume → send as JSON
-    payload = JSON.stringify(updatedData);
-    headers = { "Content-Type": "application/json" };
-  }
-
-  try {
-    const res = await fetch(
-      isEditMode
-        ? `${API_BASE_URL}/candidates/${initialData.id}`
-        : `${API_BASE_URL}/candidates`,
-      {
-        method: isEditMode ? "PUT" : "POST",
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-          ...headers,
-        },
-        body: payload,
-      }
-    );
-
-    const data = await res.json();
-    onSubmit(data);
-  } catch (err) {
-    console.error("Error saving candidate:", err);
-  }
-};
-
+    onSubmit({ ...formData, skills: skillsArray });
+  };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
