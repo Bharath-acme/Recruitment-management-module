@@ -105,8 +105,38 @@ export default function CandidateForm({
     }
   };
 
+<<<<<<< HEAD
   const handleChange = (field: string, value: any) =>
     setFormData((prev) => ({ ...prev, [field]: value }));
+=======
+    const handleResumeUpload = async (file: File) => {
+  setFormData(prev => ({ ...prev, resume: file }));
+
+  const formData = new FormData();
+  formData.append("file", file);
+
+  try {
+    const res = await fetch("http://127.0.0.1:8000/candidates/parse-resume", {
+      method: "POST",
+      body: formData,
+    });
+    const data = await res.json();
+
+    if (data) {
+      setFormData(prev => ({
+        ...prev,
+        name: data.name || prev.name,
+        email: data.email || prev.email,
+        phone: data.phone || prev.phone,
+        skills: data.skills || prev.skills,
+      }));
+    }
+  } catch (error) {
+    console.error("Resume parsing failed:", error);
+  }
+};
+
+>>>>>>> a5888acac09cf0a12d7e98944f7d6e1d7c0daa79
 
  const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
