@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from datetime import datetime, date  # Ensure proper import of date
 from typing import List, Optional
 from . import models, schemas
-from app.models import User
+from app.models import User 
 from app.auth import get_current_user
 from fastapi import Depends
 
