@@ -2,7 +2,11 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "./ui/button";
 import acme_white_logo from "../media/acme_logo.png";
-import req_img from "../media/req_img.png";
+import req_img from "../media/requisitions.png";
+import candidate_img from "../media/candidates.png"
+import interview_img from "../media/interviews.png"
+import offer_img from "../media/offers.png"
+import vedors_img from "../media/vendors.png"
 import dash_img from "../media/dash_img.png";
 import analytics_img from "../media/analytics_img.png";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
@@ -29,6 +33,7 @@ import { FeaturesSection } from "./landingsections/FeaturesSection";
 import { BenefitsSection } from "./landingsections/BenefitsSection";
 import { CTASection } from "./landingsections/CTASection";
 import { Footer } from "./landingsections/Footer"
+import landing_img from "../media/landing_img2.png"
 
 
 const exploreData = [
@@ -51,21 +56,21 @@ const exploreData = [
     title: "Candidates",
     description:
       "Collect profiles via portal, email, or recruiter upload. Auto-parse CVs, remove duplicates, and shortlist effortlessly.",
-    image: dash_img,
+    image: candidate_img,
   },
   {
     id: "interviews",
     title: "Interviews",
     description:
       "Plan interviews, coordinate panels, and capture structured feedback to make data-driven decisions.",
-    image: analytics_img,
+    image: interview_img,
   },
   {
     id: "offers",
     title: "Offers",
     description:
       "Streamline offer generation, approval, and acceptance with customizable templates and digital workflows.",
-    image: dash_img,
+    image: offer_img,
   },
   {
     id: "analytics",
@@ -79,7 +84,7 @@ const exploreData = [
     title: "Vendors",
     description:
       "Manage third-party vendor performance and collaborate through a unified platform for external hiring.",
-    image: req_img,
+    image: vedors_img,
   },
 ];
 
@@ -167,7 +172,7 @@ const HomePage: React.FC = () => {
       </nav>
 
       {/* Hero Section */}
-      <header className="grid md:grid-cols-2 gap-8 items-center h-[90vh] w-full px-4 md:px-8 bg-gradient-to-br from-[#0a1628] via-[#1e3a5f] to-[#0f2847]">
+      <header className="grid md:grid-cols-2 gap-30 items-center h-[90vh] w-full px-4 md:px-8 bg-gradient-to-br from-[#0a1628] via-[#1e3a5f] to-[#0f2847]">
 
   {/* Background pattern */}
       <div className="absolute inset-0 opacity-10 pointer-events-none">
@@ -202,8 +207,10 @@ const HomePage: React.FC = () => {
           </Button>
           
         </div>
-        <div>
-          <img src=''/>
+        <div className="h-[90vh] ml-20  overflow-hidden">
+          <img src={landing_img}
+          className="h-[90vh]"
+          />
         </div>
       </header>
       {/* <div className="absolute h-10 w-10 bg-red-200 bottom-[-5rem] ">yes</div> */}

@@ -144,7 +144,86 @@ export function OfferManager({ selectedCompany, selectedCountry }: OfferManagerP
         createdBy: 'Mike Chen',
         createdDate: '2025-08-27',
         approvers: ['HR Manager', 'Finance Controller', 'Department Head']
-      }
+      },
+      {
+      id: 'OFF-003',
+      candidateName: 'Arjun Mehta',
+      candidateEmail: 'arjun.mehta@email.com',
+      position: 'Senior Software Engineer',
+      requisitionId: 'REQ-2025-003',
+      baseSalary: 18000,
+      currency: 'AED',
+      allowances: {
+        housing: 5000,
+        transport: 1500,
+        mobile: 400,
+        tickets: 8000
+      },
+      benefits: ['Medical Insurance', 'Life Insurance', 'Annual Leave 30 days', 'Gratuity'],
+      variablePay: 15000,
+      totalCompensation: 47900,
+      status: 'Pending Acceptance',
+      approvalStatus: 'Approved',
+      expiryDate: '2025-11-15',
+      sentDate: '2025-10-28',
+      responseDate: '2025-09-10',
+      createdBy: 'Sofia Karim',
+      createdDate: '2025-10-27',
+      approvers: ['HR Manager', 'CTO', 'Finance Controller']
+    },
+    {
+      id: 'OFF-004',
+      candidateName: 'Liam O’Connor',
+      candidateEmail: 'liam.oconnor@email.com',
+      position: 'Marketing Lead',
+      requisitionId: 'REQ-2025-004',
+      baseSalary: 16000,
+      currency: 'USD',
+      allowances: {
+        housing: 4000,
+        transport: 1200,
+        mobile: 300,
+        tickets: 7000
+      },
+      benefits: ['Medical Insurance', 'Annual Leave 25 days', 'Bonus Plan', 'Gym Membership'],
+      variablePay: 10000,
+      totalCompensation: 38500,
+      status: 'Offered',
+      approvalStatus: 'Pending',
+      expiryDate: '2025-11-05',
+      sentDate: '2025-10-25',
+      responseDate: '2025-10-15',
+      createdBy: 'Emily Davis',
+      createdDate: '2025-10-24',
+      approvers: ['HR Manager', 'Finance Controller', 'CEO']
+    },
+{
+  id: 'OFF-005',
+  candidateName: 'Noor Abdullah',
+  candidateEmail: 'noor.abdullah@email.com',
+  position: 'UI/UX Designer',
+  requisitionId: 'REQ-2025-005',
+  baseSalary: 14000,
+  currency: 'SAR',
+  allowances: {
+    housing: 3500,
+    transport: 1000,
+    mobile: 300,
+    tickets: 6000
+  },
+  benefits: ['Medical Insurance', 'Life Insurance', 'Remote Work Option', 'Annual Leave 30 days'],
+  variablePay: 8000,
+  totalCompensation: 32800,
+  status: 'Rejected',
+  approvalStatus: 'Approved',
+  expiryDate: '2025-09-25',
+  sentDate: '2025-09-10',
+  responseDate: '2025-09-18',
+  createdBy: 'Ahmed Khan',
+  createdDate: '2025-09-09',
+  approvers: ['HR Manager', 'Creative Director', 'Finance Controller']
+}
+
     ]);
   };
 
