@@ -103,7 +103,7 @@ const handleSignup = async (e: React.FormEvent) => {
     { value: 'agency', label: 'Agency Partner' }
   ];
 
-  const countries = ['UAE', 'Saudi Arabia', 'Qatar', 'Kuwait', 'Bahrain', 'Oman'];
+  const countries = ['UAE', 'Saudi Arabia', 'Qatar', 'Kuwait', 'Bahrain', 'Oman','India'];
 
    return (
       <div
@@ -228,6 +228,15 @@ const handleSignup = async (e: React.FormEvent) => {
                       </div>
                       <div className="space-y-2">
                         <Label className='text-white'>Country</Label>
+                        <Input
+                          placeholder="Country"
+                          value={signupData.companyDescription}
+                          onChange={(e) => setSignupData({ ...signupData, country: e.target.value })}
+                          required
+                        />
+                      </div>
+                      {/* <div className="space-y-2">
+                        <Label className='text-white'>Country</Label>
                         <Select value={signupData.country} onValueChange={(v:any) => setSignupData({ ...signupData, country: v })}>
                           <SelectTrigger>
                             <SelectValue placeholder="Select country" />
@@ -240,7 +249,7 @@ const handleSignup = async (e: React.FormEvent) => {
                             ))}
                           </SelectContent>
                         </Select>
-                      </div>
+                      </div> */}
                       <div className="space-y-2">
                         <Label className='text-white'>Password</Label>
                         <Input

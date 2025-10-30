@@ -265,13 +265,13 @@ const HomePage: React.FC = () => {
 
               {/* Content */}
               <div className="p-8">
-                <h3 className="text-slate-800 mb-6">Current Pain Points</h3>
+                <h3 className="text-xl text-slate-800 mb-6">Current Pain Points</h3>
 
                 <div className="space-y-4">
                   {challenges.map((challenge, index) => (
                     <div 
                       key={index}
-                      className="group/item relative backdrop-blur-sm bg-gradient-to-br from-white/60 to-slate-50/60 rounded-2xl border border-slate-200/60 p-5 transition-all duration-300 hover:border-red-300/60 hover:shadow-lg hover:bg-white/80"
+                      className="group/item relative backdrop-blur-sm bg-gradient-to-br from-white/60 to-slate-50/60 rounded-2xl border border-red-300/60 p-5 transition-all duration-300 hover:border-red-300/60 hover:shadow-lg hover:bg-white/80"
                     >
                       <div className="flex gap-4">
                         <div className="flex-shrink-0 p-3 bg-gradient-to-br from-red-500 to-orange-500 rounded-xl text-white shadow-md group-hover/item:shadow-lg transition-shadow">
@@ -331,13 +331,13 @@ const HomePage: React.FC = () => {
 
               {/* Content */}
               <div className="p-8">
-                <h3 className="text-slate-800 mb-6">RMM Platform Benefits</h3>
+                <h3 className="text-xl text-slate-800 mb-6">RMM Platform Benefits</h3>
 
                 <div className="space-y-3.5">
                   {solutions.map((solution, index) => (
                     <div 
                       key={index}
-                      className="group/item relative backdrop-blur-sm bg-gradient-to-br from-white/60 to-blue-50/60 rounded-2xl border border-blue-200/60 p-5 transition-all duration-300 hover:border-blue-400/60 hover:shadow-lg hover:bg-white/80"
+                      className="group/item relative backdrop-blur-sm bg-gradient-to-br from-white/60 to-blue-50/60 rounded-2xl border border-blue-400/60 p-5 transition-all duration-300 hover:border-blue-400/60 hover:shadow-lg hover:bg-white/80"
                     >
                       <div className="flex gap-4">
                         <div className="flex-shrink-0 p-3 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl text-white shadow-md group-hover/item:shadow-lg transition-shadow">

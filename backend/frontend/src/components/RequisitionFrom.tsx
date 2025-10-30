@@ -243,6 +243,7 @@ export function RequisitionForm({ initialData, onSubmit, onCancel }: Requisition
               <SelectItem value="BHD">BHD</SelectItem>
               <SelectItem value="OMR">OMR</SelectItem>
               <SelectItem value="USD">USD</SelectItem>
+              <SelectItem value="INR">INR</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -300,7 +301,7 @@ export function RequisitionForm({ initialData, onSubmit, onCancel }: Requisition
 
 
           {/* JD  Upload */}
-    <div>
+    {/* <div>
       <Label htmlFor="resume">Upload JD File</Label>
       {!formData.jd_file && (
         <Input
@@ -316,7 +317,7 @@ export function RequisitionForm({ initialData, onSubmit, onCancel }: Requisition
         />
       )}
     
-      {/* Resume Upload button and box*/}
+     
       {formData.jd_file && (
         <div className="relative mt-2 w-40 h-15 border border-gray-300 rounded-lg flex items-center justify-center bg-gray-50 shadow">
           <span className="text-sm text-gray-700 px-2 text-center truncate w-40">
@@ -335,7 +336,7 @@ export function RequisitionForm({ initialData, onSubmit, onCancel }: Requisition
           </button>
         </div>
       )}
-    </div>
+    </div> */}
     
       {/* Requirements */}
       <div>

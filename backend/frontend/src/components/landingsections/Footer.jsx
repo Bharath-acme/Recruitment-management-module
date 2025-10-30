@@ -28,12 +28,12 @@ export function Footer() {
         {/* Middle Section - Presence */}
         <div>
           <h3 className="text-xl font-semibold mb-4">Our Presence in India</h3>
-          <p className="text-base mb-6">ACME Global in Hyderabad</p>
+          <p className="text-base mb-6"> <a href="https://acmeglobal.tech/contact" className="hover:text-indigo-600 transition">ACME Global in Hyderabad</a></p>
 
           <h3 className="text-xl font-semibold mb-4">Our Global Presence</h3>
           <ul className="text-base space-y-2">
-            <li>Almoayyed Computers Middle East, Bahrain</li>
-            <li>Alghanim Almoayyed Computer Solutions, Kuwait</li>
+            <li><a href="https://acme.tech/contact" className="hover:text-indigo-600 transition">Almoayyed Computers Middle East, Bahrain</a> </li>
+            <li> <a href="http://www.alghanimalmoayyed.tech/contact" className="hover:text-indigo-600 transition">Alghanim Almoayyed Computer Solutions, Kuwait</a> </li>
           </ul>
         </div>
 

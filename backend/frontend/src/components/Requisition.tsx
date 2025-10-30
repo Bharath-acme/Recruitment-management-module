@@ -71,6 +71,8 @@ export default function RequisitionPage() {
    const [selectedRecruiter, setSelectedRecruiter] = useState<string>("");
   const [selectedHM, setSelectedHM] = useState<string>("");
   const [logs, setLogs] = useState<ActivityLog[]>([]);
+  const [showApplicants, setShowApplicants] = useState(false);
+
 
  useEffect(() => {
     if (!id) return;
@@ -349,19 +351,58 @@ const updateAssignments = async (recruiterId: number) => {
           <h2 className="text-xl font-semibold mb-4">Key Metrics</h2>
           <div className="grid grid-cols-4 md:grid-cols-4 gap-4">
             {[
-                { label: "Openings", value:requisition?.positions_count },
+                { label: "Openings", value: requisition?.positions_count },
                 { label: "Filled", value: filledCount() },
                 { label: "Days Open", value: daysOpen(requisition?.created_date) },
-                { label: "Applicants", value:candidateCount },
-            ].map((metric) => (
-              <Card key={metric.label} className=" bg-gradient-to-r from-blue-50 to-cyan-50">
-                <CardContent className="p-4">
-                  <p className="text-sm text-slate-500">{metric.label}</p>
-                  <p className="text-3xl font-bold">{formatNumber(metric.value)}</p>
-                </CardContent>
-              </Card>
-            ))}
+                { label: "Applicants", value: candidateCount, clickable: true },
+              ].map((metric) => (
+                <Card
+                  key={metric.label}
+                  className={`bg-gradient-to-r from-blue-50 to-cyan-50 cursor-${metric.clickable ? "pointer" : "default"}`}
+                  onClick={() => {
+                    if (metric.label === "Applicants") setShowApplicants((prev) => !prev);
+                  }}
+                >
+                  <CardContent className="p-4">
+                    <p className="text-sm text-slate-500">{metric.label}</p>
+                    <p className="text-3xl font-bold">{formatNumber(metric.value)}</p>
+                  </CardContent>
+                </Card>
+              ))}
+
           </div>
+
+          {showApplicants && (
+              <div className="mt-4 bg-white border rounded-lg p-4 shadow-sm">
+                <h3 className="font-semibold text-lg mb-3">Applicants List</h3>
+                {requisition?.candidates?.length ? (
+                  <ul className="divide-y divide-gray-200">
+                    {requisition.candidates.map((cand: any) => (
+                      <li key={cand.id} className="py-2">
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <p className="font-medium">{cand.name}</p>
+                            <p className="text-sm text-gray-500">{cand.email}</p>
+                          </div>
+                          <Badge
+                            className={`${
+                              cand.status?.toLowerCase() === "selected"
+                                ? "bg-green-100 text-green-800"
+                                : "bg-gray-100 text-gray-800"
+                            }`}
+                          >
+                            {Capitalize(cand.status || "N/A")}
+                          </Badge>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-sm text-gray-500">No applicants found.</p>
+                )}
+              </div>
+            )}
+
         </section>
 
         {/* Details */}

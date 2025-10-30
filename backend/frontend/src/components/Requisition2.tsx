@@ -15,6 +15,7 @@ import { useAuth } from "./AuthProvider";
 import { Input } from "./ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Label } from "./ui/label";
+import { Avatar,AvatarFallback, AvatarImage } from "./ui/avatar";
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 import { 
   Building2, 
@@ -37,7 +38,8 @@ import {
   CheckCheck,
   Ban,
   UserPlus,
-  ArrowLeft
+  ArrowLeft,
+
 } from "lucide-react";
 
 
@@ -99,6 +101,8 @@ export default function RquisitionPage2() {
    const [selectedRecruiter, setSelectedRecruiter] = useState<string>("");
   const [selectedHM, setSelectedHM] = useState<string>("");
   const [logs, setLogs] = useState<ActivityLog[]>([]);
+  const [showApplicants, setShowApplicants] = useState(false);
+
 
  useEffect(() => {
     if (!id) return;
@@ -383,58 +387,122 @@ const formatNumber = (value: number) =>
           <section className="mb-6">
              <h2 className="text-xl font-semibold mb-4">Key Metrics</h2>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              {[
-                { 
-                  label: "Openings", 
-                  value: requisition?.positions_count,
-                  icon: Target,
-                  gradient: "from-violet-100 to-purple-100",
-                  iconColor: "text-violet-600",
-                  borderColor: "border-violet-200"
-                },
-                { 
-                  label: "Filled", 
-                  value: filledCount(),
-                  icon: CheckCircle2,
-                  gradient: "from-emerald-100 to-green-100",
-                  iconColor: "text-emerald-600",
-                  borderColor: "border-emerald-200"
-                },
-                { 
-                  label: "Days Open", 
-                  value: daysOpen(requisition?.created_date),
-                  icon: Clock,
-                  gradient: "from-amber-100 to-orange-100",
-                  iconColor: "text-amber-600",
-                  borderColor: "border-amber-200"
-                },
-                { 
-                  label: "Applicants", 
-                  value: candidateCount,
-                  icon: Users,
-                  gradient: "from-blue-100 to-cyan-100",
-                  iconColor: "text-blue-600",
-                  borderColor: "border-blue-200"
-                },
-              ].map((metric) => {
-                const Icon = metric.icon;
-                return (
-                  <Card 
-                    key={metric.label} 
-                    className={` border ${metric.borderColor} shadow-sm hover:shadow-md transition-shadow`}
-                  >
+             {[
+              { label: "Openings", value: requisition?.positions_count, icon: Target, borderColor: "border-violet-200" },
+              { label: "Filled", value: filledCount(), icon: CheckCircle2, borderColor: "border-emerald-200" },
+              { label: "Days Open", value: daysOpen(requisition?.created_date), icon: Clock, borderColor: "border-amber-200" },
+              { label: "Applicants", value: candidateCount, icon: Users, borderColor: "border-blue-200", clickable: true },
+            ].map((metric) => {
+              const Icon = metric.icon;
+              return (
+                <Card
+                  key={metric.label}
+                  onClick={() => metric.clickable && setShowApplicants((prev) => !prev)}
+                  className={`border ${metric.borderColor} shadow-sm transition-shadow ${
+                    metric.clickable ? "cursor-pointer hover:shadow-md" : ""
+                  }`}
+                >
                     <CardContent className="p-5">
                       <div className="flex items-center justify-between mb-2">
                         <p className="text-sm text-slate-600">{metric.label}</p>
-                        <Icon className={`w-5 h-5 ${metric.iconColor}`} />
+                        <Icon className="w-5 h-5 text-slate-600" />
                       </div>
-                      <p className="text-slate-900">{formatNumber(metric.value)}</p>
+                      <p className="text-slate-900 text-2xl font-semibold">{formatNumber(metric.value)}</p>
                     </CardContent>
                   </Card>
                 );
               })}
+
             </div>
+
+                   {showApplicants && (
+                  <div className="mt-4 bg-white absolute right-10 border border-blue-100 rounded-lg h-100 overflow-auto shadow-sm p-5 transition-all duration-300 ease-in-out">
+                    <h3 className="font-semibold text-lg mb-3 flex items-center gap-2 text-blue-900">
+                      <Users className="w-5 h-5" /> Applicants List
+                    </h3>
+
+                    {requisition?.candidates?.length ? (
+                      <ul className="divide-y divide-gray-200">
+                        {requisition.candidates.map((cand: any) => {
+                          // Check if user email belongs to acme
+                          const userEmail = user?.email || "";
+                          const isAcmeUser = userEmail.endsWith("@acmeglobal.tech");
+
+                          // Mask email if not acme
+                          const maskedEmail = cand.email
+                            ? isAcmeUser
+                              ? cand.email
+                              : cand.email.replace(/(?<=.).(?=[^@]*?@)/g, "*")
+                            : "N/A";
+
+                          return (
+                            <li key={cand.id} className="py-3 flex items-center justify-between">
+                              <div className="flex items-center gap-3">
+                                {/* Avatar Section */}
+                                <div className="flex-shrink-0">
+                                  <Avatar className="w-10 h-10">
+                                    {cand.profile_image ? (
+                                      <AvatarImage src={cand.profile_image} alt={cand.name} />
+                                    ) : (
+                                      <AvatarFallback>
+                                        {cand.name
+                                          ?.split(" ")
+                                          .map((n: string) => n[0])
+                                          .join("")
+                                          .toUpperCase()}
+                                      </AvatarFallback>
+                                    )}
+                                  </Avatar>
+                                </div>
+
+                                {/* Candidate Info */}
+                                <div>
+                                  <p className="font-medium text-slate-900">{cand.name}</p>
+                                  <p className="text-sm text-slate-500">{maskedEmail}</p>
+
+                                  {/* Additional Info */}
+                                  <div className="text-xs text-slate-600 mt-1">
+                                    <p>
+                                      {cand.position || "Role N/A"}{" "}
+                                      {cand.current_company && (
+                                        <span className="text-slate-400">
+                                          @ {cand.current_company}
+                                        </span>
+                                      )}
+                                    </p>
+                                    {cand.experience && (
+                                      <p>{cand.experience} years experience</p>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Status Badge */}
+                              <Badge
+                                className={`${
+                                  cand.status?.toLowerCase() === "selected"
+                                    ? "bg-green-100 text-green-700"
+                                    : cand.status?.toLowerCase() === "rejected"
+                                    ? "bg-red-100 text-red-700"
+                                    : "bg-gray-100 text-gray-700"
+                                }`}
+                              >
+                                {Capitalize(cand.status || "N/A")}
+                              </Badge>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    ) : (
+                      <p className="text-sm text-gray-500 italic">No applicants found.</p>
+                    )}
+                  </div>
+                )}
           </section>
+
+          
+   
+
 
           {/* Details */}
           <section className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
@@ -499,7 +567,7 @@ const formatNumber = (value: number) =>
 
             {/* Hiring Team */}
             <Card className="bg-white border border-purple-100 shadow-sm hover:shadow-md transition-shadow">
-              <CardHeader className="bg-gradient-to-r from-purple-50 to-pink-50 border-b border-purple-100">
+              <CardHeader className="bg-gradient-to-r from-emerald-50 to-teal-50  border-b border-purple-100">
                 <CardTitle className="flex items-center gap-2 text-purple-900">
                   <Users className="w-5 h-5" />
                   Hiring Team
@@ -576,7 +644,7 @@ const formatNumber = (value: number) =>
 
             {/* Timeline & Status */}
             <Card className="bg-white border border-emerald-100 shadow-sm hover:shadow-md transition-shadow lg:col-span-2">
-              <CardHeader className="bg-gradient-to-r from-emerald-50 to-teal-50 border-b border-emerald-100">
+              <CardHeader className="bg-gradient-to-r from-purple-50 to-pink-50 border-b border-emerald-100">
                 <CardTitle className="flex items-center gap-2 text-emerald-900">
                   <Clock className="w-5 h-5" />
                   Timeline & Status
