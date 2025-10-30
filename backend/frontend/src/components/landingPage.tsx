@@ -33,7 +33,8 @@ import { FeaturesSection } from "./landingsections/FeaturesSection";
 import { BenefitsSection } from "./landingsections/BenefitsSection";
 import { CTASection } from "./landingsections/CTASection";
 import { Footer } from "./landingsections/Footer"
-import landing_img from "../media/landing_img2.png"
+import landing_img from "../media/landing_img6.png"
+import people_img from "../media/people_img.png"
 
 
 const exploreData = [
@@ -172,7 +173,7 @@ const HomePage: React.FC = () => {
       </nav>
 
       {/* Hero Section */}
-      <header className="grid md:grid-cols-2 gap-30 items-center h-[90vh] w-full px-4 md:px-8 bg-gradient-to-br from-[#0a1628] via-[#1e3a5f] to-[#0f2847]">
+      <header className="grid md:grid-cols-2 gap-10 items-center h-[90vh] w-full px-4 md:px-8 bg-gradient-to-br from-[#0a1628] via-[#1e3a5f] to-[#0f2847]">
 
   {/* Background pattern */}
       <div className="absolute inset-0 opacity-10 pointer-events-none">
@@ -182,7 +183,7 @@ const HomePage: React.FC = () => {
         }} />
       </div>
 
-        <div className="space-y-6 px-20">
+        <div className="space-y-8 px-20">
           <h3 className="text-2xl md:text-3xl font-semibold tracking-tight text-white">
             The Future of Intelligent Hiring
           </h3>
@@ -207,10 +208,11 @@ const HomePage: React.FC = () => {
           </Button>
           
         </div>
-        <div className="h-[90vh] ml-20  overflow-hidden">
+        <div className="h-[90vh] relative overflow-hidden">
           <img src={landing_img}
-          className="h-[90vh]"
+          className=" relative top-18"
           />
+          {/* <img src={people_img} className="absolute top-35 left-15  w-[38vw]"/> */}
         </div>
       </header>
       {/* <div className="absolute h-10 w-10 bg-red-200 bottom-[-5rem] ">yes</div> */}
