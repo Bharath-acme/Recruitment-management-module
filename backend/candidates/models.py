@@ -43,6 +43,7 @@ class Candidate(Base):
     interviews = relationship("Interview", back_populates="candidate")
 
     files = relationship("File", back_populates="candidate", cascade="all, delete-orphan")
+    scorecards = relationship("Scorecard", back_populates="candidate", cascade="all, delete")
 
    
     

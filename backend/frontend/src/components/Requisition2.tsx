@@ -416,7 +416,7 @@ const formatNumber = (value: number) =>
             </div>
 
                    {showApplicants && (
-                  <div className="mt-4 bg-white absolute right-10 border border-blue-100 rounded-lg h-100 overflow-auto shadow-sm p-5 transition-all duration-300 ease-in-out">
+                  <div className="mt-4 bg-white absolute right-10 border border-blue-100 rounded-lg max-h-100 overflow-auto shadow-sm p-5 transition-all duration-300 ease-in-out">
                     <h3 className="font-semibold text-lg mb-3 flex items-center gap-2 text-blue-900">
                       <Users className="w-5 h-5" /> Applicants List
                     </h3>

@@ -32,3 +32,25 @@ class Interview(Base):
 
     # Relationships
     requisition = relationship("Requisitions", back_populates="interviews")
+    scorecard = relationship("Scorecard", back_populates="interview", uselist=False)
+
+
+
+class Scorecard(Base):
+    __tablename__ = "scorecards"
+
+    id = Column(Integer, primary_key=True, index=True)
+    candidate_id = Column(String(100), ForeignKey("candidates.id", ondelete="CASCADE"))
+    interview_id = Column(String(100), ForeignKey("interviews.id", ondelete="CASCADE"))
+
+    technical_score = Column(Float)
+    behavioral_score = Column(Float)
+    cultural_score = Column(Float)
+    overall_recommendation = Column(String(50))
+    technical_comments = Column(Text)
+    behavioral_comments = Column(Text)
+    cultural_comments = Column(Text)
+    overall_comments = Column(Text)
+
+    candidate = relationship("Candidate", back_populates="scorecards")
+    interview = relationship("Interview", back_populates="scorecard")
