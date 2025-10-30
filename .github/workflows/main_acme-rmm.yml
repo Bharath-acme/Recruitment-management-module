@@ -43,9 +43,9 @@ jobs:
       - name: Install backend dependencies
         run: |
           cd backend
-          python -m venv antenv
-          source antenv/bin/activate
+          pip install --upgrade pip
           pip install -r requirements.txt
+
 
       # -----------------------------
       # 🔹 Step 3: Upload combined artifact
@@ -75,5 +75,6 @@ jobs:
           package: backend
 
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_E0783F761C26472BA3EFE3210B5ED744 }}
+
 
 
