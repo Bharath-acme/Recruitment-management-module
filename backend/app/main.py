@@ -28,7 +28,7 @@ from invoices import api as invoice_api
 
 
 # ================== DATABASE SETUP ==================
-Base.metadata.create_all(bind=engine)
+# Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
