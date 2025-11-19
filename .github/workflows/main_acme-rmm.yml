@@ -97,8 +97,12 @@ jobs:
           app-name: 'acme-rmm'
           slot-name: 'Production'
           package: backend
+          
+      - name: Debug:print database_url
+        run: echo "DB URL = ${{ env.database_url }}"
 
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_E0783F761C26472BA3EFE3210B5ED744 }}
+           publish-profile:${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_E0783F761C26472BA3EFE3210B5ED744 }}
+
 
 
 
