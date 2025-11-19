@@ -47,6 +47,7 @@ export function Navigation({
     // { path: "/analytics", label: "Analytics", icon: BarChart3, roles: ["admin", "recruiter", "hiring_manager"] },
     // { path: "/vendors", label: "Vendors", icon: Building2, roles: ["admin", "recruiter", "hiring_manager"] },
     // { path: "/team", label: "Team", icon: Settings, roles: ["admin", "hiring_manager"] },
+     { path: "/invoices", label: "Invoice", icon: HandHeart, roles: ["admin", "recruiter", "finance", "hiring_manager"] },
   ];
 
   const filteredNavItems = navItems.filter(

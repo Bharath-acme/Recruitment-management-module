@@ -47,6 +47,7 @@ export default function CandidateForm({
     recruiter: initialData?.recruiter || user?.name || "",
     resume: initialData?.resume || null,
     nationality: initialData?.nationality || "",
+    status:initialData?.status || 'new'
   }));
 
   // 🔹 Load requisitions

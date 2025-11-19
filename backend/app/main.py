@@ -6,6 +6,7 @@ from starlette.responses import FileResponse, HTMLResponse
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 from app import models, schemas, crud, auth
+from .models import *
 from app.schemas import LoginRequest, UserCreate
 from app.auth import *
 from app.database import engine, Base, get_db
@@ -21,6 +22,7 @@ from app.websocket import connect_user, disconnect_user
 from requisitions.models import Requisitions
 from candidates.models import Candidate 
 from interviews.models import Interview
+from invoices import api as invoice_api
 
 
 
@@ -88,7 +90,9 @@ def login(data: LoginRequest, db: Session = Depends(get_db)):
             "role": user.role,
             "name": user.name,
             "company": user.company,
-            "country": user.country
+            "country": user.country,
+            "company_size":user.company_size,
+            "company_desc":user.company_desc
         }
     )
     return {"access_token": access_token, "token_type": "bearer", "user_data": user}
@@ -97,6 +101,38 @@ def login(data: LoginRequest, db: Session = Depends(get_db)):
 @app.get("/me", response_model=schemas.UserResponse)
 def read_users_me(current_user=Depends(get_current_user)):
     return current_user
+
+# @app.post("/forgot-password")
+# def forgot_password(email: str, db: Session = Depends(get_db)):
+#     user = db.query(User).filter(User.email == email).first()
+#     if not user:
+#         raise HTTPException(status_code=404, detail="User not found")
+
+#     token = str(uuid.uuid4())
+#     expires_at = datetime.utcnow() + timedelta(minutes=15)
+#     reset = PasswordResetToken(user_id=user.id, token=token, expires_at=expires_at)
+#     db.add(reset)
+#     db.commit()
+
+#     reset_link = f"https://your-frontend-url/reset-password?token={token}"
+#     send_reset_email(user.email, reset_link)
+#     return {"message": "Password reset link sent"}
+
+
+# @app.post("/reset-password")
+# def reset_password(token: str, new_password: str, db: Session = Depends(get_db)):
+#     reset_token = db.query(PasswordResetToken).filter(PasswordResetToken.token == token).first()
+#     if not reset_token or reset_token.expires_at < datetime.utcnow():
+#         raise HTTPException(status_code=400, detail="Invalid or expired token")
+
+#     user = db.query(User).filter(User.id == reset_token.user_id).first()
+#     user.hashed_password = get_password_hash(new_password)
+
+#     db.delete(reset_token)  # invalidate token
+#     db.commit()
+
+#     return {"message": "Password reset successful"}
+
 
 
 @app.get("/recruiter_team", response_model=List[schemas.RecruiterBase])
@@ -196,8 +232,11 @@ app.include_router(candidates_api.router, prefix="/candidates", tags=["Candidate
 app.include_router(requisitions_api.router, prefix="/requisitions", tags=["Requisitions"])
 app.include_router(interviews_api.router, prefix="/interviews", tags=["Interviews"])
 app.include_router(offers_api.router, prefix="/offers", tags=["Offers"])
+app.include_router(invoice_api.router, prefix="/invoices", tags=["Invoices"])
 
 # ================== FRONTEND PATH SETUP (SIMPLIFIED FIX) ==================
+
+app.mount("/pdfs", StaticFiles(directory="pdfs"), name="pdfs")
 # 1️⃣ Define frontend build directory
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 FRONTEND_BUILD_DIR = os.path.abspath(os.path.join(BASE_DIR, '..', 'frontend', 'build'))

@@ -62,6 +62,7 @@
             "@types/react": "^19.1.13",
             "@types/react-dom": "^19.1.9",
             "@vitejs/plugin-react-swc": "^3.10.2",
+            "baseline-browser-mapping": "^2.8.29",
             "vite": "^6.3.6"
       },
       "scripts": {

@@ -1,23 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from './ui/card';
+import { Card, CardContent } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { Input } from './ui/input';
-import { Label } from './ui/label';
-import { Textarea } from './ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 import { 
   Plus, 
   Search, 
-  Filter, 
-  FileText, 
-  Calendar, 
-  Users, 
-  Eye,
-  Edit,
   Clock,
   CheckCircle2,
   XCircle,
@@ -29,8 +19,8 @@ import { useNavigate } from 'react-router-dom';
 import { RequisitionForm } from './RequisitionFrom';
 import { useAuth } from './AuthProvider';
 import { Capitalize } from '../utils/Utils';
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 interface RequisitionManagerProps {
   selectedCompany: string;
@@ -59,13 +49,12 @@ export interface Requisition {
   recruiter_id: number;
   job_description: string;
   skills: string[];
-  progress: number; // percentage of positions filled
-  // Add any other fields as necessary
+  progress: number;
   target_startdate: string;
   sla: number;
   approval_status: string;
   created_date: string;
-  positions:any[],
+  positions: any[];
   req_id: string;
 }
 
@@ -73,84 +62,55 @@ export function RequisitionManager({ selectedCompany, selectedCountry }: Requisi
   const [requisitions, setRequisitions] = useState<Requisition[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
+  const [approvalFilter, setApprovalFilter] = useState('all'); // 👈 new filter for top tabs
   const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const [selectedRequisition, setSelectedRequisition] = useState<Requisition | null>(null);
-  // const [approval, setApproval] = useState('');
   const navigate = useNavigate();
- 
-  const {user } = useAuth();
-  const [newRequisition, setNewRequisition] = useState({
-    position: '',
-    department: '',
-    location: '',
-    employment_type: '',
-    work_mode: 'onsite',
-    grade: '',
-    min_salary: '',
-    max_salary: '',
-    currency: 'AED',
-    priority: 'medium',
-    positions_count: null,
-    job_description: '',
-    skills: '',
-    recruiter:'',
-    hiring_manager: user?.name || '',
-    target_startdate: '',
-    created_date: ''
-    
-  });
+  const { user } = useAuth();
+
+  const token = localStorage.getItem("token");
 
   useEffect(() => {
     loadRequisitions();
-   
-  }, [selectedCompany, selectedCountry, statusFilter]);
+  }, [selectedCompany, selectedCountry]);
 
- const queryvalues = () => {
+  const queryvalues = () => {
     if (user?.role === 'admin' || user?.role === 'hiring_manager') {
       return 'all';
     } else {
       return 'approved';
     }
- }
-  const token = localStorage.getItem("token");
+  };
 
- const loadRequisitions = async () => {
-  setLoading(true);
-  try {
-    const approvalStatus = queryvalues();
-    const response = await fetch(
-      `${API_BASE_URL}/requisitions?approval_status=${approvalStatus}&user_id=${user?.id}&role=${user?.role}`,
-      {
-        headers: { 'Content-Type': 'application/json' }
+  const loadRequisitions = async () => {
+    setLoading(true);
+    try {
+      const approvalStatus = queryvalues();
+      const response = await fetch(
+        `${API_BASE_URL}/requisitions?approval_status=${approvalStatus}&user_id=${user?.id}&role=${user?.role}`,
+        {
+          headers: { 'Content-Type': 'application/json' },
+        }
+      );
+      if (response.ok) {
+        const data = await response.json();
+        setRequisitions(data || []);
       }
-    );
-
-    if (response.ok) {
-      const data = await response.json();
-      setRequisitions(data || []);
+    } catch (error) {
+      console.error('Requisitions load error:', error);
+    } finally {
+      setLoading(false);
     }
-  } catch (error) {
-    console.error('Requisitions load error:', error);
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
-
-  
-
-  // Add the missing handler function for creating a requisition
-  const handleCreateRequisition = async (requisitionData:any) => {
+  const handleCreateRequisition = async (requisitionData: any) => {
     try {
       const response = await fetch(`${API_BASE_URL}/requisitions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
         },
-         body: JSON.stringify(requisitionData),
-        
+        body: JSON.stringify(requisitionData),
       });
 
       if (response.ok) {
@@ -166,28 +126,25 @@ export function RequisitionManager({ selectedCompany, selectedCountry }: Requisi
     }
   };
 
- 
+  // 🔍 Filter requisitions
+  const filteredRequisitions = requisitions.filter((req) => {
+    const position = (req.position ?? "").toLowerCase();
+    const department = (req.department ?? "").toLowerCase();
+    const req_id = (req.req_id ?? "").toLowerCase();
+    const location = (req.location ?? "").toLowerCase();
+    const approval = (req.approval_status ?? "").toLowerCase();
 
-  //const filteredRequisitions = requisitions.filter(req =>
-   // req.position.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    //req.department.toLowerCase().includes(searchTerm.toLowerCase()) ||
-   // req.id.toLowerCase().includes(searchTerm.toLowerCase())
- // );
- const filteredRequisitions = requisitions.filter(requisition => {
-  const position = (requisition.position??"").toLowerCase();
-  const department = (requisition.department??"").toLowerCase();
-  const req_id = (requisition.req_id??"").toLowerCase();
-  const location = (requisition.location??"").toLowerCase();
-  
+    const matchesSearch =
+      position.includes(searchTerm.toLowerCase()) ||
+      department.includes(searchTerm.toLowerCase()) ||
+      req_id.includes(searchTerm.toLowerCase()) ||
+      location.includes(searchTerm.toLowerCase());
 
-  return (
-    position.includes(searchTerm.toLowerCase()) ||
-    department.includes(searchTerm.toLowerCase()) ||
-    req_id.includes(searchTerm.toLowerCase())  ||
-    location.includes(searchTerm.toLowerCase())
-    
-  );
-});
+    const matchesApproval =
+      approvalFilter === "all" ? true : approval === approvalFilter;
+
+    return matchesSearch && matchesApproval;
+  });
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
@@ -226,154 +183,162 @@ export function RequisitionManager({ selectedCompany, selectedCountry }: Requisi
 
   return (
     <div className="p-6 space-y-6">
+      {/* 🔹 Header */}
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Requisition Management</h1>
           <p className="text-gray-600">Manage job requisitions and hiring requests</p>
         </div>
+
+        {/* Create Requisition Dialog */}
         <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-         {(user?.role === 'hiring_manager' || user?.role === 'admin') &&  <DialogTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              New Requisition
-            </Button>
-          </DialogTrigger>}
+          {(user?.role === 'hiring_manager' || user?.role === 'admin') && (
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                New Requisition
+              </Button>
+            </DialogTrigger>
+          )}
           <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Create New Requisition</DialogTitle>
               <DialogDescription>
-                Create a new job requisition by filling in the position details and requirements below.
+                Fill in the details to create a new job requisition.
               </DialogDescription>
             </DialogHeader>
             <RequisitionForm
-            onSubmit={handleCreateRequisition}
-            onCancel={() => setShowCreateDialog(false)}
+              onSubmit={handleCreateRequisition}
+              onCancel={() => setShowCreateDialog(false)}
             />
-            
           </DialogContent>
         </Dialog>
       </div>
 
+      {/* 🔹 Top Tabs for Approval Filter */}
+      <div className='flex flex-row justify-between border-b pb-2 align-center'>
+      <div className="flex space-x-6 ">
+        {["all", "pending", "approved", "rejected"].map((status) => (
+          <button
+            key={status}
+            onClick={() => setApprovalFilter(status)}
+            className={`font-semibold pb-1 border-b-2 capitalize cursor-pointer transition-all ${
+              approvalFilter === status
+                ? "border-blue-600 text-blue-600"
+                : "border-transparent text-gray-600 hover:text-blue-600"
+            }`}
+          >
+            {status === "pending" ? "Approval Pending" : status}
+          </button>
+        ))}
+      </div>
+
+      {/* 🔹 Search */}
+       
+
       <div className="flex space-x-4">
         <div className="flex-1">
-          <div className="relative">
+          <div className="relative w-72">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
               placeholder="Search requisitions..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
+               className="pl-10 border-1 border-red rounded-full"
             />
           </div>
         </div>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-48">
-            <SelectValue placeholder="Filter by status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Status</SelectItem>
-            <SelectItem value="active">Active</SelectItem>
-            <SelectItem value="pending">Pending Approval</SelectItem>
-            <SelectItem value="on-hold">On Hold</SelectItem>
-            <SelectItem value="closed">Closed</SelectItem>
-          </SelectContent>
-        </Select>
       </div>
-
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <Table className="w-full border-separate border-spacing-y-3">
-            <TableHeader className='border bg-blue-100 rounded-lg shadow-sm'>
-              <TableRow >
-              <TableHead className="first:pl-10 rounded-l-lg">Position</TableHead>
-              <TableHead>Department</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Priority</TableHead>
-              <TableHead>Progress</TableHead>
-              <TableHead>Days Open</TableHead>
-              <TableHead>Hiring Manager</TableHead>
-              <TableHead className='rounded-r-lg'>Approval</TableHead>
+     </div>
+      {/* 🔹 Table */}
+      <CardContent className="p-0">
+        <div className="overflow-x-auto">
+          <Table className="w-full border-separate border-spacing-y-3">
+            <TableHeader className="border bg-blue-100 rounded-lg shadow-sm">
+              <TableRow>
+                <TableHead className="first:pl-10 rounded-l-lg">Position</TableHead>
+                <TableHead>Department</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Priority</TableHead>
+                <TableHead>Progress</TableHead>
+                <TableHead>Days Open</TableHead>
+                <TableHead>Hiring Manager</TableHead>
+                <TableHead className="rounded-r-lg">Approval</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading ? (
                 [...Array(5)].map((_, i) => (
-                  <TableRow  key={i}>
-                    <TableCell><div  className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
-                    <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
-                    <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
-                    <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
-                    <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
-                    <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
-                    <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
-                    <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
+                  <TableRow key={i}>
+                    {Array(8)
+                      .fill(0)
+                      .map((_, idx) => (
+                        <TableCell key={idx}>
+                          <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                        </TableCell>
+                      ))}
                   </TableRow>
                 ))
-              ) : (
+              ) : filteredRequisitions.length > 0 ? (
                 filteredRequisitions.map((req) => (
-                  
-                  <TableRow 
-                       onClick={()=>{ navigate(`/requisitions/${req.id}`)}} key={req.id}
-                       className="border border-gray-200 rounded-lg shadow-sm transition-all duration-200 ease-in-out hover:shadow-lg hover:bg-blue-50 hover:-translate-y-[2px] cursor-pointer">
-                
+                  <TableRow
+                    onClick={() => navigate(`/requisitions/${req.id}`)}
+                    key={req.id}
+                    className="border border-gray-200 rounded-lg shadow-sm transition-all duration-200 ease-in-out hover:shadow-lg hover:bg-blue-50 hover:-translate-y-[2px] cursor-pointer"
+                  >
                     <TableCell className="border-l-[5px] border-blue-600 pl-4 rounded-l-lg">
-                        <div className="font-medium">{req.position}</div>
-                        <div className="text-sm text-gray-500">{req.req_id}</div>
-                       
-                        <div className="text-sm text-gray-500 flex items-center gap-1">
-                           <MapPin className="h-3 w-3" /> <span>{req.location}</span>
-                        </div>  
+                      <div className="font-medium">{req.position}</div>
+                      <div className="text-sm text-gray-500">{req.req_id}</div>
+                      <div className="text-sm text-gray-500 flex items-center gap-1">
+                        <MapPin className="h-3 w-3" /> <span>{req.location}</span>
+                      </div>
                     </TableCell>
                     <TableCell>{req.department}</TableCell>
                     <TableCell>
-                      <div className="flex items-center space-x-2">
-                        <Badge className={getStatusColor(req.status)}>{req.status}</Badge>
-                        
-                      </div>
+                      <Badge className={getStatusColor(req.status)}>{req.status}</Badge>
                     </TableCell>
                     <TableCell>
                       <Badge className={getPriorityColor(req.priority)}>{req.priority}</Badge>
                     </TableCell>
                     <TableCell>
-                      <div className="space-y-1">
-                        <div className="text-sm">{req.filled} {req.positions_count} filled</div>
-                        <div className="text-sm text-gray-500"> applicants</div>
+                      <div className="space-y-1 text-sm">
+                        <div>{req.filled} / {req.positions_count} filled</div>
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center space-x-1">
                         <Clock className="h-4 w-4 text-gray-400" />
-                        <span className={daysOpen(req.created_date) > req.sla ? 'text-red-600' : 'text-gray-600'}>
+                        <span
+                          className={
+                            daysOpen(req.created_date) > req.sla
+                              ? 'text-red-600'
+                              : 'text-gray-600'
+                          }
+                        >
                           {daysOpen(req.created_date)} days
                         </span>
                       </div>
                     </TableCell>
                     <TableCell>{Capitalize(req.hiring_manager)}</TableCell>
                     <TableCell>
-                      <div className="flex items-center space-x-2">
-                        <Button 
-                        // onClick={(e:any)=>{e.stopPropagation(); }} 
-                        // onClick={(e)=>{ e.stopPropagation(); setApproval(req.id);}}
-                        className="flex items-center gap-2"
-                        size="sm" 
-                        variant="outline">
-                          {/* <Eye className="h-4 w-4" /> */}
-                          {Capitalize(req.approval_status)}
-                         {getApprovalStatusIcon(req.approval_status)}
-                        </Button>
-                        {/* {getApprovalStatusIcon(req?.approvalStatus)} */}
-                        {/* <Button onClick={(e:any)=>{e.stopPropagation(); }} size="sm" variant="outline">
-                          <Edit className="h-4 w-4" />
-                        </Button> */}
-                      </div>
+                      <Button className="flex items-center gap-2" size="sm" variant="outline">
+                        {Capitalize(req.approval_status)}
+                        {getApprovalStatusIcon(req.approval_status)}
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))
+              ) : (
+                <tr>
+                  <td colSpan={8} className="text-center py-6 text-gray-500">
+                    No requisitions found.
+                  </td>
+                </tr>
               )}
             </TableBody>
           </Table>
-          </div>
-        </CardContent>
+        </div>
+      </CardContent>
     </div>
   );
 }

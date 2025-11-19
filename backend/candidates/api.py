@@ -10,16 +10,57 @@ router = APIRouter()
 
 
 @router.get("", response_model=List[schemas.CandidateResponse])
-def read_candidates(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    return crud.get_candidates(db, skip=skip, limit=limit)
+def read_candidates(
+    skip: int = 0,
+    limit: int = 100,
+    db: Session = Depends(get_db),
+    user:User = Depends(get_current_user)
+):
+    query = db.query(models.Candidate)
+
+    # 🟢 If the user's role is recruiter, fetch only their candidates
+    if user.role.lower() == "recruiter":
+        query = query.filter(models.Candidate.recruiter == user.name)
+
+    candidates = query.offset(skip).limit(limit).all()
+
+    # 🔒 If user is not from Acme Global, hide sensitive fields
+    if user.company.lower() != "acme global":
+        for c in candidates:
+            c.email = None
+            c.phone = None
+            c.resume_url = None
+            c.source = None
+           
+
+    return candidates
+
 
 
 @router.get("/{candidate_id}", response_model=schemas.CandidateResponse)
-def read_candidate(candidate_id: str, db: Session = Depends(get_db)):
+def read_candidate(
+    candidate_id: str,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user)
+):
     db_candidate = crud.get_candidate(db, candidate_id)
     if not db_candidate:
         raise HTTPException(status_code=404, detail="Candidate not found")
+
+    # 🟢 Recruiter can only view their own candidates
+    if user.role.lower() == "recruiter" and db_candidate.recruiter != user.name:
+        raise HTTPException(status_code=403, detail="Access denied for this candidate")
+
+    # 🔒 Hide sensitive info if user is not from Acme Global
+    if user.company.lower() != "acme global":
+        db_candidate.email = None
+        db_candidate.phone = None
+        db_candidate.resume_url = None
+        db_candidate.source = None
+      
+
     return db_candidate
+
 
 
 @router.post("", response_model=schemas.CandidateCreate)

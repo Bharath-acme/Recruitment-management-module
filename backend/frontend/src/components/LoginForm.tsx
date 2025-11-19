@@ -76,7 +76,7 @@ const handleSignup = async (e: React.FormEvent) => {
       role: signupData.role,
       company: signupData.company,
       company_size: signupData.companySize,
-      company_description: signupData.companyDescription,
+      company_desc: signupData.companyDescription,
       country: signupData.country,
       confirm_password: signupData.confirmPassword,
     });
@@ -211,7 +211,7 @@ const handleSignup = async (e: React.FormEvent) => {
                       <div className="space-y-2">
                         <Label className='text-white'>Company Size</Label>
                         <Input
-                          placeholder="e.g. 100-500"
+                          placeholder="e.g. 1000"
                           value={signupData.companySize}
                           onChange={(e) => setSignupData({ ...signupData, companySize: e.target.value })}
                           required
@@ -230,7 +230,7 @@ const handleSignup = async (e: React.FormEvent) => {
                         <Label className='text-white'>Country</Label>
                         <Input
                           placeholder="Country"
-                          value={signupData.companyDescription}
+                          value={signupData.country}
                           onChange={(e) => setSignupData({ ...signupData, country: e.target.value })}
                           required
                         />
@@ -279,10 +279,6 @@ const handleSignup = async (e: React.FormEvent) => {
               </Tabs>
             </CardContent>
           </Card>
-
-          <div className="mt-6 text-center text-sm text-gray-300">
-            <p>Demo credentials available upon request</p>
-          </div>
         </div>
       </div>
 

@@ -9,22 +9,65 @@ from typing import List
 
 router = APIRouter()
 
+
 def require_roles(*roles):
-    def _inner(user = Depends(get_current_user)):
-        if user["role"] not in roles and "admin" not in user["role"]:
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="forbidden")
+    def dependency(user=Depends(get_current_user)):
+        if not hasattr(user, "role"):
+            raise HTTPException(status_code=400, detail="Invalid user object")
+
+        if user.role not in roles and user.role != "admin":
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Not authorized"
+            )
         return user
-    return _inner
+    return Depends(dependency)
+
+
+@router.get("", response_model=List[OfferOut])
+def list_offers(
+    db: Session = Depends(get_db),
+    user = Depends(get_current_user),
+    status: Optional[str] = None,
+    candidate_id: Optional[str] = None
+):
+    query = db.query(models.Offer)
+
+    if status:
+        query = query.filter(models.Offer.status == status)
+    if candidate_id:
+        query = query.filter(models.Offer.candidate_id == candidate_id)
+
+    offers = query.all()
+
+    # include approvals if needed
+    result = []
+    for o in offers:
+        approvals = (
+            db.query(models.ApprovalRecord)
+            .filter(models.ApprovalRecord.offer_id == o.id)
+            .all()
+        )
+        offer_out = OfferOut.from_orm(o)
+        offer_out.approvals = [
+            {"role": a.role, "state": a.state, "approver": a.approver_id, "comment": a.comment}
+            for a in approvals
+        ]
+        result.append(offer_out)
+
+    return result
+
+
 
 @router.post("", response_model=OfferOut)
-def create_offer(payload: OfferCreate, db: Session = Depends(get_db), user = Depends(require_roles("recruiter", "admin"))):
+def create_offer(payload: OfferCreate, db: Session = Depends(get_db), user = require_roles("recruiter","hiring_manager", "admin")):
     # Validate candidate & application exist? (left to integration)
     # create
     offer = crud.create_offer(db, payload, creator_user=user)
     return OfferOut.from_orm(offer)
 
 @router.post("/{offer_id}/submit_for_approval")
-def submit_offer_for_approval(offer_id: str, country: str = "IN", db: Session = Depends(get_db), user = Depends(require_roles("recruiter", "admin"))):
+def submit_offer_for_approval(offer_id: str, country: str = "IN", db: Session = Depends(get_db), user =  require_roles("recruiter","hiring_manager", "admin")):
     offer = db.query(models.Offer).filter(models.Offer.offer_id == offer_id).one_or_none()
     if not offer:
         raise HTTPException(404, "offer not found")
@@ -32,7 +75,7 @@ def submit_offer_for_approval(offer_id: str, country: str = "IN", db: Session = 
     return res
 
 @router.post("/{offer_id}/approvals")
-def approver_action(offer_id: str, payload: ApproverAction, db: Session = Depends(get_db), user = Depends(require_roles("finance", "leadership", "hr", "admin"))):
+def approver_action(offer_id: str, payload: ApproverAction, db: Session = Depends(get_db), user =  require_roles("recruiter","hiring_manager", "admin")):
     offer = db.query(models.Offer).filter(models.Offer.offer_id == offer_id).one_or_none()
     if not offer:
         raise HTTPException(404, "offer not found")
@@ -41,7 +84,7 @@ def approver_action(offer_id: str, payload: ApproverAction, db: Session = Depend
     return {"message": "recorded", "offer_status": updated.status.value}
 
 @router.post("/{offer_id}/generate_letter")
-def generate_letter(offer_id: str, db: Session = Depends(get_db), user = Depends(require_roles("admin"))):
+def generate_letter(offer_id: str, db: Session = Depends(get_db), user =  require_roles("hiring_manager", "admin")):
     offer = db.query(models.Offer).filter(models.Offer.offer_id == offer_id).one_or_none()
     if not offer:
         raise HTTPException(404, "offer not found")
@@ -51,7 +94,7 @@ def generate_letter(offer_id: str, db: Session = Depends(get_db), user = Depends
     return res
 
 @router.post("/{offer_id}/candidate_action")
-def candidate_action(offer_id: str, payload: CandidateAction, db: Session = Depends(get_db), user = Depends(require_roles("candidate", "admin"))):
+def candidate_action(offer_id: str, payload: CandidateAction, db: Session = Depends(get_db), user =  require_roles("recruiter","hiring_manager", "admin")):
     offer = db.query(models.Offer).filter(models.Offer.offer_id == offer_id).one_or_none()
     if not offer:
         raise HTTPException(404, "offer not found")

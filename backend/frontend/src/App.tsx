@@ -19,6 +19,8 @@ import RquisitionPage2 from "./components/Requisition2";
 import HomePage from "./components/landingPage"
 import { Menu } from "lucide-react"; 
 import {InterviewDetail} from "./components/InterviewDetail";
+import InvoiceManagement from "./components/invoices/InvoiceManagement";
+import InvoiceDetails from "./components/invoices/InvoiceDetails";
 
 
 
@@ -98,6 +100,8 @@ function AppContent() {
           <Route path="/candidates/:id" element={<CandidateProfile />} />
           <Route path="/requisitions/:id" element={<RquisitionPage2 />} />
           <Route path="/interviews/:id" element={<InterviewDetail />} />
+          <Route path="/invoices" element={<InvoiceManagement/>}/>
+          <Route path="/invoices/:id" element={<InvoiceDetails/>}/>
           {/* Redirect any unknown route to dashboard */}
           <Route path="*" element={<Dashboard selectedCompany={selectedCompany} selectedCountry={selectedCountry} />}/>
         </Routes>

@@ -18,10 +18,13 @@ import {
   CheckCircle2,
   XCircle,
   Send,
-  DollarSign
+  DollarSign,
+  Calendar1Icon,
+  CalendarIcon
 } from 'lucide-react';
 import { toast } from 'sonner';
 import OfferForm from './OfferLetterForm';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 interface Allowance {
   name: string;
@@ -35,10 +38,11 @@ interface OfferManagerProps {
 
 interface Offer {
   id: string;
+  offer_id:string;
   candidateName: string;
   candidateEmail: string;
   position: string;
-  requisitionId: string;
+  requisition_id: string;
   baseSalary: number;
   currency: string;
   allowances: {
@@ -58,6 +62,7 @@ interface Offer {
   createdBy: string;
   createdDate: string;
   approvers: string[];
+  base:string;
 }
 
 export function OfferManager({ selectedCompany, selectedCountry }: OfferManagerProps) {
@@ -71,11 +76,16 @@ export function OfferManager({ selectedCompany, selectedCountry }: OfferManagerP
       { name: "Transport", value: 0 },
     ]);
 
+  const [candidates, setCandidates] = useState<
+    { id:string, email: string; name: string; position: string; requisition_id: string }[]
+  >([]);
+
   const [newOffer, setNewOffer] = useState({
     candidateName: '',
     candidateEmail: '',
+    candidate_id:'',
     position: '',
-    requisitionId: '',
+    requisition_id: '',
     baseSalary: '',
     currency: 'AED',
     housingAllowance: '',
@@ -87,170 +97,120 @@ export function OfferManager({ selectedCompany, selectedCountry }: OfferManagerP
     expiryDays: 7
   });
 
+  const token = localStorage.getItem("token");
+
   useEffect(() => {
-    loadDemoData();
+    fetch(`${API_BASE_URL}/candidates`)
+    fetch("http://localhost:8000/candidates", {
+      headers: { 'Content-Type': 'application/json',
+        authorization: `Bearer ${token}`
+       }
+    })
+    .then((res) => res.json())
+    .then((data) => setCandidates(data));
+
+    getOffers()
+    
   }, [selectedCompany, selectedCountry, statusFilter]);
 
- 
-  const loadDemoData = () => {
-    setOffers([
-      {
-        id: 'OFF-001',
-        candidateName: 'Ahmed Al-Rashid',
-        candidateEmail: 'ahmed.rashid@email.com',
-        position: 'Senior Software Engineer',
-        requisitionId: 'REQ-2025-001',
-        baseSalary: 18000,
-        currency: 'AED',
-        allowances: {
-          housing: 5000,
-          transport: 1500,
-          mobile: 500,
-          tickets: 10000
-        },
-        benefits: ['Medical Insurance', 'Life Insurance', 'Annual Leave 30 days'],
-        variablePay: 15000,
-        totalCompensation: 50000,
-        status: 'Pending Response',
-        approvalStatus: 'Approved',
-        expiryDate: '2025-09-06',
-        sentDate: '2025-08-30',
-        createdBy: 'Sarah Johnson',
-        createdDate: '2025-08-29',
-        approvers: ['HR Manager', 'Finance Controller']
-      },
-      {
-        id: 'OFF-002',
-        candidateName: 'Fatima Al-Zahra',
-        candidateEmail: 'fatima.zahra@email.com',
-        position: 'Product Manager',
-        requisitionId: 'REQ-2025-002',
-        baseSalary: 22000,
-        currency: 'SAR',
-        allowances: {
-          housing: 6000,
-          transport: 2000,
-          mobile: 500,
-          tickets: 12000
-        },
-        benefits: ['Medical Insurance', 'Life Insurance', 'Annual Leave 30 days', 'Education Allowance'],
-        variablePay: 20000,
-        totalCompensation: 62500,
-        status: 'Accepted',
-        approvalStatus: 'Approved',
-        expiryDate: '2025-09-10',
-        sentDate: '2025-08-28',
-        responseDate: '2025-08-30',
-        createdBy: 'Mike Chen',
-        createdDate: '2025-08-27',
-        approvers: ['HR Manager', 'Finance Controller', 'Department Head']
-      },
-      {
-      id: 'OFF-003',
-      candidateName: 'Arjun Mehta',
-      candidateEmail: 'arjun.mehta@email.com',
-      position: 'Senior Software Engineer',
-      requisitionId: 'REQ-2025-003',
-      baseSalary: 18000,
-      currency: 'AED',
-      allowances: {
-        housing: 5000,
-        transport: 1500,
-        mobile: 400,
-        tickets: 8000
-      },
-      benefits: ['Medical Insurance', 'Life Insurance', 'Annual Leave 30 days', 'Gratuity'],
-      variablePay: 15000,
-      totalCompensation: 47900,
-      status: 'Pending Acceptance',
-      approvalStatus: 'Approved',
-      expiryDate: '2025-11-15',
-      sentDate: '2025-10-28',
-      responseDate: '2025-09-10',
-      createdBy: 'Sofia Karim',
-      createdDate: '2025-10-27',
-      approvers: ['HR Manager', 'CTO', 'Finance Controller']
-    },
-    {
-      id: 'OFF-004',
-      candidateName: 'Liam O’Connor',
-      candidateEmail: 'liam.oconnor@email.com',
-      position: 'Marketing Lead',
-      requisitionId: 'REQ-2025-004',
-      baseSalary: 16000,
-      currency: 'USD',
-      allowances: {
-        housing: 4000,
-        transport: 1200,
-        mobile: 300,
-        tickets: 7000
-      },
-      benefits: ['Medical Insurance', 'Annual Leave 25 days', 'Bonus Plan', 'Gym Membership'],
-      variablePay: 10000,
-      totalCompensation: 38500,
-      status: 'Offered',
-      approvalStatus: 'Pending',
-      expiryDate: '2025-11-05',
-      sentDate: '2025-10-25',
-      responseDate: '2025-10-15',
-      createdBy: 'Emily Davis',
-      createdDate: '2025-10-24',
-      approvers: ['HR Manager', 'Finance Controller', 'CEO']
-    },
-{
-  id: 'OFF-005',
-  candidateName: 'Noor Abdullah',
-  candidateEmail: 'noor.abdullah@email.com',
-  position: 'UI/UX Designer',
-  requisitionId: 'REQ-2025-005',
-  baseSalary: 14000,
-  currency: 'SAR',
-  allowances: {
-    housing: 3500,
-    transport: 1000,
-    mobile: 300,
-    tickets: 6000
-  },
-  benefits: ['Medical Insurance', 'Life Insurance', 'Remote Work Option', 'Annual Leave 30 days'],
-  variablePay: 8000,
-  totalCompensation: 32800,
-  status: 'Rejected',
-  approvalStatus: 'Approved',
-  expiryDate: '2025-09-25',
-  sentDate: '2025-09-10',
-  responseDate: '2025-09-18',
-  createdBy: 'Ahmed Khan',
-  createdDate: '2025-09-09',
-  approvers: ['HR Manager', 'Creative Director', 'Finance Controller']
-}
 
-    ]);
-  };
+  const getOffers = async ()=>{
+    try{
+      const response = await fetch(`${API_BASE_URL}/offers`,
+      { headers:{'Content-Type':'application/json',
+         Authorization: `Bearer ${token}`
+      }
+    })
+    if (response.ok) {
+      const data =  await response.json()
+      setOffers(data)
+    }
+    }
+    catch (error){
+       console.log('offers are not loading')
+
+    }
+  }
+
+  const handleCreateOffer = async () => {
+  try {
+    const allowancesObject: Record<string, number> = {};
+    allowances.forEach(a => {
+      if (a.name && a.value !== undefined) {
+        allowancesObject[a.name.toLowerCase()] = a.value;
+      }
+    });
+
+    const payload = {
+      app_id: newOffer.requisition_id || '', // adjust if your backend expects int
+      candidate_id: newOffer.candidate_id || '',        // update once you have real candidate_id
+      grade: newOffer.position || "N/A",               // replace with actual grade if available
+      base: parseFloat(newOffer.baseSalary) || 0,
+      allowances: allowancesObject,
+      benefits: {},                                   // update if you have benefits
+      variable_pay: parseFloat(newOffer.variablePay) || 0,
+      currency: newOffer.currency,
+      expiry_days: newOffer.expiryDays,
+      country: selectedCountry || "IN"
+    };
+
+    const response = await fetch(`${API_BASE_URL}/offers`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+      const errData = await response.json();
+      console.error("Offer creation failed:", errData);
+      toast.error(`Offer creation failed: ${errData.detail || "Unknown error"}`);
+      return;
+    }
+
+    const data = await response.json();
+    toast.success("Offer created successfully!");
+
+    // close modal and refresh offers
+    setShowCreateDialog(false);
+    resetForm();
+    getOffers();
+
+  } catch (error) {
+    console.error("Error creating offer:", error);
+    toast.error("Something went wrong while creating offer");
+  }
+};
+
+ 
 
  
   const resetForm = () => {
     setNewOffer({
-      candidateName: '',
-      candidateEmail: '',
-      position: '',
-      requisitionId: '',
-      baseSalary: '',
-      currency: 'AED',
-      housingAllowance: '',
-      transportAllowance: '',
-      mobileAllowance: '',
-      ticketsAllowance: '',
-      benefits: [],
-      variablePay: '',
-      expiryDays: 7
-    });
+    candidateName: '',
+    candidateEmail: '',
+    candidate_id:'',
+    position: '',
+    requisition_id: '',
+    baseSalary: '',
+    currency: 'AED',
+    housingAllowance: '',
+    transportAllowance: '',
+    mobileAllowance: '',
+    ticketsAllowance: '',
+    benefits: [] as string[],
+    variablePay: '',
+    expiryDays: 7
+  });
   };
 
-  const filteredOffers = offers.filter(offer =>
-    offer.candidateName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    offer.position.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    offer.requisitionId.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // const filteredOffers = offers.filter(offer =>
+  //   offer.candidateName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  //   offer.position.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  //   offer.requisition_id.toLowerCase().includes(searchTerm.toLowerCase())
+  // );
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
@@ -327,48 +287,70 @@ export function OfferManager({ selectedCompany, selectedCountry }: OfferManagerP
             </DialogHeader>
             {/* <OfferForm/> */}
             <div className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="candidateName">Candidate Name</Label>
-                  <Input
-                    id="candidateName"
-                    value={newOffer.candidateName}
-                    onChange={(e) => setNewOffer({...newOffer, candidateName: e.target.value})}
-                    placeholder="Ahmed Al-Rashid"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="candidateEmail">Candidate Email</Label>
-                  <Input
-                    id="candidateEmail"
-                    type="email"
-                    value={newOffer.candidateEmail}
-                    onChange={(e) => setNewOffer({...newOffer, candidateEmail: e.target.value})}
-                    placeholder="ahmed@email.com"
-                  />
-                </div>
-              </div>
+               <div className="grid grid-cols-2 gap-4">
+                             
+                             <div>
+                             <Label htmlFor="candidateEmail">Candidate Email</Label>
+                             <Select 
+                               value={newOffer.candidateEmail || ''} 
+                               onValueChange={(value: any) => {
+                                 setNewOffer({ ...newOffer, candidateEmail: value });
+                                 const selectedCandidate = candidates.find(c => c.email === value);
+                                 if (selectedCandidate) {
+                                   setNewOffer({
+                                     ...newOffer,
+                                     candidateEmail: value,
+                                     candidate_id: selectedCandidate.id,
+                                     candidateName: selectedCandidate.name,
+                                     position: selectedCandidate.position,
+                                     requisition_id: selectedCandidate.requisition_id
+                                   });
+                                 }
+                               }}
+                             >
+                               <SelectTrigger>
+                                 <SelectValue placeholder="Select candidate email" />
+                               </SelectTrigger>
+                               <SelectContent>
+                                 {candidates.map((c) => (
+                                   <SelectItem key={c.email} value={c.email}>
+                                     {c.email}
+                                   </SelectItem>
+                                 ))}
+                               </SelectContent>
+                             </Select>
+                           </div>
+                           <div>
+                               <Label htmlFor="candidateName">Candidate Name</Label>
+                               <Input
+                                 id="candidateName"
+                                 value={newOffer.candidateName || ''}
+                                 onChange={(e) => setNewOffer({...newOffer, candidateName: e.target.value})}
+                                 placeholder="Ahmed Al-Rashid"
+                               />
+                             </div>
+                           </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="position">Position</Label>
-                  <Input
-                    id="position"
-                    value={newOffer.position}
-                    onChange={(e) => setNewOffer({...newOffer, position: e.target.value})}
-                    placeholder="Senior Software Engineer"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="requisitionId">Requisition ID</Label>
-                  <Input
-                    id="requisitionId"
-                    value={newOffer.requisitionId}
-                    onChange={(e) => setNewOffer({...newOffer, requisitionId: e.target.value})}
-                    placeholder="REQ-2025-001"
-                  />
-                </div>
-              </div>
+             <div className="grid grid-cols-2 gap-4">
+                           <div>
+                             <Label htmlFor="position">Position</Label>
+                             <Input
+                               id="position"
+                               value={newOffer.position || ''}
+                               onChange={(e) => setNewOffer({...newOffer, position: e.target.value})}
+                               placeholder="Senior Software Engineer"
+                             />
+                           </div>
+                           <div>
+                             <Label htmlFor="requisitionId">Requisition ID</Label>
+                             <Input
+                               id="requisitionId"
+                               value={newOffer.requisition_id ||''}
+                               onChange={(e) => setNewOffer({...newOffer, requisition_id: e.target.value})}
+                               placeholder="REQ-2025-001"
+                             />
+                           </div>
+                         </div>
 
               <div className="border-t pt-4">
                 <h3 className="text-lg font-medium mb-4">Compensation Package</h3>
@@ -514,7 +496,7 @@ export function OfferManager({ selectedCompany, selectedCountry }: OfferManagerP
                   Cancel
                 </Button>
                 <Button 
-                // onClick={handleCreateOffer}
+                onClick={handleCreateOffer}
                 >
                   Create Offer
                 </Button>
@@ -551,7 +533,7 @@ export function OfferManager({ selectedCompany, selectedCountry }: OfferManagerP
         </Select>
       </div>
 
-      <Card>
+      {/* <Card>
         <CardContent className="p-0">
           <Table>
             <TableHeader>
@@ -583,7 +565,7 @@ export function OfferManager({ selectedCompany, selectedCountry }: OfferManagerP
                       <div>
                         <div className="font-medium">{offer.candidateName}</div>
                         <div className="text-sm text-gray-500">{offer.position}</div>
-                        <div className="text-sm text-gray-500">{offer.requisitionId}</div>
+                        <div className="text-sm text-gray-500">{offer.requisition_id}</div>
                       </div>
                     </TableCell>
                     <TableCell>
@@ -653,7 +635,113 @@ export function OfferManager({ selectedCompany, selectedCountry }: OfferManagerP
             </TableBody>
           </Table>
         </CardContent>
-      </Card>
+      </Card> */}
+
+       <Card className="mt-6 shadow-md border border-gray-200">
+      <CardContent className="p-0">
+        <div className="overflow-x-auto">
+          <Table className="w-full border-separate border-spacing-y-3">
+            <TableHeader className="border bg-blue-100 rounded-lg shadow-sm">
+              <TableRow>
+                <TableHead className="first:pl-4">Candidate ID</TableHead>
+                <TableHead>Grade</TableHead>
+                <TableHead>Base Salary</TableHead>
+                <TableHead>Allowances</TableHead>
+                <TableHead>Benefits</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Expiry Date</TableHead>
+                <TableHead className="rounded-r-lg">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+
+            <TableBody>
+              {loading ? (
+                [...Array(5)].map((_, i) => (
+                  <TableRow key={i}>
+                    {Array(8)
+                      .fill(0)
+                      .map((_, j) => (
+                        <TableCell key={j}>
+                          <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                        </TableCell>
+                      ))}
+                  </TableRow>
+                ))
+              ) : (
+                offers.map((offer) => (
+                  <TableRow
+                    key={offer.offer_id}
+                    // onClick={() => navigate(`/offers/${offer.offer_id}`)}
+                    className="border border-gray-200 rounded-lg shadow-sm transition-all duration-200 ease-in-out hover:shadow-lg hover:bg-blue-50 hover:-translate-y-[2px] cursor-pointer"
+                  >
+                    <TableCell className="border-l-[5px] border-blue-800 pl-4 rounded-l-lg">
+                      <div>
+                        <div className="font-medium"></div>
+                        <div className="text-sm text-gray-500">App ID: </div>
+                      </div>
+                    </TableCell>
+
+                    <TableCell>
+                      <div className="font-medium"></div>
+                    </TableCell>
+
+                    <TableCell>
+                      <div className="flex items-center space-x-1 text-gray-700">
+                        <DollarSign className="h-4 w-4 text-green-500" />
+                        <span>
+                         {offer.base} {offer.currency}
+                        </span>
+                      </div>
+                    </TableCell>
+
+                    <TableCell>
+                      <div className="text-sm text-gray-600">
+                        Housing: {offer.allowances?.housing || 0} <br />
+                        Transport: {offer.allowances?.transport || 0}
+                      </div>
+                    </TableCell>
+
+                    <TableCell>
+                      <div className="text-sm text-gray-600">
+                        Medical:  <br />
+                        Tickets: 
+                      </div>
+                    </TableCell>
+
+                    <TableCell>
+                      <Badge >{offer.status}</Badge>
+                    </TableCell>
+
+                    <TableCell>
+                      <div className="flex flex-col text-sm text-gray-600">
+                        <div className="flex items-center">
+                          <CalendarIcon className="h-4 w-4 mr-1 text-gray-400" />
+                          {/* {formatDate(offer.expiry_date)} */}
+                        </div>
+                      </div>
+                    </TableCell>
+
+                    <TableCell>
+                      <div className="flex space-x-2">
+                        <Button size="sm" variant="outline" onClick={(e) => {
+                          e.stopPropagation();
+                          // navigate(`/offers/${offer.offer_id}`);
+                        }}>
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button size="sm" variant="outline" onClick={(e) => e.stopPropagation()}>
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </CardContent>
+    </Card>
     </div>
   );
 }

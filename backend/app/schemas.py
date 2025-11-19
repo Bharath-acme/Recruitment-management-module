@@ -21,6 +21,8 @@ class UserBase(BaseModel):
     role: str
     company: str
     country: str
+    company_desc: Optional[str] = None
+    company_size: Optional[str] = None
     
 
 class UserCreate(UserBase):

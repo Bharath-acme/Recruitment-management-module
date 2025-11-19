@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "./ui/button";
-import acme_white_logo from "../media/acme_logo.png";
 import req_img from "../media/requisitions.png";
 import candidate_img from "../media/candidates.png"
 import interview_img from "../media/interviews.png"
@@ -185,7 +184,7 @@ const HomePage: React.FC = () => {
 
         <div className="space-y-8 px-20">
           <h3 className="text-2xl md:text-3xl font-semibold tracking-tight text-white">
-            The Future of Intelligent Hiring
+            Intelligent Hiring Now
           </h3>
           <h1 className="text-3xl md:text-5xl font-medium tracking-tight  leading-snug  text-white">
             Transform Your Hiring Lifecycle with ACME Global’s Recruitment

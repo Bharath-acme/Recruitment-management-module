@@ -18,13 +18,21 @@ class User(Base):
     email = Column(String(100), unique=True, index=True, nullable=False)
     role = Column(String(100), nullable=False)
     company = Column(String(100), nullable=False)
+    company_size = Column(String(100), nullable=True)
+    company_desc = Column(String(200),nullable=True)
     country = Column(String(100), nullable=False)
     hashed_password = Column(String(100), nullable=False)
     requisitions = relationship("Requisitions", back_populates="recruiter")
     activity_logs = relationship("RequisitionActivityLog", back_populates="user", cascade="all, delete-orphan")
     notifications = relationship("Notification", back_populates="user", cascade="all, delete")
 
+# class PasswordResetToken(Base):
+#     __tablename__ = "password_reset_tokens"
 
+#     id = Column(Integer, primary_key=True, index=True)
+#     user_id = Column(Integer, ForeignKey("users.id"))
+#     token = Column(String(255), unique=True, index=True)
+#     expires_at = Column(DateTime, default=lambda: datetime.utcnow() + timedelta(minutes=15))
 
 
 class Notification(Base):

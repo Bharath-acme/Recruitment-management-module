@@ -9,7 +9,7 @@ import enum
 class CandidateBase(BaseModel):
     name: str
     position: str
-    email: EmailStr
+    email: Optional[EmailStr] = None
     phone: Optional[str] = None
     location: Optional[str] = None
     experience: Optional[int] = None
@@ -52,6 +52,7 @@ class CandidateUpdate(CandidateBase):
     current_company: Optional[str] = None
     dob: Optional[date] = None
     marital_status: Optional[str] = None
+    reject_reason: Optional[str] = None
     # add this:
     resume_file_id: Optional[str] = None  # link to File table if needed
 
@@ -61,6 +62,7 @@ class CandidateResponse(CandidateBase):
     last_activity: datetime
     created_date: datetime
     requisition_id: Optional[int] = None
+    reject_reason: Optional[str] = None
 
     class Config:
         from_attributes = True

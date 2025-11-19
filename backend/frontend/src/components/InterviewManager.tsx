@@ -80,6 +80,8 @@ export function InterviewManager({ selectedCompany, selectedCountry }: Interview
     cadidate_id: ''
   });
 
+  const token = localStorage.getItem('token');
+
   const [candidates, setCandidates] = useState<
   { id:string, email: string; name: string; position: string; requisition_id: string }[]
 >([]);
@@ -87,7 +89,11 @@ const navigate = useNavigate();
 
 useEffect(() => {
   fetch(`${API_BASE_URL}/candidates`)
-  fetch("http://localhost:8000/candidates")
+  fetch("http://localhost:8000/candidates", {
+      headers: { 'Content-Type': 'application/json',
+        authorization: `Bearer ${token}`
+       }
+    })
     .then((res) => res.json())
     .then((data) => setCandidates(data));
 

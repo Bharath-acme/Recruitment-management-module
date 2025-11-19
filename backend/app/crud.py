@@ -10,6 +10,8 @@ def create_user(db: Session, user: schemas.UserCreate, hashed_pw: str):
         name=user.name,
         role=user.role,
         company=user.company,
+        company_desc = user.company_desc,
+        company_size = user. company_size,
         country=user.country,
         hashed_password=hashed_pw
     )

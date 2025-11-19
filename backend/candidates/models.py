@@ -23,9 +23,10 @@ class Candidate(Base):
     last_activity = Column(DateTime, default=datetime.utcnow)
     rating = Column(Integer, default=0)
     notes = Column(Text, nullable=True)
-    resume_url = Column(String(1000), default='active')
+    resume_url = Column(String(1000), default='new')
     recruiter = Column(String(100), nullable=True)
     status = Column(String(100), nullable=True)
+    reject_reason = Column(String(100), nullable=True)
     created_date = Column(DateTime, default=datetime.utcnow)
 
     # FIX: Match Requisition.id type

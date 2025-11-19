@@ -458,12 +458,13 @@ const formatNumber = (value: number) =>
                                 {/* Candidate Info */}
                                 <div>
                                   <p className="font-medium text-slate-900">{cand.name}</p>
-                                  <p className="text-sm text-slate-500">{maskedEmail}</p>
+                                  {/* <p className="text-sm text-slate-500">{maskedEmail}</p> */}
 
                                   {/* Additional Info */}
                                   <div className="text-xs text-slate-600 mt-1">
                                     <p>
                                       {cand.position || "Role N/A"}{" "}
+                                     
                                       {cand.current_company && (
                                         <span className="text-slate-400">
                                           @ {cand.current_company}
