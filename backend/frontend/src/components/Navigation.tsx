@@ -24,7 +24,7 @@ interface NavigationProps {
   onCountryChange: (country: string) => void;
   userRole: string | null;
   isCollapsed?: boolean;
-}
+} 
 
 export function Navigation({
   selectedCompany,

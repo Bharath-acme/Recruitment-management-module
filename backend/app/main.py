@@ -1,3 +1,16 @@
+# FILE: app/main.py
+"""
+Fixed main.py: removed automatic Base.metadata.create_all from production startup.
+This file will only create tables automatically if the environment variable
+RUN_CREATE_ALL is set to a truthy value ("1", "true", "yes", or "local") —
+useful for local development only.
+
+In production, run Alembic migrations separately (recommended):
+    alembic revision --autogenerate -m "..."
+    alembic upgrade head
+
+Do NOT run RUN_CREATE_ALL=true in production.
+"""
 import os
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
@@ -6,7 +19,7 @@ from starlette.responses import FileResponse, HTMLResponse
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 from app import models, schemas, crud, auth
-from .models import *
+# from .models import *  # avoid star imports
 from app.schemas import LoginRequest, UserCreate
 from app.auth import *
 from app.database import engine, Base, get_db
@@ -25,14 +38,16 @@ from interviews.models import Interview
 from invoices import api as invoice_api
 
 
-
-
 # ================== DATABASE SETUP ==================
-Base.metadata.create_all(bind=engine)
+# IMPORTANT: Do NOT run Base.metadata.create_all() in production.
+# If you need to create tables automatically for local development,
+# set the environment variable RUN_CREATE_ALL to a truthy value.
+RUN_CREATE_ALL = os.getenv("RUN_CREATE_ALL", "false").lower() in ("1", "true", "yes", "local")
+if RUN_CREATE_ALL:
+    # Only for local/dev use. In production use Alembic migrations.
+    Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
-
-
 
 # ================== CORS SETUP ==================
 origins = [
@@ -50,9 +65,9 @@ app.add_middleware(
 )
 
 # ================== AUTH & USER LOGIC ==================
-SECRET_KEY = "supersecretkey"
+SECRET_KEY = os.getenv("SECRET_KEY", "supersecretkey")
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "60"))
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
@@ -101,38 +116,6 @@ def login(data: LoginRequest, db: Session = Depends(get_db)):
 @app.get("/me", response_model=schemas.UserResponse)
 def read_users_me(current_user=Depends(get_current_user)):
     return current_user
-
-# @app.post("/forgot-password")
-# def forgot_password(email: str, db: Session = Depends(get_db)):
-#     user = db.query(User).filter(User.email == email).first()
-#     if not user:
-#         raise HTTPException(status_code=404, detail="User not found")
-
-#     token = str(uuid.uuid4())
-#     expires_at = datetime.utcnow() + timedelta(minutes=15)
-#     reset = PasswordResetToken(user_id=user.id, token=token, expires_at=expires_at)
-#     db.add(reset)
-#     db.commit()
-
-#     reset_link = f"https://your-frontend-url/reset-password?token={token}"
-#     send_reset_email(user.email, reset_link)
-#     return {"message": "Password reset link sent"}
-
-
-# @app.post("/reset-password")
-# def reset_password(token: str, new_password: str, db: Session = Depends(get_db)):
-#     reset_token = db.query(PasswordResetToken).filter(PasswordResetToken.token == token).first()
-#     if not reset_token or reset_token.expires_at < datetime.utcnow():
-#         raise HTTPException(status_code=400, detail="Invalid or expired token")
-
-#     user = db.query(User).filter(User.id == reset_token.user_id).first()
-#     user.hashed_password = get_password_hash(new_password)
-
-#     db.delete(reset_token)  # invalidate token
-#     db.commit()
-
-#     return {"message": "Password reset successful"}
-
 
 
 @app.get("/recruiter_team", response_model=List[schemas.RecruiterBase])
@@ -226,7 +209,6 @@ def get_dashboard_summary(db: Session = Depends(get_db)):
     }
 
 
-
 # ================== MODULE ROUTERS ==================
 app.include_router(candidates_api.router, prefix="/candidates", tags=["Candidates"])
 app.include_router(requisitions_api.router, prefix="/requisitions", tags=["Requisitions"])
@@ -257,5 +239,7 @@ else:
     async def frontend_missing_fallback():
         return HTMLResponse("<h2>Frontend build not found. Run `npm run build` in frontend/</h2>")
 
-# 4️⃣ REMOVE THE EXPLICIT CATCH-ALL ROUTE!
-# The `html=True` in StaticFiles now handles the refresh/deep-linking
+# NOTE: No explicit catch-all route — StaticFiles(html=True) handles deep-links.
+
+
+
