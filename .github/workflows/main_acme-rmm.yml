@@ -66,11 +66,11 @@ jobs:
           name: python-app
           path: backend
 
-      - name: Debug: print secrets (safe)
+      - name: Debug:print secrets (safe)
         run: |
-          echo "HOST = ${{ secrets.AZURE_MYSQL_HOST }}"
-          echo "USER = ${{ secrets.AZURE_MYSQL_USER }}"
-          echo "DBNAME = ${{ secrets.AZURE_MYSQL_NAME }}"
+          echo "HOST =${{ secrets.AZURE_MYSQL_HOST }}"
+          echo "USER =${{ secrets.AZURE_MYSQL_USER }}"
+          echo "DBNAME =${{ secrets.AZURE_MYSQL_NAME }}"
 
 
       # -----------------------------
@@ -107,6 +107,7 @@ jobs:
           
 
            publish-profile:${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_E0783F761C26472BA3EFE3210B5ED744 }}
+
 
 
 
