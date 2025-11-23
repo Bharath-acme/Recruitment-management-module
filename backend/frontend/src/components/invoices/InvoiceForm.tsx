@@ -24,6 +24,8 @@ export default function InvoiceForm({ onSuccess }: InvoiceFormProps) {
     payment_terms: "Net 30",
     service_description: "",
     item_description: "",
+    po_num:'',
+    currency:"",
     items: [
       {
         id: Date.now().toString(),
@@ -233,6 +235,47 @@ export default function InvoiceForm({ onSuccess }: InvoiceFormProps) {
                 <option value="Net 60">Net 60</option>
                 <option value="Due on Receipt">Due on Receipt</option>
                 <option value="Custom">Custom</option>
+              </select>
+            </div>
+          </div>
+
+           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+            <div>
+              <label className="block text-sm text-gray-700 mb-2">
+                PO.No <span className="text-red-500">*</span>
+              </label>
+              <input
+                className={`w-full border ${errors.po_num ? 'border-red-500' : 'border-gray-300'} px-4 py-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all`}
+                placeholder="Enter number"
+                value={form.po_num}
+                onChange={(e) => {
+                  setForm({ ...form, po_num: e.target.value });
+                  if (errors.po_num) setErrors({ ...errors, po_num: '' });
+                }}
+              />
+              {errors.po_num && (
+                <p className="text-red-500 text-xs mt-1">{errors.po_num}</p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm text-gray-700 mb-2">
+               Currency 
+              </label>
+              <select
+                className="w-full border border-gray-300 px-4 py-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                value={form.payment_terms}
+                onChange={(e) => setForm({ ...form, currency: e.target.value })}
+              >
+               
+              <option value="AED">AED</option>
+              <option value="SAR">SAR</option>
+              <option value="QAR">QAR</option>
+              <option value="KWD">KWD</option>
+              <option value="BHD">BHD</option>
+              <option value="OMR">OMR</option>
+              <option value="USD">USD</option>
+              <option value="INR">INR</option>
               </select>
             </div>
           </div>
