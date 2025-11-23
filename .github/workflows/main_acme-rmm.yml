@@ -46,11 +46,11 @@ jobs:
           pip install --upgrade pip
           pip install -r requirements.txt
 
+      # Make startup.sh executable
       - name: Make startup.sh executable
         run: |
           cd backend
           chmod +x startup.sh
-
 
       # -----------------------------
       # 🔹 Step 3: Upload combined artifact
@@ -72,7 +72,14 @@ jobs:
           name: python-app
           path: backend
 
-      
+      # ----------------------------------------------------
+      # 🔐 REQUIRED: Authenticate with Azure BEFORE deployment
+      # ----------------------------------------------------
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+
       # -----------------------------
       # 🔹 Step 6: Deploy to Azure Web App
       # -----------------------------
@@ -82,9 +89,10 @@ jobs:
           app-name: 'acme-rmm'
           slot-name: 'Production'
           package: backend
-          
+
 
            publish-profile:${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_E0783F761C26472BA3EFE3210B5ED744 }}
+
 
 
 
