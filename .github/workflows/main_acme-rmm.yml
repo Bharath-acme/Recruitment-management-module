@@ -78,7 +78,7 @@ jobs:
       # -----------------------------
       - name: Set DATABASE_URL environment variable
         run: |
-          echo "database_url=mysql+pymysql://${{ secrets.AZURE_MYSQL_USER }}:${{ secrets.AZURE_MYSQL_PASSWORD }}@${{ secrets.AZURE_MYSQL_HOST }}:3306/${{ secrets.AZURE_MYSQL_NAME }}" >> $GITHUB_ENV
+          echo "database_url=mysql+pymysql://${{secrets.AZURE_MYSQL_USER}}:${{secrets.AZURE_MYSQL_PASSWORD}}@${{secrets.AZURE_MYSQL_HOST}}:3306/${{secrets.AZURE_MYSQL_NAME}}" >> $GITHUB_ENV
 
       # -----------------------------
       # 🔹 Step 5: Run Alembic migrations BEFORE deployment
@@ -107,6 +107,7 @@ jobs:
           
 
            publish-profile:${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_E0783F761C26472BA3EFE3210B5ED744 }}
+
 
 
 
