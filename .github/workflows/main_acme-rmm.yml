@@ -1,7 +1,3 @@
-# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
-# More GitHub Actions for Azure: https://github.com/Azure/actions
-# FastAPI + React + Alembic Deployment
-
 name: Build and deploy FastAPI + React app to Azure Web App - acme-rmm
 
 on:
@@ -18,9 +14,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # -----------------------------
-      # 🔹 Step 1: Build React frontend
-      # -----------------------------
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
@@ -32,9 +25,6 @@ jobs:
           npm ci
           npm run build
 
-      # -----------------------------
-      # 🔹 Step 2: Set up Python backend
-      # -----------------------------
       - name: Set up Python 3.11
         uses: actions/setup-python@v5
         with:
@@ -51,10 +41,6 @@ jobs:
           cd backend
           chmod +x startup.sh
 
-
-      # -----------------------------
-      # 🔹 Step 3: Upload combined artifact
-      # -----------------------------
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
@@ -72,26 +58,10 @@ jobs:
           name: python-app
           path: backend
 
-      
-      # -----------------------------
-      # 🔹 Step 6: Deploy to Azure Web App
-      # -----------------------------
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'acme-rmm'
           slot-name: 'Production'
           package: backend
-          
-
-           publish-profile:${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_E0783F761C26472BA3EFE3210B5ED744 }}
-
-
-
-
-
-
-
-
-
-
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
