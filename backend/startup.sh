@@ -2,7 +2,7 @@
 set -euo pipefail
 
 echo "----------------------------------------"
-echo "🚀 Startup - Alembic migrations + Gunicorn"
+echo "Startup - Alembic migrations + Gunicorn"
 echo "----------------------------------------"
 
 # If MYSQL_SSL_CERT_CONTENT is set (base64 or raw), write to file
@@ -25,11 +25,11 @@ echo "DB_NAME=${DB_NAME:-(not set)}"
 echo "DB_USER=${DB_USER:-(not set)}"
 
 # run alembic (failure won't stop server; adjust if you want strict)
-echo "🔄 Running Alembic migrations..."
+echo "Running Alembic migrations..."
 alembic upgrade head || echo "⚠ Alembic migration failed — continuing startup"
 
 # Start Gunicorn + Uvicorn workers
-echo "🚀 Starting Gunicorn + Uvicorn..."
+echo "Starting Gunicorn + Uvicorn..."
 exec gunicorn app.main:app \
     --workers 4 \
     --worker-class uvicorn.workers.UvicornWorker \
