@@ -6,7 +6,7 @@ from sqlalchemy.orm import sessionmaker, declarative_base
 
 # --- Dynamic Database URL Configuration ---
 DB_HOST = os.environ.get("AZURE_MYSQL_HOST")
-DB_NAME = os.environ.get("AZURE_MYSQL_DB")
+DB_NAME = os.environ.get("AZURE_MYSQL_NAME")
 DB_USER = os.environ.get("AZURE_MYSQL_USER")
 DB_PASS = os.environ.get("AZURE_MYSQL_PASSWORD")
 DB_PORT = int(os.environ.get("AZURE_MYSQL_PORT", 3306))
