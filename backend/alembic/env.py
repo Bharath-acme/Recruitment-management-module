@@ -1,72 +1,59 @@
 from logging.config import fileConfig
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
+from sqlalchemy import engine_from_config, pool
 from alembic import context
 import os
 import sys
 
-# Add project directory to path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from app.database import Base
-
-from app import models
-from requisitions.models import Requisitions
-from candidates.models import Candidate
-from interviews.models import Interview
-from offers.models import Offer
-from invoices.models import Invoice
-
+from app.database import Base  # metadata
+# import models to ensure metadata is populated (your modules)
+# e.g. from app import models
+# Or explicitly import modules that define models
 try:
-    from notifications.models import Notifications
-except:
+    import app.models  # if you have models package
+except Exception:
     pass
 
 config = context.config
 fileConfig(config.config_file_name)
-
 target_metadata = Base.metadata
 
-# -----------------------------
-# BUILD DATABASE_URL HERE
-# -----------------------------
-AZ_HOST = os.getenv("AZURE_MYSQL_HOST")
-AZ_USER = os.getenv("AZURE_MYSQL_USER")
-AZ_PASS = os.getenv("AZURE_MYSQL_PASSWORD")
-AZ_DB   = os.getenv("AZURE_MYSQL_DB")
-AZ_PORT = os.getenv("AZURE_MYSQL_PORT", "3306")
+# Resolve DB URL (order of precedence)
+DATABASE_URL = os.getenv("DATABASE_URL")  # explicit full URL (good for CI/local)
+if not DATABASE_URL:
+    # check component env vars used in runtime
+    DB_HOST = os.getenv("DB_HOST")
+    DB_USER = os.getenv("DB_USER")
+    DB_PASS = os.getenv("DB_PASS")
+    DB_NAME = os.getenv("DB_NAME")
+    DB_PORT = os.getenv("DB_PORT", "3306")
 
-if AZ_HOST and AZ_USER and AZ_PASS and AZ_DB:
-    DATABASE_URL = (
-        f"mysql+pymysql://{AZ_USER}:{AZ_PASS}@{AZ_HOST}:{AZ_PORT}/{AZ_DB}"
-    )
-    print("✔ Using Azure MySQL URL")
-else:
-    DATABASE_URL = os.getenv(
-        "DATABASE_URL",
-        "mysql+pymysql://root:acmeglobal@localhost:3306/recruitementDB",
-    )
-    print("✔ Using LOCAL database URL")
+    if DB_HOST and DB_USER and DB_PASS and DB_NAME:
+        DATABASE_URL = f"mysql+pymysql://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+
+if not DATABASE_URL:
+    # fallback to default local
+    DATABASE_URL = "mysql+pymysql://root:acmeglobal@localhost:3306/recruitementDB"
 
 config.set_main_option("sqlalchemy.url", DATABASE_URL)
+print("alembic using DATABASE_URL:", DATABASE_URL)
 
 
 def run_migrations_offline():
-    """Run migrations in 'offline' mode."""
     url = config.get_main_option("sqlalchemy.url")
     context.configure(
         url=url,
         target_metadata=target_metadata,
         literal_binds=True,
-        dialect_opts={"paramstyle": "named"},
+        compare_type=True,
+        compare_server_default=True,
     )
-
     with context.begin_transaction():
         context.run_migrations()
 
 
 def run_migrations_online():
-    """Run migrations in 'online' mode."""
     connectable = engine_from_config(
         config.get_section(config.config_ini_section),
         prefix="sqlalchemy.",
@@ -80,7 +67,6 @@ def run_migrations_online():
             compare_type=True,
             compare_server_default=True,
         )
-
         with context.begin_transaction():
             context.run_migrations()
 
