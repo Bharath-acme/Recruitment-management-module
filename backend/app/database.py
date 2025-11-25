@@ -10,7 +10,7 @@ DB_NAME = os.getenv("DB_NAME")
 DB_PORT = os.getenv("DB_PORT", "3306")
 
 # Azure MySQL always requires SSL
-SSL_CERT = "/etc/ssl/certs/BaltimoreCyberTrustRoot.crt.pem"
+SSL_CERT = "/etc/ssl/certs/ca-certificates.crt"
 
 # --- Build DATABASE_URL ---
 DATABASE_URL = (

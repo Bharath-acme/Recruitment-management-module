@@ -35,7 +35,7 @@ def run_migrations_online():
         DATABASE_URL,
         connect_args={
             "ssl": {
-                "ca": "/etc/ssl/certs/BaltimoreCyberTrustRoot.crt.pem"
+                "ca": "/etc/ssl/certs/ca-certificates.crt"
             }
         },
         poolclass=pool.NullPool,
