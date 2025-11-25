@@ -1,48 +1,38 @@
-# FILE: app/database.py
 import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 
+# --- ENV VARIABLES ---
 DB_HOST = os.getenv("DB_HOST")
 DB_USER = os.getenv("DB_USER")
 DB_PASS = os.getenv("DB_PASS")
 DB_NAME = os.getenv("DB_NAME")
-DB_PORT = int(os.getenv("DB_PORT", "3306"))
+DB_PORT = os.getenv("DB_PORT", "3306")
 
-print("DB_HOST",DB_HOST)
-print("DB_USER",DB_USER)
-print("DB_PASS",DB_PASS)
-print("DB_NAME",DB_NAME)
+# Azure MySQL always requires SSL
+SSL_CERT = "/etc/ssl/certs/BaltimoreCyberTrustRoot.crt.pem"
 
-LOCAL_DATABASE_URL = os.getenv(
-    "DATABASE_URL", "mysql+pymysql://root:acmeglobal@localhost:3306/recruitementDB"
+# --- Build DATABASE_URL ---
+DATABASE_URL = (
+    f"mysql+pymysql://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 )
 
-if DB_HOST and DB_USER and DB_PASS and DB_NAME:
-    DATABASE_URL = f"mysql+pymysql://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
-    print(" Using remote DB:", DB_HOST)
-else:
-    DATABASE_URL = LOCAL_DATABASE_URL
-    print(" Using local DB fallback")
+# --- ENGINE with SSL ---
+engine = create_engine(
+    DATABASE_URL,
+    connect_args={
+        "ssl": {
+            "ca": SSL_CERT
+        }
+    },
+    pool_pre_ping=True
+)
 
-print("DATABASE_URL",DATABASE_URL)
-# SSL support
-CONNECT_ARGS = {}
-SSL_CERT = os.getenv("MYSQL_SSL_CERT")  # path to file written by startup.sh, or set directly
-
-if SSL_CERT and os.path.exists(SSL_CERT):
-    CONNECT_ARGS = {"ssl": {"ca": SSL_CERT}}
-    print("🔐 SSL CA provided")
-else:
-    if SSL_CERT:
-        print(f"⚠ MYSQL_SSL_CERT set but file not found at {SSL_CERT}. Ignoring SSL.")
-    else:
-        print("🔸 No SSL cert set; connecting without SSL (if allowed)")
-
-engine = create_engine(DATABASE_URL, connect_args=CONNECT_ARGS)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
+
+# Dependency for FastAPI
 def get_db():
     db = SessionLocal()
     try:

@@ -1,36 +1,34 @@
-from logging.config import fileConfig
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
-from alembic import context
 import os
-import sys
+from logging.config import fileConfig
+from sqlalchemy import create_engine, pool
+from alembic import context
+from app.database import Base
 
-# Add app folder to path
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-
-from database import Base  # your Base import
-
+# Alembic Config object
 config = context.config
 
-# --- Construct DATABASE_URL automatically ---
-
-DB_USER = os.getenv("DB_USER")
-DB_PASS = os.getenv("DB_PASS")
-DB_HOST = os.getenv("DB_HOST")
-DB_NAME = os.getenv("DB_NAME")
-
-if not all([DB_USER, DB_PASS, DB_HOST, DB_NAME]):
-    raise Exception("Missing one of DB_USER, DB_PASS, DB_HOST, DB_NAME environment variables.")
-
-DATABASE_URL = f"mysql+pymysql://{DB_USER}:{DB_PASS}@{DB_HOST}:3306/{DB_NAME}"
-
-config.set_main_option("sqlalchemy.url", DATABASE_URL)
-
-fileConfig(config.config_file_name)
+# Logging config
+if config.config_file_name is not None:
+    fileConfig(config.config_file_name)
 
 target_metadata = Base.metadata
 
+# --- Read ENV variables ---
+DB_HOST = os.getenv("DB_HOST")
+DB_USER = os.getenv("DB_USER")
+DB_PASS = os.getenv("DB_PASS")
+DB_NAME = os.getenv("DB_NAME")
+DB_PORT = os.getenv("DB_PORT", "3306")
+
+SSL_CERT = "/etc/ssl/certs/BaltimoreCyberTrustRoot.crt.pem"
+
+DATABASE_URL = (
+    f"mysql+pymysql://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+)
+
+
 def run_migrations_offline():
+    """Run migrations in 'offline' mode."""
     context.configure(
         url=DATABASE_URL,
         target_metadata=target_metadata,
@@ -40,19 +38,17 @@ def run_migrations_offline():
     with context.begin_transaction():
         context.run_migrations()
 
+
 def run_migrations_online():
-    connectable = engine_from_config(
-        config.get_section(config.config_ini_section),
-        prefix="sqlalchemy.",
+    """Run migrations in 'online' mode."""
+    connectable = create_engine(
+        DATABASE_URL,
+        connect_args={"ssl": {"ca": SSL_CERT}},
         poolclass=pool.NullPool,
     )
 
     with connectable.connect() as connection:
-        context.configure(
-            connection=connection,
-            target_metadata=target_metadata
-        )
-
+        context.configure(connection=connection, target_metadata=target_metadata)
         with context.begin_transaction():
             context.run_migrations()
 
