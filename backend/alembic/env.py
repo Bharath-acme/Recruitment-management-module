@@ -1,59 +1,44 @@
 from logging.config import fileConfig
-from sqlalchemy import engine_from_config, pool
+from sqlalchemy import engine_from_config
+from sqlalchemy import pool
 from alembic import context
 import os
 import sys
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+# Add app folder to path
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
-from app.database import Base  # metadata
-# import models to ensure metadata is populated (your modules)
-# e.g. from app import models
-# Or explicitly import modules that define models
-try:
-    import app.models  # if you have models package
-except Exception:
-    pass
+from database import Base  # your Base import
 
 config = context.config
-fileConfig(config.config_file_name)
-target_metadata = Base.metadata
 
-# Resolve DB URL (order of precedence)
-DATABASE_URL = os.getenv("DATABASE_URL")  # explicit full URL (good for CI/local)
-if not DATABASE_URL:
-    # check component env vars used in runtime
-    DB_HOST = os.getenv("DB_HOST")
-    DB_USER = os.getenv("DB_USER")
-    DB_PASS = os.getenv("DB_PASS")
-    DB_NAME = os.getenv("DB_NAME")
-    DB_PORT = os.getenv("DB_PORT", "3306")
+# --- Construct DATABASE_URL automatically ---
 
-if DB_HOST and DB_USER and DB_PASS and DB_NAME:
-        DATABASE_URL = f"mysql+pymysql://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+DB_USER = os.getenv("DB_USER")
+DB_PASS = os.getenv("DB_PASS")
+DB_HOST = os.getenv("DB_HOST")
+DB_NAME = os.getenv("DB_NAME")
 
-DATABASE_URL = os.getenv("DATABASE_URL")
+if not all([DB_USER, DB_PASS, DB_HOST, DB_NAME]):
+    raise Exception("Missing one of DB_USER, DB_PASS, DB_HOST, DB_NAME environment variables.")
 
-if not DATABASE_URL:
-    raise Exception("DATABASE_URL is missing! Set it in startup.sh")
-
+DATABASE_URL = f"mysql+pymysql://{DB_USER}:{DB_PASS}@{DB_HOST}:3306/{DB_NAME}"
 
 config.set_main_option("sqlalchemy.url", DATABASE_URL)
-print("alembic using DATABASE_URL:", DATABASE_URL)
 
+fileConfig(config.config_file_name)
+
+target_metadata = Base.metadata
 
 def run_migrations_offline():
-    url = config.get_main_option("sqlalchemy.url")
     context.configure(
-        url=url,
+        url=DATABASE_URL,
         target_metadata=target_metadata,
         literal_binds=True,
-        compare_type=True,
-        compare_server_default=True,
+        dialect_opts={"paramstyle": "named"},
     )
     with context.begin_transaction():
         context.run_migrations()
-
 
 def run_migrations_online():
     connectable = engine_from_config(
@@ -65,10 +50,9 @@ def run_migrations_online():
     with connectable.connect() as connection:
         context.configure(
             connection=connection,
-            target_metadata=target_metadata,
-            compare_type=True,
-            compare_server_default=True,
+            target_metadata=target_metadata
         )
+
         with context.begin_transaction():
             context.run_migrations()
 
