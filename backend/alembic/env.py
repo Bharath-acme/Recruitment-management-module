@@ -29,12 +29,14 @@ if not DATABASE_URL:
     DB_NAME = os.getenv("DB_NAME")
     DB_PORT = os.getenv("DB_PORT", "3306")
 
-    if DB_HOST and DB_USER and DB_PASS and DB_NAME:
+if DB_HOST and DB_USER and DB_PASS and DB_NAME:
         DATABASE_URL = f"mysql+pymysql://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
+DATABASE_URL = os.getenv("DATABASE_URL")
+
 if not DATABASE_URL:
-    # fallback to default local
-    DATABASE_URL = "mysql+pymysql://root:acmeglobal@localhost:3306/recruitementDB"
+    raise Exception("DATABASE_URL is missing! Set it in startup.sh")
+
 
 config.set_main_option("sqlalchemy.url", DATABASE_URL)
 print("alembic using DATABASE_URL:", DATABASE_URL)
