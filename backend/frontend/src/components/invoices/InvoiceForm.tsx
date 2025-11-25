@@ -19,7 +19,7 @@ interface InvoiceFormProps {
 
 export default function InvoiceForm({ onSuccess }: InvoiceFormProps) {
   const [form, setForm] = useState({
-    to_address: "",
+    client_address: "",
     place_of_supply: "",
     payment_terms: "Net 30",
     service_description: "",
@@ -103,8 +103,8 @@ export default function InvoiceForm({ onSuccess }: InvoiceFormProps) {
   const validate = () => {
     const newErrors: Record<string, string> = {};
     
-    if (!form.to_address.trim()) {
-      newErrors.to_address = "Address is required";
+    if (!form.client_address.trim()) {
+      newErrors.client_address = "Address is required";
     }
     
     if (!form.place_of_supply.trim()) {
@@ -174,17 +174,17 @@ export default function InvoiceForm({ onSuccess }: InvoiceFormProps) {
                 Bill To Address <span className="text-red-500">*</span>
               </label>
               <textarea
-                className={`w-full border ${errors.to_address ? 'border-red-500' : 'border-gray-300'} p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all`}
+                className={`w-full border ${errors.client_address ? 'border-red-500' : 'border-gray-300'} p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all`}
                 rows={3}
                 placeholder="Enter customer address..."
-                value={form.to_address}
+                value={form.client_address}
                 onChange={(e) => {
-                  setForm({ ...form, to_address: e.target.value });
-                  if (errors.to_address) setErrors({ ...errors, to_address: '' });
+                  setForm({ ...form, client_address: e.target.value });
+                  if (errors.client_address) setErrors({ ...errors, client_address: '' });
                 }}
               />
-              {errors.to_address && (
-                <p className="text-red-500 text-xs mt-1">{errors.to_address}</p>
+              {errors.client_address && (
+                <p className="text-red-500 text-xs mt-1">{errors.client_address}</p>
               )}
             </div>
 
@@ -264,7 +264,7 @@ export default function InvoiceForm({ onSuccess }: InvoiceFormProps) {
               </label>
               <select
                 className="w-full border border-gray-300 px-4 py-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                value={form.payment_terms}
+                value={form.currency}
                 onChange={(e) => setForm({ ...form, currency: e.target.value })}
               >
                

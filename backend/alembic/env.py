@@ -47,6 +47,7 @@ DATABASE_URL = None
 if azure_host and azure_user and azure_password and azure_db:
     DATABASE_URL = (
         f"mysql+pymysql://{azure_user}:{azure_password}@{azure_host}:3306/{azure_db}"
+        "?ssl-mode=REQUIRED"
     )
 
 # Local fallback (when running on localhost)

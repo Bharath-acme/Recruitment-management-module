@@ -2,29 +2,6 @@ import React, { useEffect, useState } from "react";
 import { fetchInvoiceById } from "./api";
 import { useParams } from "react-router-dom";
 
-
-export interface InvoiceItem {
-  description: string;
-  quantity: number;
-  unit_price: number;
-  uom: string;
-  taxable_value: number;
-  gst: number;
-}
-
-export interface Invoice {
-  id: number;
-  to_address: string;
-  place_of_supply: string;
-  payment_terms: string;
-  service_description: string;
-  item_description: string;
-  items: InvoiceItem[];
-  total_amount: number;
-  pdf_url: string;
-  created_at: string;
-}
-
 export default function InvoiceDetails() {
   const { id } = useParams();
   const [invoice, setInvoice] = useState(null);
@@ -33,23 +10,24 @@ export default function InvoiceDetails() {
   useEffect(() => {
     fetchInvoiceById(id)
       .then((data) => setInvoice(data))
-      .catch((err) => setError("Failed to load invoice"));
+      .catch(() => setError("Failed to load invoice"));
   }, [id]);
 
   if (error) return <div className="p-6 text-red-600">{error}</div>;
   if (!invoice) return <div className="p-6">Loading...</div>;
 
-  // Build full PDF URL (very important!)
   const API = import.meta.env.VITE_API_BASE_URL;
-  const pdfUrl = `${API}${invoice.pdf_url}`;
+
+  // 🔥 NEW PDF URL (dynamic)
+ const pdfUrl = `${API}/invoices/${id}?preview=true`;
 
   return (
     <div className="p-6 space-y-6">
-      <h1 className="text-2xl font-bold">Invoice #{invoice.id}</h1>
+      <h1 className="text-2xl font-bold">Invoice #{invoice.invoice_number}</h1>
 
       {/* Basic Invoice Info */}
       <div className="border p-4 rounded space-y-1">
-        <p><b>To:</b> {invoice.to_address}</p>
+        <p><b>To:</b> {invoice.client_address}</p>
         <p><b>Place of Supply:</b> {invoice.place_of_supply}</p>
         <p><b>Payment Terms:</b> {invoice.payment_terms}</p>
       </div>

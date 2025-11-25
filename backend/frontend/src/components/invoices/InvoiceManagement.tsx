@@ -31,7 +31,7 @@ export interface InvoiceItem {
 
 export interface Invoice {
   id: number;
-  to_address: string;
+  client_address: string;
   place_of_supply: string;
   payment_terms: string;
   service_description: string;
@@ -40,6 +40,7 @@ export interface Invoice {
   total_amount: number;
   pdf_url: string;
   created_at: string;
+  invoice_number:string;
 }
 
 export default function InvoiceManagement() {
@@ -109,6 +110,7 @@ export default function InvoiceManagement() {
                 <TableRow>
                   <TableHead className="border-l rounded-l-lg">Invoice ID</TableHead>
                   <TableHead>Amount</TableHead>
+                  <TableHead>Client</TableHead>
                   <TableHead>Created</TableHead>
                   <TableHead className="rounded-r-lg">Action</TableHead>
                 </TableRow>
@@ -129,11 +131,17 @@ export default function InvoiceManagement() {
                       className="border border-gray-200 rounded-lg shadow-sm transition-all duration-200 hover:shadow-lg hover:bg-blue-50 hover:-translate-y-[2px]"
                     >
                       <TableCell className="border-l-[5px] border-blue-700 pl-4 rounded-l-lg">
-                        #{inv.id}
+                        {inv.invoice_number}
                       </TableCell>
 
                       <TableCell className="font-medium">
                         ₹ {inv.total_amount}
+                      </TableCell>
+                      <TableCell className="text-sm">
+                         {inv.client_address && inv.client_address.length > 40 
+                          ? inv.client_address.slice(0, 40) + "..." 
+                          : inv.client_address}
+
                       </TableCell>
 
                       <TableCell className="text-sm">

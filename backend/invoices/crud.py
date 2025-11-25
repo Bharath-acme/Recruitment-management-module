@@ -1,32 +1,67 @@
-from sqlalchemy.orm import Session
-from . import models, schemas
-from .pdfgenerator import generate_invoice_pdf
+# crud.py
+import io
 import os
+import uuid
+from datetime import datetime
+from sqlalchemy.orm import Session
+from sqlalchemy import func, and_
+from . import models, schemas
+from .new_invoice_generator import InvoiceGenerator
 
 PDF_DIR = "pdfs"
 os.makedirs(PDF_DIR, exist_ok=True)
 
-def create_invoice_crud(db: Session, data: schemas.InvoiceCreate) -> models.Invoice:
-    # 1. Calculate total amount (using quantity * unit_price — change if you want taxable_value)
-    total_amount = sum(item.quantity * item.unit_price for item in data.items)
 
-    # 2. Create Invoice record
+# ----------------- invoice number generator -----------------
+def _current_financial_year_span(now=None):
+    now = now or datetime.utcnow()
+    year = now.year
+    if now.month >= 4:
+        start = datetime(year, 4, 1)
+        end = datetime(year + 1, 3, 31, 23, 59, 59, 999999)
+    else:
+        start = datetime(year - 1, 4, 1)
+        end = datetime(year, 3, 31, 23, 59, 59, 999999)
+    return start.year, end.year, start, end
+
+
+def _generate_invoice_number(db: Session):
+    fy_start, fy_end, start_dt, end_dt = _current_financial_year_span()
+    count = db.query(func.count(models.Invoice.id)).filter(
+        and_(models.Invoice.created_at >= start_dt,
+             models.Invoice.created_at <= end_dt)
+    ).scalar() or 0
+
+    seq = str(count + 1).zfill(3)
+    return f"{str(fy_start % 100).zfill(2)}{str(fy_end % 100).zfill(2)}{seq}"
+
+
+# ----------------- create invoice -----------------
+def create_invoice_crud(db: Session, data: schemas.InvoiceCreate):
+
+    envelope_id = str(uuid.uuid4()).upper()
+    invoice_number = _generate_invoice_number(db)
+
     invoice = models.Invoice(
-        to_address=data.to_address,
-        place_of_supply=data.place_of_supply,
+        client_address=data.client_address,
+        envelope_id=envelope_id,
+        invoice_number=invoice_number,
+        po_number=data.po_num,
+        invoice_date=datetime.utcnow().strftime("%d-%m-%Y"),
+        currency=data.currency,
+        gstin="NA",
         payment_terms=data.payment_terms,
+        place_of_supply=data.place_of_supply,
         service_description=data.service_description,
-        item_description=data.item_description,
-        total_amount=total_amount,
-        pdf_url="",  # updated later
+        total_amount=data.total_amount
     )
     db.add(invoice)
     db.commit()
-    db.refresh(invoice)  # now invoice.id is available
+    db.refresh(invoice)
 
-    # 3. Add items
+    # Add items
     for item in data.items:
-        db_item = models.InvoiceItem(
+        db.add(models.InvoiceItem(
             description=item.description,
             quantity=item.quantity,
             unit_price=item.unit_price,
@@ -34,38 +69,84 @@ def create_invoice_crud(db: Session, data: schemas.InvoiceCreate) -> models.Invo
             taxable_value=item.taxable_value,
             gst=item.gst,
             invoice_id=invoice.id
-        )
-        db.add(db_item)
+        ))
 
-    db.commit()
-    db.refresh(invoice)  # refresh to load relationship when needed
-
-    # 4. Generate PDF
-    pdf_result = generate_invoice_pdf(data, invoice.id)
-
-    # accept either bytes or io.BytesIO from generator
-    if hasattr(pdf_result, "getvalue"):
-        pdf_bytes = pdf_result.getvalue()
-    elif isinstance(pdf_result, (bytes, bytearray)):
-        pdf_bytes = bytes(pdf_result)
-    else:
-        raise RuntimeError("generate_invoice_pdf must return bytes or BytesIO")
-
-    pdf_path = os.path.join(PDF_DIR, f"invoice_{invoice.id}.pdf")
-    # write bytes
-    with open(pdf_path, "wb") as f:
-        f.write(pdf_bytes)
-
-    invoice.pdf_url = f"/pdfs/invoice_{invoice.id}.pdf"
-
-    db.add(invoice)
     db.commit()
     db.refresh(invoice)
 
+    # ----- PDF Payload -----
+    payload = {
+        "envelope_id": envelope_id,
+        "customer": {"name": "", "address": data.client_address},
+        "invoice": {
+            "invoice_number": invoice_number,
+            "po_number": data.po_num,
+            "invoice_date": invoice.invoice_date,
+            "currency": data.currency,
+            "gstin": "NA",
+            "payment_terms": data.payment_terms,
+            "place_of_supply": data.place_of_supply,
+            "description": data.service_description
+        },
+        "items": [
+            {
+                "sl_no": idx + 1,
+                "description": it.description,
+                "uom": it.uom,
+                "qty": it.quantity,
+                "unit_price": it.unit_price,
+                "gst_rate": it.gst,
+                "taxable_value": it.taxable_value
+            }
+            for idx, it in enumerate(data.items)
+        ],
+        "totals": {
+            "subtotal": data.total_amount,
+            "total": data.total_amount,
+            "total_in_words": "",
+            "exchange_rate": "",
+            "total_in_local_currency": "",
+            "total_in_local_currency_words": ""
+        },
+        "bank_details": {
+            "account_name": "ACME Global Hub Pvt Ltd",
+            "bank_address": "HSBC Bank, Hyderabad",
+            "account_no": "082-752700-511",
+            "swift_code": "HSBCINBB",
+            "ifsc_code": "HSBC0500002"
+        },
+        "outstanding_dues": [],
+        "footer": {
+            "address": "504 & 506, 4th Floor, KFC Illumination, HITEC City, Hyderabad",
+            "contact": "CIN: U72900TG2022FTC167791 | accounts@acmeglobal.tech | 900376109"
+        }
+    }
+
+    # Generate PDF
+    generator = InvoiceGenerator()
+    generator.add_header(envelope_id)
+    generator.add_invoice_details(payload["customer"], payload["invoice"])
+    generator.add_items_table(payload["items"])
+    generator.add_totals_section(payload["totals"])
+    generator.add_signatures()
+    generator.add_bank_details(payload["bank_details"], payload["outstanding_dues"])
+    generator.add_footer(payload["footer"]["address"], payload["footer"]["contact"])
+
+    pdf_bytes = generator.build_pdf()
+    pdf_path = os.path.join(PDF_DIR, f"invoice_{invoice.id}.pdf")
+
+    with open(pdf_path, "wb") as f:
+        f.write(pdf_bytes.getvalue())
+
+    invoice.pdf_url = f"/pdfs/invoice_{invoice.id}.pdf"
+    db.add(invoice)
+    db.commit()
+
     return invoice
 
+
 def get_invoices(db: Session):
-    return db.query(models.Invoice).all()
+    return db.query(models.Invoice).order_by(models.Invoice.created_at.desc()).all()
 
 
 def get_invoice_by_id(db: Session, invoice_id: int):
