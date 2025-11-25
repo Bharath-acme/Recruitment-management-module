@@ -9,17 +9,23 @@ DB_PASS = os.getenv("DB_PASS")
 DB_NAME = os.getenv("DB_NAME")
 DB_PORT = int(os.getenv("DB_PORT", "3306"))
 
+print("DB_HOST",DB_HOST)
+print("DB_USER",DB_USER)
+print("DB_PASS",DB_PASS)
+print("DB_NAME",DB_NAME)
+
 LOCAL_DATABASE_URL = os.getenv(
     "DATABASE_URL", "mysql+pymysql://root:acmeglobal@localhost:3306/recruitementDB"
 )
 
 if DB_HOST and DB_USER and DB_PASS and DB_NAME:
     DATABASE_URL = f"mysql+pymysql://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
-    print("🔵 Using remote DB:", DB_HOST)
+    print(" Using remote DB:", DB_HOST)
 else:
     DATABASE_URL = LOCAL_DATABASE_URL
-    print("🟡 Using local DB fallback")
+    print(" Using local DB fallback")
 
+print("DATABASE_URL",DATABASE_URL)
 # SSL support
 CONNECT_ARGS = {}
 SSL_CERT = os.getenv("MYSQL_SSL_CERT")  # path to file written by startup.sh, or set directly
