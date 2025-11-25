@@ -39,7 +39,13 @@ target_metadata = Base.metadata
 azure_host = os.getenv("AZURE_MYSQL_HOST")
 azure_user = os.getenv("AZURE_MYSQL_USER")
 azure_password = os.getenv("AZURE_MYSQL_PASSWORD")
-azure_db = os.getenv("AZURE_MYSQL_DB")
+azure_db = os.getenv("AZURE_MYSQL_NAME")
+
+print("DEBUG → ENV HOST:", azure_host)
+print("DEBUG → ENV USER:", azure_user)
+print("DEBUG → ENV DB:", azure_db)
+print("DEBUG → DATABASE_URL:", DATABASE_URL)
+
 
 DATABASE_URL = None
 
