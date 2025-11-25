@@ -1,16 +1,16 @@
+from logging.config import fileConfig
+from sqlalchemy import engine_from_config
+from sqlalchemy import pool
+from alembic import context
 import os
 import sys
-from logging.config import fileConfig
-from sqlalchemy import engine_from_config, pool
-from alembic import context
 
-# Add project root to PYTHONPATH
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+# Add project directory to path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-# Import Base and all models
-from app.database import Base  
-from app import models  # DO NOT REMOVE – ensures models load
+from app.database import Base
 
+from app import models
 from requisitions.models import Requisitions
 from candidates.models import Candidate
 from interviews.models import Interview
@@ -22,50 +22,34 @@ try:
 except:
     pass
 
-# Alembic Config
 config = context.config
-
-# Logging
 fileConfig(config.config_file_name)
 
-# Target metadata for autogenerate
 target_metadata = Base.metadata
 
-# -----------------------------------------------------------
-#   DATABASE URL LOGIC (Production + Local)
-# -----------------------------------------------------------
+# -----------------------------
+# BUILD DATABASE_URL HERE
+# -----------------------------
+AZ_HOST = os.getenv("AZURE_MYSQL_HOST")
+AZ_USER = os.getenv("AZURE_MYSQL_USER")
+AZ_PASS = os.getenv("AZURE_MYSQL_PASSWORD")
+AZ_DB   = os.getenv("AZURE_MYSQL_DB")
+AZ_PORT = os.getenv("AZURE_MYSQL_PORT", "3306")
 
-# Azure App Service → App Settings
-azure_host = os.getenv("AZURE_MYSQL_HOST")
-azure_user = os.getenv("AZURE_MYSQL_USER")
-azure_password = os.getenv("AZURE_MYSQL_PASSWORD")
-azure_db = os.getenv("AZURE_MYSQL_NAME")
-
-print("DEBUG → ENV HOST:", azure_host)
-print("DEBUG → ENV USER:", azure_user)
-print("DEBUG → ENV DB:", azure_db)
-print("DEBUG → DATABASE_URL:", DATABASE_URL)
-
-
-DATABASE_URL = None
-
-# Azure - If all 4 exist, build production connection string
-if azure_host and azure_user and azure_password and azure_db:
+if AZ_HOST and AZ_USER and AZ_PASS and AZ_DB:
     DATABASE_URL = (
-        f"mysql+pymysql://{azure_user}:{azure_password}@{azure_host}:3306/{azure_db}"
-        "?ssl-mode=REQUIRED"
+        f"mysql+pymysql://{AZ_USER}:{AZ_PASS}@{AZ_HOST}:{AZ_PORT}/{AZ_DB}"
     )
+    print("✔ Using Azure MySQL URL")
+else:
+    DATABASE_URL = os.getenv(
+        "DATABASE_URL",
+        "mysql+pymysql://root:acmeglobal@localhost:3306/recruitementDB",
+    )
+    print("✔ Using LOCAL database URL")
 
-# Local fallback (when running on localhost)
-if not DATABASE_URL:
-    DATABASE_URL = "mysql+pymysql://root:acmeglobal@localhost:3306/recruitementDB"
-
-# Inject into Alembic runtime
 config.set_main_option("sqlalchemy.url", DATABASE_URL)
 
-# -----------------------------------------------------------
-#   Alembic Migration Runners
-# -----------------------------------------------------------
 
 def run_migrations_offline():
     """Run migrations in 'offline' mode."""
@@ -93,7 +77,7 @@ def run_migrations_online():
         context.configure(
             connection=connection,
             target_metadata=target_metadata,
-            compare_type=True,  # detect column type changes
+            compare_type=True,
             compare_server_default=True,
         )
 
