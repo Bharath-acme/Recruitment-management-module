@@ -10,7 +10,6 @@ from invoices.models import *
 from offers.models import *
 from vendors.models import *
 from app import models  # loads main models
-from app import __init__  #
 # Import Base + DATABASE_URL from your app
 from app.database import Base, DATABASE_URL
 
