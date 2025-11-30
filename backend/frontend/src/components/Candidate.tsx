@@ -423,7 +423,7 @@ const { id } = useParams<{ id: string }>();
                     <DialogHeader>
                       <DialogTitle>Reason for Rejection</DialogTitle>
                       <DialogDescription>
-                        Please provide the reason for rejecting this candidate.
+                        Please provide the reason for rejecting this candidate..
                       </DialogDescription>
                     </DialogHeader>
 
