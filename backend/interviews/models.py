@@ -5,7 +5,7 @@ from sqlalchemy.dialects.sqlite import JSON
 from datetime import datetime
 import uuid
 import enum
-from candidates.models import Candidate
+
 
 class Interview(Base):
     __tablename__ = "interviews"
