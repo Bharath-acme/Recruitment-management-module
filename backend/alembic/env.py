@@ -1,10 +1,14 @@
 import os
+import sys
 from logging.config import fileConfig
 from sqlalchemy import create_engine, pool
 from alembic import context
-
+from app import models  # loads main models
+from app import __init__  #
 # Import Base + DATABASE_URL from your app
 from app.database import Base, DATABASE_URL
+
+sys.path.append(os.path.join(os.path.dirname(__file__), "/home/site/wwwroot/backend"))
 
 config = context.config
 
@@ -56,6 +60,8 @@ def run_migrations_online():
         context.configure(
             connection=connection,
             target_metadata=target_metadata,
+            compare_type=True,
+            compare_server_default=True,
         )
 
         with context.begin_transaction():
