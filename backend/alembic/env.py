@@ -3,12 +3,6 @@ import sys
 from logging.config import fileConfig
 from sqlalchemy import create_engine, pool
 from alembic import context
-from candidates.models import *
-from requisitions.models import *
-from interviews.models import *
-from invoices.models import *
-from offers.models import *
-from vendors.models import *
 from app import models  # loads main models
 # Import Base + DATABASE_URL from your app
 from app.database import Base, DATABASE_URL
