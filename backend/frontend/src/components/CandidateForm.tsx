@@ -10,6 +10,7 @@ import {
   SelectValue,
 } from "./ui/select";
 import { useAuth } from "./AuthProvider";
+import { SkillsInput } from './SkillsInput'; // Corrected Import
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -36,7 +37,7 @@ export default function CandidateForm({
     position: initialData?.position || "",
     requisition_id: initialData?.requisition_id || "",
     experience: initialData?.experience || "",
-    skills: initialData?.skills ? initialData.skills.join(", ") : "",
+    skills: initialData?.skills?.map((s: any) => s.name) || [], // Skills as an array of strings
     source: initialData?.source || "direct",
     current_ctc: initialData?.current_ctc || "",
     expected_ctc: initialData?.expected_ctc || "",
@@ -47,7 +48,8 @@ export default function CandidateForm({
     recruiter: initialData?.recruiter || user?.name || "",
     resume: initialData?.resume || null,
     nationality: initialData?.nationality || "",
-    status:initialData?.status || 'new'
+    status:initialData?.status || 'new',
+    company_id: initialData?.company_id || ''
   }));
 
   // 🔹 Load requisitions
@@ -98,7 +100,7 @@ export default function CandidateForm({
           name: data.name || prev.name,
           email: data.email || prev.email,
           phone: data.phone || prev.phone,
-          skills: data.skills || prev.skills,
+          skills: data.skills || prev.skills, // Data.skills should be an array already
         }));
       }
     } catch (error) {
@@ -111,12 +113,8 @@ export default function CandidateForm({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const skillsArray = formData.skills
-      .split(",")
-      .map((s) => s.trim())
-      .filter(Boolean);
-
-    onSubmit({ ...formData, skills: skillsArray });
+    // skills are already an array from SkillInput, no need to split
+    onSubmit(formData);
   };
 
   return (
@@ -164,6 +162,7 @@ export default function CandidateForm({
               const selectedReq = requisitions.find((r) => r.id === val);
               if (selectedReq)
                 handleChange("position", selectedReq.position || "");
+                handleChange("company_id",selectedReq.company_id)
             }}
           >
             <SelectTrigger>
@@ -272,14 +271,14 @@ export default function CandidateForm({
         onChange={(e) => handleChange("nationality", e.target.value)}
       />
 
-      {/* Skills */}
-      <FormInput
-        label="Skills (comma-separated)"
-        id="skills"
-        value={formData.skills}
-        placeholder="e.g., React, Node.js, Python"
-        onChange={(e) => handleChange("skills", e.target.value)}
-      />
+      {/* Skills Input */}
+      <div>
+        <Label>Skills</Label>
+        <SkillsInput
+          initialSkills={formData.skills}
+          onSkillsChange={(skills) => handleChange("skills", skills)}
+        />
+      </div>
 
       {/* Resume Upload */}
       <div>

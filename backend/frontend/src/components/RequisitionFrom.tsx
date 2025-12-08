@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from "react";
-import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Textarea } from "./ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "./ui/select";
+import { useState, useEffect } from "react";
 import { Button } from "./ui/button";
 import { useAuth } from "./AuthProvider";
+import { SkillsInput } from './SkillsInput'; // Corrected Import
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 interface RequisitionFormProps {
@@ -17,8 +17,8 @@ export function RequisitionForm({ initialData, onSubmit, onCancel }: Requisition
   const { user } = useAuth();
   const [formData, setFormData] = useState({
     position: initialData?.position || "",
-    department: initialData?.department || "",
-    location: initialData?.location || "",
+    department_id: initialData?.department_id || null,
+    location_id: initialData?.location_id || null,
     employment_type: initialData?.employment_type || "full-time",
     work_mode: initialData?.work_mode || "onsite",
     grade: initialData?.grade || "",
@@ -28,33 +28,92 @@ export function RequisitionForm({ initialData, onSubmit, onCancel }: Requisition
     priority: initialData?.priority || "medium",
     positions_count: initialData?.positions_count || null,
     job_description: initialData?.job_description || "",
-    skills: initialData?.skills || "",
+    skills: initialData?.skills?.map((s: any) => s.name) || [], // Skills as an array of strings
     hiring_manager: initialData?.hiring_manager || user?.name,
     target_startdate: initialData?.target_startdate || "",
     created_date: "",
     recruiter_id: initialData?.recruiter?.id || "", // ✅ store recruiter_id
     // recruiter: initialData?.recruiter.name || null, // for display only
     jd_file: initialData?.jd_file || null,
+    company_id:initialData?.company_id || null
   });
 
   const [recruitersTeam, setRecruitersTeam] = useState<any[]>([]);
+  const [departments, setDepartments] = useState<{ id: number; name: string; }[]>([]);
+  const [locations, setLocations] = useState<{ id: number; name: string; }[]>([]);
+
+  console.log("user in requisition", user?.company)
 
   useEffect(() => {
-    if (initialData) {
-      setFormData({
-        ...formData,
-        ...initialData,
-        recruiter_id: initialData.recruiter?.id || "" // ✅ fix recruiter field
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialData]);
+  if (user?.company?.id) {
+    setFormData(prev => ({
+      ...prev,
+      company_id: user?.company?.id
+    }));
+  }
+}, [user]);
 
+
+  useEffect(() => {
+  if (initialData) {
+    setFormData(prev => ({
+      ...prev,
+      ...initialData,
+      skills: initialData?.skills?.map((s: any) => s.name) || [], // Ensure skills are mapped for initialData
+      recruiter_id: initialData.recruiter?.id || "",
+      company_id: initialData.company_id || prev.company_id
+    }));
+  }
+}, [initialData]);
   useEffect(() => {
     getTeamData();
+    fetchDepartments();
+    fetchLocations();
   }, []);
 
   const token = localStorage.getItem("token");
+
+  const fetchLocations = async () => {
+    if (!token) return;
+    try {
+      const response = await fetch(`${API_BASE_URL}/list/locations`, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setLocations(data || []);
+      } else {
+        console.error("Failed to load locations");
+      }
+    } catch (error) {
+      console.error("Locations load error:", error);
+    }
+  };
+
+  const fetchDepartments = async () => {
+    if (!token) return;
+    try {
+      const response = await fetch(`${API_BASE_URL}/list/departments`, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setDepartments(data || []);
+      } else {
+        console.error("Failed to load departments");
+      }
+    } catch (error) {
+      console.error("Departments load error:", error);
+    }
+  };
 
   const getTeamData = async () => {
     try {
@@ -84,6 +143,8 @@ export function RequisitionForm({ initialData, onSubmit, onCancel }: Requisition
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit(formData); // ✅ send recruiter_id to backend
+
+    console.log(formData)
   };
 
   return (
@@ -102,20 +163,18 @@ export function RequisitionForm({ initialData, onSubmit, onCancel }: Requisition
         <div>
           <Label htmlFor="department">Department</Label>
           <Select
-            value={formData.department}
-            onValueChange={(value: any) => handleChange("department", value)}
+            value={String(formData.department_id || '')}
+            onValueChange={(value: string) => handleChange("department_id", parseInt(value, 10))}
           >
             <SelectTrigger>
               <SelectValue placeholder="Select department" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="Engineering">Engineering</SelectItem>
-              <SelectItem value="Product">Product</SelectItem>
-              <SelectItem value="Design">Design</SelectItem>
-              <SelectItem value="Sales">Sales</SelectItem>
-              <SelectItem value="Marketing">Marketing</SelectItem>
-              <SelectItem value="HR">HR</SelectItem>
-              <SelectItem value="Finance">Finance</SelectItem>
+              {departments.map((dept) => (
+                <SelectItem key={dept.id} value={String(dept.id)}>
+                  {dept.name}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
@@ -125,12 +184,21 @@ export function RequisitionForm({ initialData, onSubmit, onCancel }: Requisition
       <div className="grid grid-cols-2 gap-4">
         <div>
           <Label htmlFor="location">Location</Label>
-          <Input
-            id="location"
-            value={formData.location}
-            onChange={(e) => handleChange("location", e.target.value)}
-            placeholder="e.g. Dubai, UAE"
-          />
+          <Select
+            value={String(formData.location_id || '')}
+            onValueChange={(value: string) => handleChange("location_id", parseInt(value, 10))}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select location" />
+            </SelectTrigger>
+            <SelectContent>
+              {locations.map((loc) => (
+                <SelectItem key={loc.id} value={String(loc.id)}>
+                  {loc.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         <div>
           <Label htmlFor="grade">Grade</Label>
@@ -269,26 +337,6 @@ export function RequisitionForm({ initialData, onSubmit, onCancel }: Requisition
         </div>
       </div>
 
-      {/* Recruiter Dropdown */}
-      {/* <div>
-        <Label>Assign Recruiter</Label>
-        <Select
-          value={formData.recruiter_id||""}
-          onValueChange={(value: any) => handleChange("recruiter_id", value)}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Select recruiter" />
-          </SelectTrigger>
-          <SelectContent>
-            {recruitersTeam.map((rec) => (
-              <SelectItem key={rec.id} value={rec.id.toString()}>
-                {rec.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div> */}
-
       {/* Description */}
       <div>
         <Label>Job Description</Label>
@@ -338,13 +386,12 @@ export function RequisitionForm({ initialData, onSubmit, onCancel }: Requisition
       )}
     </div> */}
     
-      {/* Requirements */}
+      {/* Skills Input */}
       <div>
-        <Label>Requirements</Label>
-        <Textarea
-          value={formData.skills ||''}
-          onChange={(e) => handleChange("skills", e.target.value)}
-          placeholder="List the required skills..."
+        <Label>Required Skills</Label>
+        <SkillsInput
+          initialSkills={formData.skills}
+          onSkillsChange={(skills) => handleChange("skills", skills)}
         />
       </div>
 
