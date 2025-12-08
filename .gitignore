@@ -1,0 +1,27 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.pyc
+*.pyd
+*.pyo
+
+# Virtual environments
+env/
+venv/
+/backend/envacme/
+
+# Frontend build artifacts
+/backend/frontend/build/
+/backend/frontend/node_modules/
+
+# Logs and databases
+*.log
+*.db
+*.sqlite
+*.sqlite3
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# dotenv files
+.env
