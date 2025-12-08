@@ -3,9 +3,18 @@ import sys
 from logging.config import fileConfig
 from sqlalchemy import create_engine, pool
 from alembic import context
-from app import models  # loads main models
+# from app import models  # loads main models - REMOVED
 # Import Base + DATABASE_URL from your app
 from app.database import Base, DATABASE_URL
+
+# Make sure all model definitions are loaded by importing their modules
+import app.models
+import requisitions.models
+import candidates.models
+import interviews.models
+import invoices.models
+import offers.models
+import skills.models # Explicitly import skills models
 
 sys.path.append("/home/site/wwwroot/backend")
 
