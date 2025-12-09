@@ -14,7 +14,6 @@ import candidates.models
 import interviews.models
 import invoices.models
 import offers.models
-import skills.models # Explicitly import skills models
 
 sys.path.append("/home/site/wwwroot/backend")
 

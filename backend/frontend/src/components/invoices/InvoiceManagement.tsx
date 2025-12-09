@@ -66,8 +66,8 @@ export default function InvoiceManagement() {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Invoice Management</h1>
         
-        <Button onClick={() => setOpen(true)}>
-                  {/* <FileText className="w-4 h-4 mr-2" /> */}
+        {/* <Button onClick={() => setOpen(true)}>
+                 
                   Raise Invoice
                 </Button>
 
@@ -78,7 +78,7 @@ export default function InvoiceManagement() {
             loadInvoices();
           }}
         />
-      </SideDrawer>
+      </SideDrawer> */}
 
         {/* <Dialog open={open} onOpenChange={setOpen}>
               <DialogTrigger asChild>

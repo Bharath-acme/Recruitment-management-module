@@ -1,6 +1,8 @@
 from sqlalchemy import Column, Integer, String, Float, Date, Text, Enum, DateTime,Table, ForeignKey,UniqueConstraint
 from sqlalchemy.orm import relationship
 from app.database import Base
+from app.models import requisition_skills, candidate_skills
+
 from sqlalchemy.dialects.sqlite import JSON
 from datetime import datetime
 import uuid
@@ -18,7 +20,6 @@ class Candidate(Base):
     phone = Column(String(100), nullable=True)
     location = Column(String(100), nullable=True)
     experience = Column(Integer, nullable=True)
-    skills = Column(JSON, nullable=True)
     applied_date = Column(DateTime, default=datetime.utcnow)
     last_activity = Column(DateTime, default=datetime.utcnow)
     rating = Column(Integer, default=0)
@@ -28,10 +29,15 @@ class Candidate(Base):
     status = Column(String(100), nullable=True)
     reject_reason = Column(String(100), nullable=True)
     created_date = Column(DateTime, default=datetime.utcnow)
+    offer_made_date = Column(Date, nullable=True)
+    offer_acceptence_date=Column(Date, nullable=True)
+    offer_rejected_date = Column(Date,nullable=True)
 
     # FIX: Match Requisition.id type
     requisition_id = Column(Integer, ForeignKey("requisitions.id"), nullable=True)
     requisition = relationship("Requisitions", backref="candidates")
+    company_id = Column(Integer, ForeignKey("companies.id"))
+    company = relationship("Company",back_populates="candidates")
     offers = relationship("Offer", back_populates="candidate", cascade="all, delete-orphan")
 
     source = Column(String(50), nullable=True)
@@ -46,7 +52,8 @@ class Candidate(Base):
     files = relationship("File", back_populates="candidate", cascade="all, delete-orphan")
     scorecards = relationship("Scorecard", back_populates="candidate", cascade="all, delete")
 
-   
+    # Many-to-Many relationship for skills
+    skills = relationship("Skill", secondary=candidate_skills, back_populates="candidates")
     
 
 

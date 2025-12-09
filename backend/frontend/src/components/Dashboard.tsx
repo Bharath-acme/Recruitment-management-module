@@ -41,7 +41,7 @@ interface MetricCard {
 interface RequisitionItem {
   id: string;
   title: string;
-  department: string;
+  // department: string;
   status: string;
   daysOpen: number;
   applicants: number;
@@ -50,7 +50,7 @@ interface RequisitionItem {
 }
 
 export function Dashboard({ selectedCompany, selectedCountry  }: DashboardProps) {
-  const { user } = useAuth();
+  const { user,allCompanies } = useAuth();
   const [loading, setLoading] = useState(false);
   // const [metrics, setMetrics] = useState<MetricCard[]>([]);
   const [recentRequisitions, setRecentRequisitions] = useState<RequisitionItem[]>([]);
@@ -64,7 +64,8 @@ export function Dashboard({ selectedCompany, selectedCountry  }: DashboardProps)
       dashboardData();
       loadDemoData();
   }, [selectedCompany, selectedCountry]);
-
+   console.log('user', user)
+   console.log('companies', allCompanies)
   // Icon mapping for server responses
   const iconMap: { [key: string]: any } = {
     'FileText': FileText,
@@ -352,7 +353,7 @@ export function Dashboard({ selectedCompany, selectedCountry  }: DashboardProps)
                         <Badge className={getPriorityColor(req.priority)}>{req.priority}</Badge>
                       </div>
                       <div className="flex items-center text-sm text-gray-600 space-x-4">
-                        <span>{req.department}</span>
+                        {/* <span>{req.department}</span> */}
                         <span>{req.req_id}</span>
                         <span>{daysOpen(req.created_date)} days open</span>
                         <span>{req.applications_count} applicants</span>

@@ -56,6 +56,7 @@ export interface Requisition {
   created_date: string;
   positions: any[];
   req_id: string;
+  company_id:number;
 }
 
 export function RequisitionManager({ selectedCompany, selectedCountry }: RequisitionManagerProps) {
@@ -74,35 +75,75 @@ export function RequisitionManager({ selectedCompany, selectedCountry }: Requisi
   }, [selectedCompany, selectedCountry]);
 
   const queryvalues = () => {
-    if (user?.role === 'admin' || user?.role === 'hiring_manager') {
-      return 'all';
-    } else {
-      return 'approved';
-    }
-  };
+  if (!user) return "approved";
 
-  const loadRequisitions = async () => {
-    setLoading(true);
-    try {
-      const approvalStatus = queryvalues();
-      const response = await fetch(
-        `${API_BASE_URL}/requisitions?approval_status=${approvalStatus}&user_id=${user?.id}&role=${user?.role}`,
-        {
-          headers: { 'Content-Type': 'application/json' },
-        }
-      );
-      if (response.ok) {
-        const data = await response.json();
-        setRequisitions(data || []);
-      }
-    } catch (error) {
-      console.error('Requisitions load error:', error);
-    } finally {
-      setLoading(false);
+  switch (user.role) {
+    case "admin":
+    case "hiring_manager":
+      return "all";
+
+    case "recruiter":
+      return "approved";
+
+    default:
+      return "approved";
+  }
+};
+
+ const loadRequisitions = async () => {
+  setLoading(true);
+
+  try {
+    const approvalStatus = queryvalues();
+    const companyId = user?.company?.id;
+    const companyName = user?.company?.name;
+
+    // Build request URL with all backend parameters
+    const url = new URL(`${API_BASE_URL}/requisitions`);
+
+    url.searchParams.append("approval_status", approvalStatus);
+    url.searchParams.append("role", user?.role || "");
+    url.searchParams.append("user_id", user?.id?.toString() || "");
+    url.searchParams.append("company_id", companyId?.toString() || "");
+    url.searchParams.append("company_name", companyName || "");
+
+    const response = await fetch(url.toString(), {
+      headers: { 
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+
+      const mapped = data.map((req: any) => ({
+        ...req,
+        department: req?.department?.name || "Not Assigned",
+        location: req?.location?.name || "Not Assigned",
+        skills: Array.isArray(req.skills) ? req.skills.map((s: any) => s.name) : [],
+        recruiter: req?.recruiter?.name || "Unassigned",
+        filled: req?.filled || 0,
+        daysOpen: req.created_date
+          ? Math.ceil(
+              (Date.now() - new Date(req.created_date).getTime()) /
+                (1000 * 60 * 60 * 24)
+            )
+          : 0,
+      }));
+
+      setRequisitions(mapped || []);
     }
-  };
+  } catch (error) {
+    console.error("Requisitions load error:", error);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const handleCreateRequisition = async (requisitionData: any) => {
+
     try {
       const response = await fetch(`${API_BASE_URL}/requisitions`, {
         method: 'POST',
@@ -259,6 +300,7 @@ export function RequisitionManager({ selectedCompany, selectedCountry }: Requisi
                 <TableHead className="first:pl-10 rounded-l-lg">Position</TableHead>
                 <TableHead>Department</TableHead>
                 <TableHead>Status</TableHead>
+               {user?.company?.name?.trim().toLowerCase() === 'acme global hub' && <TableHead>Company</TableHead>}
                 <TableHead>Priority</TableHead>
                 <TableHead>Progress</TableHead>
                 <TableHead>Days Open</TableHead>
@@ -297,6 +339,9 @@ export function RequisitionManager({ selectedCompany, selectedCountry }: Requisi
                     <TableCell>
                       <Badge className={getStatusColor(req.status)}>{req.status}</Badge>
                     </TableCell>
+                     {user?.company?.name?.trim().toLowerCase() === 'acme global hub' && <TableCell>
+                      <span >{req.company?.name}</span>
+                    </TableCell>}
                     <TableCell>
                       <Badge className={getPriorityColor(req.priority)}>{req.priority}</Badge>
                     </TableCell>

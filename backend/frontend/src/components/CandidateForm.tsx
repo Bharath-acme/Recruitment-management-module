@@ -10,7 +10,6 @@ import {
   SelectValue,
 } from "./ui/select";
 import { useAuth } from "./AuthProvider";
-import { SkillsInput } from './SkillsInput'; // Corrected Import
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -28,6 +27,8 @@ export default function CandidateForm({
   const { user } = useAuth();
   const [requisitions, setRequisitions] = useState<any[]>([]);
   const isEditMode = Boolean(initialData); // ✅ Detect edit mode
+  const [skillsList, setSkillsList] = useState<any[]>([]); // 🌟 NEW
+
 
   const [formData, setFormData] = useState(() => ({
     name: initialData?.name || "",
@@ -35,9 +36,9 @@ export default function CandidateForm({
     phone: initialData?.phone || "",
     location: initialData?.location || "",
     position: initialData?.position || "",
-    requisition_id: initialData?.requisition_id || "",
+    requisition_id: initialData?.requisition_id || null,
     experience: initialData?.experience || "",
-    skills: initialData?.skills?.map((s: any) => s.name) || [], // Skills as an array of strings
+    skills: initialData?.skills?.map((s: any) => s.name) || [], // ARRAY OF STRINGS
     source: initialData?.source || "direct",
     current_ctc: initialData?.current_ctc || "",
     expected_ctc: initialData?.expected_ctc || "",
@@ -49,7 +50,7 @@ export default function CandidateForm({
     resume: initialData?.resume || null,
     nationality: initialData?.nationality || "",
     status:initialData?.status || 'new',
-    company_id: initialData?.company_id || ''
+    company_id: initialData?.company_id || null
   }));
 
   // 🔹 Load requisitions
@@ -66,7 +67,6 @@ export default function CandidateForm({
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
-              "Content-Type": "application/json",
             },
           }
         );
@@ -77,6 +77,24 @@ export default function CandidateForm({
       }
     })();
   }, [user]);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/skills`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setSkillsList(data); // [{id,name}]
+        }
+      } catch (err) {
+        console.error("Error fetching skills:", err);
+      }
+    })();
+  }, []);
 
   // 🔹 Handle resume upload (only parse if not in edit mode)
   const handleResumeUpload = async (file: File) => {
@@ -111,14 +129,48 @@ export default function CandidateForm({
   const handleChange = (field: string, value: any) =>
     setFormData((prev) => ({ ...prev, [field]: value }));
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // skills are already an array from SkillInput, no need to split
-    onSubmit(formData);
-  };
+const handleSubmit = (e: React.FormEvent) => {
+  e.preventDefault();
+
+  const fd = new FormData();
+
+  Object.entries(formData).forEach(([key, value]) => {
+    
+    // 1. Handle Skills (Array)
+    if (key === "skills") {
+      // Ensure value is an array
+      if (Array.isArray(value)) {
+        value.forEach((skill: string) => fd.append("skills", skill));
+      }
+    } 
+    // 2. Handle Resume
+    else if (key === "resume") {
+      if (value instanceof File) {
+        // User selected a NEW file
+        fd.append("resume", value);
+      } else if (typeof value === "string" && value !== "") {
+        // User kept the OLD file
+        fd.append("resume_path", value); 
+      }
+    } 
+    // 3. Handle Regular Fields (checking for null/undefined)
+    else {
+      if (value !== null && value !== undefined) {
+        fd.append(key, value.toString());
+      }
+    }
+  });
+
+  // Debug: Log entries to see what is being sent
+  // for (let pair of fd.entries()) {
+  //   console.log(pair[0] + ', ' + pair[1]);
+  // }
+
+  onSubmit(fd);   // ⬅️ SEND FORMDATA, NOT JSON
+};
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4" encType="multipart/form-data">
       {/* Basic Info */}
       <div className="grid grid-cols-2 gap-4">
         <FormInput
@@ -270,43 +322,106 @@ export default function CandidateForm({
         value={formData.nationality}
         onChange={(e) => handleChange("nationality", e.target.value)}
       />
-
-      {/* Skills Input */}
-      <div>
+       
+       <div>
         <Label>Skills</Label>
-        <SkillsInput
-          initialSkills={formData.skills}
-          onSkillsChange={(skills) => handleChange("skills", skills)}
-        />
+
+        {/* Selected Skill Chips */}
+       
+
+        {/* Multi-select dropdown */}
+        <Select
+          onValueChange={(value) => {
+            if (!formData.skills.includes(value)) {
+              handleChange("skills", [...formData.skills, value]);
+            }
+          }}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Select skills" />
+          </SelectTrigger>
+          <SelectContent>
+            {skillsList.map((skill) => (
+              <SelectItem key={skill.id} value={skill.name}>
+                {skill.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+         <div className="flex flex-wrap gap-2 mt-2">
+          {formData.skills.length > 0 ? (
+            formData.skills.map((skill) => (
+              <div
+                key={skill}
+                className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm flex items-center gap-2"
+              >
+                {skill}
+                <button
+                  type="button"
+                  onClick={() =>
+                    handleChange(
+                      "skills",
+                      formData.skills.filter((s) => s !== skill)
+                    )
+                  }
+                  className="text-red-500 font-bold"
+                >
+                  ✕
+                </button>
+              </div>
+            ))
+          ) : (
+            <p className="text-sm text-gray-500">No skills selected</p>
+          )}
+        </div>
       </div>
+      
 
       {/* Resume Upload */}
-      <div>
-        <Label htmlFor="resume">Upload Resume</Label>
-        {!formData.resume ? (
-          <Input
-            id="resume"
-            type="file"
-            accept=".pdf,.doc,.docx"
-            onChange={(e) => {
-              if (e.target.files?.[0]) handleResumeUpload(e.target.files[0]);
-            }}
-          />
-        ) : (
-          <div className="relative mt-2 w-fit border border-gray-300 rounded-lg px-4 py-2 bg-gray-50 shadow-sm flex items-center">
-            <span className="text-sm text-gray-700 truncate max-w-[180px]">
-              {formData.resume.name}
-            </span>
-            <button
-              type="button"
-              onClick={() => handleChange("resume", null)}
-              className="ml-3 text-red-500 hover:text-red-700"
-            >
-              ✖
-            </button>
-          </div>
-        )}
-      </div>
+     <div>
+  <Label htmlFor="resume">Upload Resume</Label>
+
+  {/* Case 1: No resume OR resume is a string path */}
+  {(!formData.resume || typeof formData.resume === "string") ? (
+    <>
+      {/* Show input to upload new file */}
+      <Input
+        type="file"
+        accept=".pdf,.doc,.docx"
+        onChange={(e) => {
+          if (e.target.files?.[0]) handleResumeUpload(e.target.files[0]);
+        }}
+      />
+
+      {/* Optional: show existing resume link */}
+      {typeof formData.resume === "string" && (
+        <a
+          href={`${API_BASE_URL}/${formData.resume}`}
+          target="_blank"
+          className="text-blue-500 underline text-sm"
+        >
+          View existing resume
+        </a>
+      )}
+    </>
+  ) : (
+    // Case 2: Resume is a File object
+    <div className="relative mt-2 border px-4 py-2 rounded-lg bg-gray-50 shadow-sm flex items-center">
+      <span className="text-sm truncate max-w-[180px]">
+        {formData.resume.name}
+      </span>
+      <button
+        className="ml-3 text-red-600"
+        type="button"
+        onClick={() => handleChange("resume", null)}
+      >
+        ✖
+      </button>
+    </div>
+  )}
+</div>
+
 
       {/* Buttons */}
       <div className="flex justify-end space-x-2 pt-4">

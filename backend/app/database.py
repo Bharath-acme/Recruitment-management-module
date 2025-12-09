@@ -12,7 +12,7 @@ def is_azure_environment():
 # -----------------------------------
 # LOCAL DATABASE (fallback)
 # -----------------------------------
-LOCAL_DB_URL = "mysql+pymysql://root:acmeglobal@localhost:3306/recruitementDB"
+LOCAL_DB_URL = "mysql+pymysql://root:acmeglobal@localhost:3306/acmeglobal"
 
 
 # -----------------------------------

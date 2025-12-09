@@ -1,8 +1,8 @@
-"""initial schema
+"""initial
 
-Revision ID: 89c03aad1588
+Revision ID: 08dfa4f6f340
 Revises: 
-Create Date: 2025-11-30 13:02:41.819635
+Create Date: 2025-12-09 14:21:14.029418
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import sqlite
 
 # revision identifiers, used by Alembic.
-revision: str = '89c03aad1588'
+revision: str = '08dfa4f6f340'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -27,6 +27,37 @@ def upgrade() -> None:
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
+    op.create_table('companies',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('name', sa.String(length=100), nullable=False),
+    sa.Column('size', sa.String(length=100), nullable=True),
+    sa.Column('sector', sa.String(length=200), nullable=True),
+    sa.Column('country', sa.String(length=100), nullable=False),
+    sa.Column('address', sa.Text(), nullable=True),
+    sa.Column('city', sa.String(length=100), nullable=True),
+    sa.Column('website', sa.String(length=255), nullable=True),
+    sa.Column('phone_number', sa.String(length=50), nullable=True),
+    sa.Column('created_at', sa.DateTime(), nullable=True),
+    sa.Column('client_type', sa.String(length=50), nullable=True),
+    sa.Column('company_agreement', sa.String(length=50), nullable=True),
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('name')
+    )
+    op.create_index(op.f('ix_companies_id'), 'companies', ['id'], unique=False)
+    op.create_table('departments',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('name', sa.String(length=100), nullable=False),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_index(op.f('ix_departments_id'), 'departments', ['id'], unique=False)
+    op.create_index(op.f('ix_departments_name'), 'departments', ['name'], unique=True)
+    op.create_table('documents',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('filename', sa.String(length=100), nullable=False),
+    sa.Column('file_data', sa.LargeBinary(), nullable=False),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_index(op.f('ix_documents_id'), 'documents', ['id'], unique=False)
     op.create_table('email_logs',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('to_email', sa.String(length=255), nullable=False),
@@ -57,6 +88,13 @@ def upgrade() -> None:
     )
     op.create_index(op.f('ix_invoices_id'), 'invoices', ['id'], unique=False)
     op.create_index(op.f('ix_invoices_invoice_number'), 'invoices', ['invoice_number'], unique=False)
+    op.create_table('locations',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('name', sa.String(length=100), nullable=False),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_index(op.f('ix_locations_id'), 'locations', ['id'], unique=False)
+    op.create_index(op.f('ix_locations_name'), 'locations', ['name'], unique=True)
     op.create_table('salary_bands',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('country', sa.String(length=64), nullable=False),
@@ -68,20 +106,13 @@ def upgrade() -> None:
     )
     op.create_index(op.f('ix_salary_bands_country'), 'salary_bands', ['country'], unique=False)
     op.create_index(op.f('ix_salary_bands_grade'), 'salary_bands', ['grade'], unique=False)
-    op.create_table('users',
+    op.create_table('skills',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('name', sa.String(length=50), nullable=False),
-    sa.Column('email', sa.String(length=100), nullable=False),
-    sa.Column('role', sa.String(length=100), nullable=False),
-    sa.Column('company', sa.String(length=100), nullable=False),
-    sa.Column('company_size', sa.String(length=100), nullable=True),
-    sa.Column('company_desc', sa.String(length=200), nullable=True),
-    sa.Column('country', sa.String(length=100), nullable=False),
-    sa.Column('hashed_password', sa.String(length=100), nullable=False),
+    sa.Column('name', sa.String(length=100), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index(op.f('ix_users_email'), 'users', ['email'], unique=True)
-    op.create_index(op.f('ix_users_id'), 'users', ['id'], unique=False)
+    op.create_index(op.f('ix_skills_id'), 'skills', ['id'], unique=False)
+    op.create_index(op.f('ix_skills_name'), 'skills', ['name'], unique=True)
     op.create_table('invoice_items',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('description', sa.String(length=255), nullable=True),
@@ -95,17 +126,29 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_invoice_items_id'), 'invoice_items', ['id'], unique=False)
+    op.create_table('users',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('name', sa.String(length=50), nullable=False),
+    sa.Column('email', sa.String(length=100), nullable=False),
+    sa.Column('role', sa.String(length=100), nullable=False),
+    sa.Column('hashed_password', sa.String(length=100), nullable=False),
+    sa.Column('company_id', sa.Integer(), nullable=False),
+    sa.ForeignKeyConstraint(['company_id'], ['companies.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_index(op.f('ix_users_email'), 'users', ['email'], unique=True)
+    op.create_index(op.f('ix_users_id'), 'users', ['id'], unique=False)
     op.create_table('requisitions',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('req_id', sa.String(length=50), nullable=False),
     sa.Column('position', sa.String(length=100), nullable=False),
-    sa.Column('department', sa.String(length=100), nullable=False),
+    sa.Column('department_id', sa.Integer(), nullable=False),
     sa.Column('experience', sa.Integer(), nullable=True),
     sa.Column('grade', sa.String(length=50), nullable=True),
     sa.Column('created_date', sa.DateTime(), nullable=True),
     sa.Column('employment_type', sa.Enum('FULL_TIME', 'PART_TIME', 'CONTRACT', 'INTERN', name='employmenttype'), nullable=False),
     sa.Column('work_mode', sa.Enum('ONSITE', 'REMOTE', 'HYBRID', name='workmode'), nullable=False),
-    sa.Column('location', sa.String(length=100), nullable=True),
+    sa.Column('location_id', sa.Integer(), nullable=True),
     sa.Column('priority', sa.Enum('HIGH', 'MEDIUM', 'LOW', name='priority'), nullable=False),
     sa.Column('status', sa.Enum('OPEN', 'CLOSED', 'ON_HOLD', 'CANCELLED', name='status'), nullable=False),
     sa.Column('approval_status', sa.String(length=100), nullable=True),
@@ -113,11 +156,14 @@ def upgrade() -> None:
     sa.Column('max_salary', sa.Float(), nullable=True),
     sa.Column('currency', sa.String(length=10), nullable=True),
     sa.Column('positions_count', sa.Integer(), nullable=False),
-    sa.Column('skills', sa.Text(), nullable=True),
     sa.Column('target_startdate', sa.Date(), nullable=True),
     sa.Column('hiring_manager', sa.String(length=100), nullable=True),
     sa.Column('job_description', sa.Text(), nullable=True),
     sa.Column('recruiter_id', sa.Integer(), nullable=True),
+    sa.Column('company_id', sa.Integer(), nullable=True),
+    sa.ForeignKeyConstraint(['company_id'], ['companies.id'], ),
+    sa.ForeignKeyConstraint(['department_id'], ['departments.id'], ),
+    sa.ForeignKeyConstraint(['location_id'], ['locations.id'], ),
     sa.ForeignKeyConstraint(['recruiter_id'], ['users.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
@@ -131,7 +177,6 @@ def upgrade() -> None:
     sa.Column('phone', sa.String(length=100), nullable=True),
     sa.Column('location', sa.String(length=100), nullable=True),
     sa.Column('experience', sa.Integer(), nullable=True),
-    sa.Column('skills', sqlite.JSON(), nullable=True),
     sa.Column('applied_date', sa.DateTime(), nullable=True),
     sa.Column('last_activity', sa.DateTime(), nullable=True),
     sa.Column('rating', sa.Integer(), nullable=True),
@@ -142,6 +187,7 @@ def upgrade() -> None:
     sa.Column('reject_reason', sa.String(length=100), nullable=True),
     sa.Column('created_date', sa.DateTime(), nullable=True),
     sa.Column('requisition_id', sa.Integer(), nullable=True),
+    sa.Column('company_id', sa.Integer(), nullable=True),
     sa.Column('source', sa.String(length=50), nullable=True),
     sa.Column('current_ctc', sa.String(length=50), nullable=True),
     sa.Column('expected_ctc', sa.String(length=50), nullable=True),
@@ -149,6 +195,7 @@ def upgrade() -> None:
     sa.Column('current_company', sa.String(length=100), nullable=True),
     sa.Column('dob', sa.Date(), nullable=True),
     sa.Column('marital_status', sa.String(length=50), nullable=True),
+    sa.ForeignKeyConstraint(['company_id'], ['companies.id'], ),
     sa.ForeignKeyConstraint(['requisition_id'], ['requisitions.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
@@ -175,7 +222,7 @@ def upgrade() -> None:
     sa.Column('action', sa.String(length=255), nullable=False),
     sa.Column('details', sa.Text(), nullable=True),
     sa.Column('timestamp', sa.DateTime(), nullable=True),
-    sa.ForeignKeyConstraint(['requisition_id'], ['requisitions.id'], ),
+    sa.ForeignKeyConstraint(['requisition_id'], ['requisitions.id'], ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
@@ -186,6 +233,13 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['requisition_id'], ['requisitions.id'], ),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
     sa.PrimaryKeyConstraint('requisition_id', 'user_id')
+    )
+    op.create_table('requisition_skills',
+    sa.Column('requisition_id', sa.Integer(), nullable=False),
+    sa.Column('skill_id', sa.Integer(), nullable=False),
+    sa.ForeignKeyConstraint(['requisition_id'], ['requisitions.id'], ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['skill_id'], ['skills.id'], ondelete='CASCADE'),
+    sa.PrimaryKeyConstraint('requisition_id', 'skill_id')
     )
     op.create_table('candidate_activity_logs',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -202,6 +256,13 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_candidate_activity_logs_id'), 'candidate_activity_logs', ['id'], unique=False)
+    op.create_table('candidate_skills',
+    sa.Column('candidate_id', sa.String(length=36), nullable=False),
+    sa.Column('skill_id', sa.Integer(), nullable=False),
+    sa.ForeignKeyConstraint(['candidate_id'], ['candidates.id'], ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['skill_id'], ['skills.id'], ondelete='CASCADE'),
+    sa.PrimaryKeyConstraint('candidate_id', 'skill_id')
+    )
     op.create_table('files',
     sa.Column('id', sa.String(length=36), nullable=False),
     sa.Column('file_name', sa.String(length=255), nullable=False),
@@ -227,7 +288,9 @@ def upgrade() -> None:
     sa.Column('feedback', sa.Text(), nullable=True),
     sa.Column('score', sa.Integer(), nullable=True),
     sa.Column('notes', sa.Text(), nullable=True),
+    sa.Column('company_id', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['candidate_id'], ['candidates.id'], ),
+    sa.ForeignKeyConstraint(['company_id'], ['companies.id'], ),
     sa.ForeignKeyConstraint(['requisition_id'], ['requisitions.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
@@ -305,8 +368,10 @@ def downgrade() -> None:
     op.drop_index(op.f('ix_interviews_id'), table_name='interviews')
     op.drop_table('interviews')
     op.drop_table('files')
+    op.drop_table('candidate_skills')
     op.drop_index(op.f('ix_candidate_activity_logs_id'), table_name='candidate_activity_logs')
     op.drop_table('candidate_activity_logs')
+    op.drop_table('requisition_skills')
     op.drop_table('requisition_recruiter')
     op.drop_index(op.f('ix_requisition_activity_logs_id'), table_name='requisition_activity_logs')
     op.drop_table('requisition_activity_logs')
@@ -317,18 +382,31 @@ def downgrade() -> None:
     op.drop_index(op.f('ix_requisitions_req_id'), table_name='requisitions')
     op.drop_index(op.f('ix_requisitions_id'), table_name='requisitions')
     op.drop_table('requisitions')
-    op.drop_index(op.f('ix_invoice_items_id'), table_name='invoice_items')
-    op.drop_table('invoice_items')
     op.drop_index(op.f('ix_users_id'), table_name='users')
     op.drop_index(op.f('ix_users_email'), table_name='users')
     op.drop_table('users')
+    op.drop_index(op.f('ix_invoice_items_id'), table_name='invoice_items')
+    op.drop_table('invoice_items')
+    op.drop_index(op.f('ix_skills_name'), table_name='skills')
+    op.drop_index(op.f('ix_skills_id'), table_name='skills')
+    op.drop_table('skills')
     op.drop_index(op.f('ix_salary_bands_grade'), table_name='salary_bands')
     op.drop_index(op.f('ix_salary_bands_country'), table_name='salary_bands')
     op.drop_table('salary_bands')
+    op.drop_index(op.f('ix_locations_name'), table_name='locations')
+    op.drop_index(op.f('ix_locations_id'), table_name='locations')
+    op.drop_table('locations')
     op.drop_index(op.f('ix_invoices_invoice_number'), table_name='invoices')
     op.drop_index(op.f('ix_invoices_id'), table_name='invoices')
     op.drop_table('invoices')
     op.drop_index(op.f('ix_email_logs_id'), table_name='email_logs')
     op.drop_table('email_logs')
+    op.drop_index(op.f('ix_documents_id'), table_name='documents')
+    op.drop_table('documents')
+    op.drop_index(op.f('ix_departments_name'), table_name='departments')
+    op.drop_index(op.f('ix_departments_id'), table_name='departments')
+    op.drop_table('departments')
+    op.drop_index(op.f('ix_companies_id'), table_name='companies')
+    op.drop_table('companies')
     op.drop_table('blobs')
     # ### end Alembic commands ###

@@ -6,6 +6,27 @@ from candidates.schemas import CandidateMini
 from requisitions.schemas import RequisitionMini    
 
 
+class CalendarRequest(BaseModel):
+    recruiter_email: str
+    start: str
+    end: str
+
+class CreateEventPayload(BaseModel):
+    recruiter_email: str
+    candidate_email: str
+    candidate_name: str
+    start: str
+    end: str
+    subject: str
+    body: str
+
+class EmailPayload(BaseModel):
+    recruiter_email: str
+    candidate_email: str
+    subject: str
+    body: str
+
+
 class InterviewBase(BaseModel):
     candidate_id: str
     requisition_id: int

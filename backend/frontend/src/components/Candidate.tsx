@@ -80,35 +80,11 @@ const { id } = useParams<{ id: string }>();
    const { user } = useAuth();
    const [showRejectDialog, setShowRejectDialog] = useState(false);
    const [rejectReason, setRejectReason] = useState("");
-  const [candidate, setCandidate] = useState<Candidate>({
-    id: '',
-    name: '',
-    position: '',
-    email: '',
-    phone: '',
-    location: '',
-    experience: 0,
-    skills: [],
-    applied_date: '',
-    last_activity: '',
-    rating: 0,
-    notes: '',
-    current_ctc: '',
-    expected_ctc: '',
-    notice_period: '',
-    current_company: '',
-    dob: '',
-    marital_status: '',
-    requisition_id: '',
-    stage: '',
-    status: '',
-    source: '',
-    recruiter: ''
-  });
+  const [candidate, setCandidate] = useState<Candidate | null>(null);
 
   const navigate = useNavigate();
 
-  const [currentRating, setCurrentRating] = useState<number>(candidate.rating);
+  const [currentRating, setCurrentRating] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const token = localStorage.getItem('token');
 
@@ -144,6 +120,7 @@ const { id } = useParams<{ id: string }>();
       };
 
       setCandidate(safeData);
+      setCurrentRating(safeData.rating || 0);
     } catch (err) {
       console.error("Error fetching candidate:", err);
     } finally {
@@ -172,6 +149,7 @@ const { id } = useParams<{ id: string }>();
 
   
   const handleRatingClick = (value: number) => {
+    if (!candidate) return;
     setCurrentRating(value);
     setCandidate({ ...candidate, rating: value });
   };
@@ -292,6 +270,10 @@ const { id } = useParams<{ id: string }>();
     return colors[recommendation] || 'bg-gray-100 text-gray-700 border-gray-200';
   };
 
+  const url = candidate.files.map((resume)=>resume.file_url)
+
+  console.log('url',String(url))
+
   return (
     <div className="max-w-7xl mx-auto p-6 space-y-6">
       {/* Header Card */}
@@ -309,7 +291,7 @@ const { id } = useParams<{ id: string }>();
               <div className="mt-4 flex gap-2">
               
                {/* {user?.role == 'recruiter' &&   */}
-               {user?.company?.trim().toLowerCase() == 'acme global' ? <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+               {user?.company?.name?.trim().toLowerCase() == 'acme global hub' ? <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
                 <DialogTrigger asChild>
                   <Button variant="outline" size="sm" className="bg-blue-50 border-blue-200 hover:bg-blue-100">
                     Edit Profile
@@ -329,7 +311,7 @@ const { id } = useParams<{ id: string }>();
                 </DialogContent>
               </Dialog>:''}
               {/* // } */}
-             {user?.company?.trim().toLowerCase() == 'acme global' ? <ResumeDialog resumeUrl=''/>:''}
+             {user?.company?.name?.trim().toLowerCase() == 'acme global hub' ? <ResumeDialog resumeUrl={String(url)}/>:''}
               {/* <Button variant="outline" size="sm" className="bg-purple-50 border-purple-200 hover:bg-purple-100">
                 <Download className="h-4 w-4 mr-2" />
                 Resume
@@ -359,11 +341,11 @@ const { id } = useParams<{ id: string }>();
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-gray-600">
-                  { user?.company?.trim().toLowerCase() == 'acme global' ? <div className="flex items-center gap-2">
+                  { user?.company?.name?.trim().toLowerCase() == 'acme global hub' ? <div className="flex items-center gap-2">
                     <Mail className="h-4 w-4 text-blue-500" />
                     <span>{candidate.email}</span>
                   </div>:''}
-                 {user?.company?.trim().toLowerCase() == 'acme global' ? <div className="flex items-center gap-2">
+                 {user?.company?.name?.trim().toLowerCase() == 'acme global hub' ? <div className="flex items-center gap-2">
                     <Phone className="h-4 w-4 text-green-500" />
                     <span>{candidate.phone}</span>
                   </div>:''}
@@ -896,6 +878,22 @@ const { id } = useParams<{ id: string }>();
 
           {/* Skills */}
           <Card className="bg-white shadow-md border-0">
+        <div className="p-6 bg-gradient-to-r from-purple-50 to-pink-50 border-b border-purple-100">
+          <h2 className="text-gray-900 flex items-center gap-2">
+            <Award className="h-5 w-5 text-purple-600" />
+            Skills & Expertise
+          </h2>
+        </div>
+
+        <div className="p-6">
+          <p className="text-gray-800 text-sm">
+            {candidate.skills && candidate.skills.length > 0
+              ? candidate.skills.map(s => s.name).join(", ")
+              : "No skills added"}
+          </p>
+        </div>
+      </Card>
+          {/* <Card className="bg-white shadow-md border-0">
             <div className="p-6 bg-gradient-to-r from-purple-50 to-pink-50 border-b border-purple-100">
               <h2 className="text-gray-900 flex items-center gap-2">
                 <Award className="h-5 w-5 text-purple-600" />
@@ -915,7 +913,7 @@ const { id } = useParams<{ id: string }>();
                 ))}
               </div>
             </div>
-          </Card>
+          </Card> */}
 
            {/* Timeline */}
           <Card className="bg-white shadow-md border-0">
@@ -1067,7 +1065,7 @@ const { id } = useParams<{ id: string }>();
           </Card> */}
         </div>
       </div>
-      {user?.company?.trim().toLowerCase() == 'acme global' &&  <Card className="bg-white border border-indigo-100 shadow-sm hover:shadow-md transition-shadow lg:col-span-2">
+      {user?.company?.name?.trim().toLowerCase() == 'acme global' &&  <Card className="bg-white border border-indigo-100 shadow-sm hover:shadow-md transition-shadow lg:col-span-2">
               <CardHeader className="bg-gradient-to-r from-indigo-50 to-blue-50 border-b border-indigo-100">
                 <CardTitle className="flex items-center gap-2 text-indigo-900">
                   <Activity className="w-5 h-5" />

@@ -1,6 +1,7 @@
 from sqlalchemy import Column, Integer, String, Float, Date, Text, Enum, DateTime,Table, ForeignKey,UniqueConstraint, Enum as SAEnum
 from sqlalchemy.orm import relationship
 from app.database import Base
+from app.models import Skill, requisition_skills
 from sqlalchemy.dialects.sqlite import JSON
 from datetime import datetime
 import uuid
@@ -43,7 +44,8 @@ class Requisitions(Base):
     req_id = Column(String(50), unique=True, index=True, nullable=False)
     # Core info
     position = Column(String(100), nullable=False)
-    department = Column(String(100), nullable=False)
+    department_id = Column(Integer, ForeignKey("departments.id"), nullable=False)
+    department = relationship("Department", back_populates="requisitions")
     experience = Column(Integer, nullable=True)  # years of experience required
     grade = Column(String(50), nullable=True)   # e.g. L1, L2, Senior
     created_date = Column(DateTime, default=datetime.utcnow)
@@ -51,7 +53,8 @@ class Requisitions(Base):
     # Job type  
     employment_type = Column(Enum(EmploymentType), nullable=False, default=EmploymentType.FULL_TIME)
     work_mode = Column(Enum(WorkMode), nullable=False, default=WorkMode.ONSITE)
-    location = Column(String(100), nullable=True)
+    location_id = Column(Integer, ForeignKey("locations.id"), nullable=True)
+    location = relationship("Location", back_populates="requisitions")
 
     # Priority & status
     priority = Column(Enum(Priority), nullable=False, default=Priority.MEDIUM)
@@ -65,26 +68,28 @@ class Requisitions(Base):
 
     # Additional info
     positions_count = Column(Integer, nullable=False, default=1)
-    skills = Column(Text, nullable=True)  # store comma-separated skills or use JSON
     target_startdate = Column(Date, nullable=True)
     hiring_manager = Column(String(100), nullable=True)
     job_description = Column(Text, nullable=True)
     recruiter_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    company_id = Column(Integer, ForeignKey("companies.id"))
+    company = relationship("Company",back_populates="requistions")
     recruiter = relationship("User", back_populates="requisitions")
     interviews = relationship("Interview", back_populates="requisition")
     # recruiters = relationship("User", secondary=requisition_recruiter, backref="assigned_requisitions")
     offers = relationship("Offer", back_populates="requisitions", cascade="all, delete-orphan")
-    activity_logs = relationship("RequisitionActivityLog", back_populates="requisition", cascade="all, delete-orphan")
+    activity_logs = relationship("RequisitionActivityLog", back_populates="requisition", cascade="all, delete-orphan", passive_deletes=True)
     notifications = relationship("Notification", back_populates="requisition", cascade="all, delete-orphan")
 
-    # positions = relationship("Position", back_populates="requisition", cascade="all, delete-orphan")
+    # Many-to-Many relationship for skills
+    skills = relationship("Skill", secondary=requisition_skills, back_populates="requisitions")
 
 
 class RequisitionActivityLog(Base):
     __tablename__ = "requisition_activity_logs"
 
     id = Column(Integer, primary_key=True, index=True)
-    requisition_id = Column(Integer, ForeignKey("requisitions.id"), nullable=False)
+    requisition_id = Column(Integer, ForeignKey("requisitions.id", ondelete="CASCADE"), nullable=False)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     username = Column(String(100), nullable=False)
     action = Column(String(255), nullable=False)

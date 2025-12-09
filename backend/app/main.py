@@ -36,6 +36,8 @@ from requisitions.models import Requisitions
 from candidates.models import Candidate 
 from interviews.models import Interview
 from invoices import api as invoice_api
+from app import locations_and_departments
+
 
 
 # ================== DATABASE SETUP ==================
@@ -97,20 +99,56 @@ def login(data: LoginRequest, db: Session = Depends(get_db)):
     if not user or not verify_password(data.password, user.hashed_password):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
-    # Create JWT
+    # Access company details via the relationship (company_rel)
+    company_rel = user.company_rel
+    company_name = company_rel.name if company_rel else ""
+    company_country = company_rel.country if company_rel else ""
+    company_size = company_rel.size if company_rel else ""
+    company_desc = company_rel.sector if company_rel else ""
+    
+    # Initialize the list of all companies
+    all_companies_list = []
+    
+    # 🌟 NEW LOGIC: Check if the user is from 'Acme Global'
+    if company_name.lower() == "acme global": # Case-insensitive check
+        # Fetch all companies and convert them to a simple list of dicts
+        # Assumes the Company model is available via models.Company
+        all_companies = db.query(models.Company).all()
+        
+        # Structure the output data
+        all_companies_list = [
+            {
+                "id": c.id,
+                "name": c.name,
+                "country": c.country,
+                "size": c.size,
+                "description": c.description,
+            }
+            for c in all_companies
+        ]
+
+    # Create JWT (This part remains the same)
     access_token = create_access_token(
         data={
             "sub": user.email,
             "id": str(user.id),
             "role": user.role,
             "name": user.name,
-            "company": user.company,
-            "country": user.country,
-            "company_size":user.company_size,
-            "company_desc":user.company_desc
+            "company": company_name,
+            "country": company_country,
+            "company_size": company_size,
+            "company_desc": company_desc,
+            "company_id": user.company_id
         }
     )
-    return {"access_token": access_token, "token_type": "bearer", "user_data": user}
+    
+    # Return both user data and the list of companies (if applicable)
+    return {
+        "access_token": access_token, 
+        "token_type": "bearer", 
+        "user_data": user, 
+        "all_companies": all_companies_list # 🌟 ADDED THIS FIELD
+    }
 
 
 @app.get("/me", response_model=schemas.UserResponse)
@@ -209,15 +247,35 @@ def get_dashboard_summary(db: Session = Depends(get_db)):
     }
 
 
+@app.get("/skills", response_model=List[schemas.Skill])
+def read_skills(q: str = "", db: Session = Depends(get_db)):
+    """
+    Search for skills.
+    """
+    if not q:
+        skills = crud.get_all_skills(db)
+        return skills
+    skills = crud.search_skills(db, query=q)
+    return skills
+
+
 # ================== MODULE ROUTERS ==================
 app.include_router(candidates_api.router, prefix="/candidates", tags=["Candidates"])
 app.include_router(requisitions_api.router, prefix="/requisitions", tags=["Requisitions"])
 app.include_router(interviews_api.router, prefix="/interviews", tags=["Interviews"])
 app.include_router(offers_api.router, prefix="/offers", tags=["Offers"])
 app.include_router(invoice_api.router, prefix="/invoices", tags=["Invoices"])
+app.include_router(locations_and_departments.router, prefix="/list", tags=["Departments & Locations"])
+
 
 # ================== FRONTEND PATH SETUP (SIMPLIFIED FIX) ==================
+# 🟢 Create the directory if it doesn't exist
+if not os.path.exists("uploads"):
+    os.makedirs("uploads")
 
+# 🟢 MOUNT THE DIRECTORY
+# This makes http://localhost:8000/uploads/filename.pdf accessible
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 app.mount("/pdfs", StaticFiles(directory="pdfs"), name="pdfs")
 # 1️⃣ Define frontend build directory
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))

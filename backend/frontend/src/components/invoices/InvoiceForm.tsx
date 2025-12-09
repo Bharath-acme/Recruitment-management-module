@@ -40,6 +40,19 @@ export default function InvoiceForm({ onSuccess }: InvoiceFormProps) {
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+ 
+  const currencySymbols: Record<string, string> = {
+  AED: "د.إ",
+  SAR: "﷼",
+  QAR: "﷼",
+  KWD: "KD",
+  BHD: ".د.ب",
+  OMR: "﷼",
+  USD: "$",
+  INR: "₹",
+};
+
+ const currencySymbol = currencySymbols[form.currency] || "";
 
   const updateItem = (id: string, key: keyof InvoiceItem, value: any) => {
     setForm((prev) => {
@@ -285,7 +298,7 @@ export default function InvoiceForm({ onSuccess }: InvoiceFormProps) {
         <div className="border-b pb-6">
           <h3 className="text-lg mb-4 text-gray-800 flex items-center gap-2">
             <span className="w-1 h-5 bg-blue-600 rounded"></span>
-            Line Items
+          Items
           </h3>
 
           <div className="bg-gray-50 rounded-lg overflow-hidden">
@@ -364,7 +377,7 @@ export default function InvoiceForm({ onSuccess }: InvoiceFormProps) {
                   <div>
                     <label className="md:hidden text-xs text-gray-600 mb-1 block">Unit Price</label>
                     <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">₹</span>
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">{currencySymbol}</span>
                       <input
                         type="number"
                         min="0"
@@ -394,7 +407,7 @@ export default function InvoiceForm({ onSuccess }: InvoiceFormProps) {
                   <div>
                     <label className="md:hidden text-xs text-gray-600 mb-1 block">Amount</label>
                     <div className="px-3 py-2 bg-gray-100 rounded-lg text-right text-sm text-gray-700">
-                      ₹ {item.taxable_value.toFixed(2)}
+                      {currencySymbol} {item.taxable_value.toFixed(2)}
                     </div>
                   </div>
 
@@ -446,24 +459,24 @@ export default function InvoiceForm({ onSuccess }: InvoiceFormProps) {
             <div className="space-y-3">
               <div className="flex justify-between text-gray-700">
                 <span>Subtotal:</span>
-                <span>₹ {subtotal.toFixed(2)}</span>
+                <span>{currencySymbol} {subtotal.toFixed(2)}</span>
               </div>
 
               {Object.entries(taxBreakdown).map(([rate, amount]) => (
                 <div key={rate} className="flex justify-between text-gray-600 text-sm">
                   <span>GST {rate}:</span>
-                  <span>₹ {amount.toFixed(2)}</span>
+                  <span>{currencySymbol} {amount.toFixed(2)}</span>
                 </div>
               ))}
 
               <div className="flex justify-between text-gray-700 pt-2 border-t border-gray-300">
                 <span>Total Tax:</span>
-                <span>₹ {totalTax.toFixed(2)}</span>
+                <span>{currencySymbol} {totalTax.toFixed(2)}</span>
               </div>
 
               <div className="flex justify-between text-xl pt-3 border-t-2 border-gray-400 text-blue-700">
                 <span>Total Amount:</span>
-                <span>₹ {totalAmount.toFixed(2)}</span>
+                <span>{currencySymbol} {totalAmount.toFixed(2)}</span>
               </div>
             </div>
           </div>

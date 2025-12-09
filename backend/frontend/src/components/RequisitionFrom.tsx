@@ -1,20 +1,28 @@
 import { Label } from "./ui/label";
 import { Textarea } from "./ui/textarea";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "./ui/select";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "./ui/select";
 import { useState, useEffect } from "react";
 import { Button } from "./ui/button";
+import { Input } from "./ui/input";
 import { useAuth } from "./AuthProvider";
-import { SkillsInput } from './SkillsInput'; // Corrected Import
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-interface RequisitionFormProps {
-  initialData?: any; // pass requisition when editing
-  onSubmit: (data: any) => void;
-  onCancel: () => void;
-}
-
-export function RequisitionForm({ initialData, onSubmit, onCancel }: RequisitionFormProps) {
+export function RequisitionForm({ initialData, onSubmit, onCancel }) {
   const { user } = useAuth();
+  const token = localStorage.getItem("token");
+
+  const [departments, setDepartments] = useState([]);
+  const [locations, setLocations] = useState([]);
+  const [skillsList, setSkillsList] = useState([]);
+  const [recruitersTeam, setRecruitersTeam] = useState([]);
+
   const [formData, setFormData] = useState({
     position: initialData?.position || "",
     department_id: initialData?.department_id || null,
@@ -28,151 +36,93 @@ export function RequisitionForm({ initialData, onSubmit, onCancel }: Requisition
     priority: initialData?.priority || "medium",
     positions_count: initialData?.positions_count || null,
     job_description: initialData?.job_description || "",
-    skills: initialData?.skills?.map((s: any) => s.name) || [], // Skills as an array of strings
+    skills: initialData?.skills?.map((s) => s.name) || [], // ARRAY OF STRINGS
     hiring_manager: initialData?.hiring_manager || user?.name,
     target_startdate: initialData?.target_startdate || "",
-    created_date: "",
-    recruiter_id: initialData?.recruiter?.id || "", // ✅ store recruiter_id
-    // recruiter: initialData?.recruiter.name || null, // for display only
-    jd_file: initialData?.jd_file || null,
-    company_id:initialData?.company_id || null
+    recruiter_id: initialData?.recruiter?.id || "",
+    company_id: initialData?.company_id || user?.company?.id || null,
   });
 
-  const [recruitersTeam, setRecruitersTeam] = useState<any[]>([]);
-  const [departments, setDepartments] = useState<{ id: number; name: string; }[]>([]);
-  const [locations, setLocations] = useState<{ id: number; name: string; }[]>([]);
+  /* ------------------- FETCH DATA ------------------- */
 
-  console.log("user in requisition", user?.company)
-
-  useEffect(() => {
-  if (user?.company?.id) {
-    setFormData(prev => ({
-      ...prev,
-      company_id: user?.company?.id
-    }));
-  }
-}, [user]);
-
-
-  useEffect(() => {
-  if (initialData) {
-    setFormData(prev => ({
-      ...prev,
-      ...initialData,
-      skills: initialData?.skills?.map((s: any) => s.name) || [], // Ensure skills are mapped for initialData
-      recruiter_id: initialData.recruiter?.id || "",
-      company_id: initialData.company_id || prev.company_id
-    }));
-  }
-}, [initialData]);
-  useEffect(() => {
-    getTeamData();
-    fetchDepartments();
-    fetchLocations();
-  }, []);
-
-  const token = localStorage.getItem("token");
-
-  const fetchLocations = async () => {
-    if (!token) return;
+  const fetchSkills = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/list/locations`, {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
-        }
+      const res = await fetch(`${API_BASE_URL}/skills`, {
+        headers: { Authorization: `Bearer ${token}` },
       });
-
-      if (response.ok) {
-        const data = await response.json();
-        setLocations(data || []);
-      } else {
-        console.error("Failed to load locations");
-      }
-    } catch (error) {
-      console.error("Locations load error:", error);
+      if (res.ok) setSkillsList(await res.json());
+    } catch (err) {
+      console.error("Skills load error:", err);
     }
   };
 
   const fetchDepartments = async () => {
-    if (!token) return;
-    try {
-      const response = await fetch(`${API_BASE_URL}/list/departments`, {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
-        }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setDepartments(data || []);
-      } else {
-        console.error("Failed to load departments");
-      }
-    } catch (error) {
-      console.error("Departments load error:", error);
-    }
+    const res = await fetch(`${API_BASE_URL}/list/departments`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (res.ok) setDepartments(await res.json());
   };
 
-  const getTeamData = async () => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/recruiter_team`, {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
-        }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setRecruitersTeam(data || []);
-        console.log("Recruiters:", data);
-      } else {
-        console.error("Failed to load recruiters");
-      }
-    } catch (error) {
-      console.error("Recruiters load error:", error);
-    }
+  const fetchLocations = async () => {
+    const res = await fetch(`${API_BASE_URL}/list/locations`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (res.ok) setLocations(await res.json());
   };
 
-  const handleChange = (field: string, value: any) => {
+  const getRecruiters = async () => {
+    const res = await fetch(`${API_BASE_URL}/recruiter_team`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (res.ok) setRecruitersTeam(await res.json());
+  };
+
+  useEffect(() => {
+    fetchSkills();
+    fetchDepartments();
+    fetchLocations();
+    getRecruiters();
+  }, []);
+
+  /* ------------------- FORM HANDLERS ------------------- */
+
+  const handleChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit(formData); // ✅ send recruiter_id to backend
-
-    console.log(formData)
+    console.log("Final data:", formData);
+    onSubmit(formData);
   };
+
+  /* ------------------- UI ------------------- */
 
   return (
     <div className="space-y-4">
+
       {/* Position + Department */}
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <Label htmlFor="position">Position Title</Label>
+          <Label>Position Title</Label>
           <Input
-            id="position"
             value={formData.position}
             onChange={(e) => handleChange("position", e.target.value)}
             placeholder="e.g. Senior Software Engineer"
           />
         </div>
+
         <div>
-          <Label htmlFor="department">Department</Label>
+          <Label>Department</Label>
           <Select
-            value={String(formData.department_id || '')}
-            onValueChange={(value: string) => handleChange("department_id", parseInt(value, 10))}
+            value={String(formData.department_id || "")}
+            onValueChange={(v) => handleChange("department_id", parseInt(v))}
           >
-            <SelectTrigger>
-              <SelectValue placeholder="Select department" />
-            </SelectTrigger>
+            <SelectTrigger><SelectValue placeholder="Select department" /></SelectTrigger>
             <SelectContent>
-              {departments.map((dept) => (
-                <SelectItem key={dept.id} value={String(dept.id)}>
-                  {dept.name}
+              {departments.map((d) => (
+                <SelectItem key={d.id} value={String(d.id)}>
+                  {d.name}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -183,14 +133,12 @@ export function RequisitionForm({ initialData, onSubmit, onCancel }: Requisition
       {/* Location + Grade */}
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <Label htmlFor="location">Location</Label>
+          <Label>Location</Label>
           <Select
-            value={String(formData.location_id || '')}
-            onValueChange={(value: string) => handleChange("location_id", parseInt(value, 10))}
+            value={String(formData.location_id || "")}
+            onValueChange={(v) => handleChange("location_id", parseInt(v))}
           >
-            <SelectTrigger>
-              <SelectValue placeholder="Select location" />
-            </SelectTrigger>
+            <SelectTrigger><SelectValue placeholder="Select location" /></SelectTrigger>
             <SelectContent>
               {locations.map((loc) => (
                 <SelectItem key={loc.id} value={String(loc.id)}>
@@ -200,15 +148,14 @@ export function RequisitionForm({ initialData, onSubmit, onCancel }: Requisition
             </SelectContent>
           </Select>
         </div>
+
         <div>
-          <Label htmlFor="grade">Grade</Label>
+          <Label>Grade</Label>
           <Select
             value={formData.grade}
-            onValueChange={(value: any) => handleChange("grade", value)}
+            onValueChange={(v) => handleChange("grade", v)}
           >
-            <SelectTrigger>
-              <SelectValue placeholder="Select grade" />
-            </SelectTrigger>
+            <SelectTrigger><SelectValue placeholder="Select grade" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="Junior">Junior</SelectItem>
               <SelectItem value="Mid">Mid Level</SelectItem>
@@ -221,17 +168,15 @@ export function RequisitionForm({ initialData, onSubmit, onCancel }: Requisition
         </div>
       </div>
 
-      {/* Employment Type, Work Mode, Priority */}
+      {/* Employment Type + Work Mode + Priority */}
       <div className="grid grid-cols-3 gap-4">
         <div>
           <Label>Employment Type</Label>
           <Select
             value={formData.employment_type}
-            onValueChange={(value: any) => handleChange("employment_type", value)}
+            onValueChange={(v) => handleChange("employment_type", v)}
           >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
+            <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="full-time">Full-Time</SelectItem>
               <SelectItem value="part-time">Part-Time</SelectItem>
@@ -240,15 +185,14 @@ export function RequisitionForm({ initialData, onSubmit, onCancel }: Requisition
             </SelectContent>
           </Select>
         </div>
+
         <div>
           <Label>Work Mode</Label>
           <Select
-            value={formData.work_mode ||''}
-            onValueChange={(value: any) => handleChange("work_mode", value)}
+            value={formData.work_mode}
+            onValueChange={(v) => handleChange("work_mode", v)}
           >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
+            <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="onsite">Onsite</SelectItem>
               <SelectItem value="remote">Remote</SelectItem>
@@ -256,15 +200,14 @@ export function RequisitionForm({ initialData, onSubmit, onCancel }: Requisition
             </SelectContent>
           </Select>
         </div>
+
         <div>
           <Label>Priority</Label>
           <Select
-            value={formData.priority ||''}
-            onValueChange={(value: any) => handleChange("priority", value)}
+            value={formData.priority}
+            onValueChange={(v) => handleChange("priority", v)}
           >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
+            <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="low">Low</SelectItem>
               <SelectItem value="medium">Medium</SelectItem>
@@ -274,44 +217,34 @@ export function RequisitionForm({ initialData, onSubmit, onCancel }: Requisition
         </div>
       </div>
 
-      {/* Salary + Currency */}
+      {/* Salary */}
       <div className="grid grid-cols-3 gap-4">
         <div>
           <Label>Min Salary</Label>
           <Input
-            type="text"
-            value={formData.min_salary||""}
+            value={formData.min_salary}
             onChange={(e) => handleChange("min_salary", e.target.value)}
-            placeholder="15000"
           />
         </div>
         <div>
           <Label>Max Salary</Label>
           <Input
-            type="text"
-            value={formData.max_salary||""}
+            value={formData.max_salary}
             onChange={(e) => handleChange("max_salary", e.target.value)}
-            placeholder="20000"
           />
         </div>
         <div>
           <Label>Currency</Label>
           <Select
             value={formData.currency}
-            onValueChange={(value: any) => handleChange("currency", value)}
+            onValueChange={(v) => handleChange("currency", v)}
           >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
+            <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="AED">AED</SelectItem>
-              <SelectItem value="SAR">SAR</SelectItem>
-              <SelectItem value="QAR">QAR</SelectItem>
-              <SelectItem value="KWD">KWD</SelectItem>
-              <SelectItem value="BHD">BHD</SelectItem>
-              <SelectItem value="OMR">OMR</SelectItem>
               <SelectItem value="USD">USD</SelectItem>
               <SelectItem value="INR">INR</SelectItem>
+              <SelectItem value="SAR">SAR</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -324,77 +257,87 @@ export function RequisitionForm({ initialData, onSubmit, onCancel }: Requisition
           <Input
             type="number"
             value={formData.positions_count || ""}
-            onChange={(e) => handleChange("positions_count", parseInt(e.target.value) || null)}
+            onChange={(e) =>
+              handleChange("positions_count", parseInt(e.target.value))
+            }
           />
         </div>
+
         <div>
           <Label>Target Start Date</Label>
           <Input
             type="date"
-            value={formData.target_startdate||''}
+            value={formData.target_startdate}
             onChange={(e) => handleChange("target_startdate", e.target.value)}
           />
         </div>
       </div>
 
-      {/* Description */}
+      {/* Job Description */}
       <div>
         <Label>Job Description</Label>
         <Textarea
-          value={formData.job_description ||''}
-          onChange={(e) => handleChange("job_description", e.target.value)}
-          placeholder="Describe the role and responsibilities..."
+          value={formData.job_description}
+          onChange={(e) =>
+            handleChange("job_description", e.target.value)
+          }
         />
       </div>
 
-
-          {/* JD  Upload */}
-    {/* <div>
-      <Label htmlFor="resume">Upload JD File</Label>
-      {!formData.jd_file && (
-        <Input
-          id="jd_file"
-          type="file"
-          accept=".pdf,.doc,.docx"
-          onChange={(e) => {
-            if (e.target.files && e.target.files[0]) {
-              handleChange("jd_file", e.target.files[0]);
-            }
-          }}
-          className="mt-1"
-        />
-      )}
-    
-     
-      {formData.jd_file && (
-        <div className="relative mt-2 w-40 h-15 border border-gray-300 rounded-lg flex items-center justify-center bg-gray-50 shadow">
-          <span className="text-sm text-gray-700 px-2 text-center truncate w-40">
-            {formData.jd_file.name.length > 20
-              ? formData.jd_file.name.substring(0, 15) +
-                "..." +
-                formData.jd_file.name.split(".").pop()
-              : formData.jd_file.name}
-          </span>
-          <button
-            type="button"
-            onClick={() => handleChange("jd_file", null)}
-            className="absolute -top-2 -right-2 w-5 h-5  flex items-center justify-center text-white rounded full text-xs font-bold shadow-md hover:bg-purple-700 focus:outline-none cursor-pointer"
-          >
-            ✖
-          </button>
-        </div>
-      )}
-    </div> */}
-    
-      {/* Skills Input */}
+      {/* ---------------- SKILLS DROPDOWN ---------------- */}
       <div>
         <Label>Required Skills</Label>
-        <SkillsInput
-          initialSkills={formData.skills}
-          onSkillsChange={(skills) => handleChange("skills", skills)}
-        />
+
+        {/* Selected Skills as Chips */}
+        <div className="flex flex-wrap gap-2 mt-2">
+          {formData.skills.length > 0 ? (
+            formData.skills.map((skill) => (
+              <div
+                key={skill}
+                className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm flex items-center gap-2"
+              >
+                {skill}
+                <button
+                  type="button"
+                  onClick={() =>
+                    handleChange(
+                      "skills",
+                      formData.skills.filter((s) => s !== skill)
+                    )
+                  }
+                  className="text-red-500 font-bold"
+                >
+                  ✕
+                </button>
+              </div>
+            ))
+          ) : (
+            <p className="text-sm text-gray-500">No skills selected</p>
+          )}
+        </div>
+
+        {/* Dropdown (Multi-Select Logic) */}
+        <Select
+          onValueChange={(value) => {
+            if (!formData.skills.includes(value)) {
+              handleChange("skills", [...formData.skills, value]);
+            }
+          }}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Select skills" />
+          </SelectTrigger>
+          <SelectContent>
+            {skillsList.map((skill) => (
+              <SelectItem key={skill.id} value={skill.name}>
+                {skill.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
+      {/* Submit Buttons */}
       <div className="flex justify-end space-x-2">
         <Button variant="outline" onClick={onCancel}>
           Cancel

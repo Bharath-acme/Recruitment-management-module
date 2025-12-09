@@ -5,6 +5,7 @@ from typing import List, Optional
 import random
 import sqlalchemy
 from sqlalchemy.orm import joinedload
+from app import crud as skills_crud
 
 def get_user_by_email(db: Session, email: str):
     return db.query(models.User).filter(models.User.email == email).first()
@@ -20,10 +21,17 @@ def generate_req_id(company_name: str) -> str:
 
 
 def create_requisition(db: Session, req: schemas.RequisitionCreate):
-    req_id = generate_req_id("acme")
-    db_req = models.Requisitions(
-        req_id=req_id,
-        **req.dict())
+    skills_data = req.skills
+    req_data = req.dict(exclude={"skills"})
+
+    req_id = generate_req_id("AGH")
+    db_req = models.Requisitions(req_id=req_id, **req_data)
+
+    if skills_data:
+        for skill_name in skills_data:
+            skill = skills_crud.get_or_create_skill(db, skill_name=skill_name.strip())
+            db_req.skills.append(skill)
+
     db.add(db_req)
     db.commit()
     db.refresh(db_req)
@@ -32,26 +40,42 @@ def create_requisition(db: Session, req: schemas.RequisitionCreate):
 
 
 def get_requisition(db: Session, requisition_id: int):
-    return db.query(models.Requisitions)\
-        .options(joinedload(models.Requisitions.candidates))\
-        .filter(models.Requisitions.id == requisition_id)\
+    return (
+        db.query(models.Requisitions)
+        .options(
+            joinedload(models.Requisitions.department),
+            joinedload(models.Requisitions.location),
+            joinedload(models.Requisitions.skills),
+            joinedload(models.Requisitions.candidates),
+            joinedload(models.Requisitions.recruiter),
+            joinedload(models.Requisitions.company),
+        )
+        .filter(models.Requisitions.id == requisition_id)
         .first()
-
-
-# def get_requisitions(db: Session, skip=0, limit=10):
-#     return db.query(models.Requisitions)\
-#         .options(joinedload(models.Requisitions.candidates))\
-#         .offset(skip).limit(limit).all()
+    )
 
 def get_requisitions(
     db: Session,
-    skip=0,
-    limit=10,
-    role: str = None,
-    user_id: int = None,
-    approval_status: str = None
+    skip: int = 0,
+    limit: int = 10,
+    role: Optional[str] = None,
+    user_id: Optional[int] = None,
+    approval_status: Optional[str] = None,
+    company_id: Optional[int] = None,
+    company_name: Optional[str] = None,
 ):
-    query = db.query(models.Requisitions).options(joinedload(models.Requisitions.candidates))
+    query = db.query(models.Requisitions).options(
+        joinedload(models.Requisitions.department),   # ✅ LOAD department
+        joinedload(models.Requisitions.location),     # ✅ LOAD location
+        joinedload(models.Requisitions.skills),       # ✅ LOAD skills
+        joinedload(models.Requisitions.recruiter),    # ✅ LOAD recruiter
+        joinedload(models.Requisitions.candidates),
+        joinedload(models.Requisitions.company),   # already there
+    )
+
+    # 🏢 Company-based filtering
+    if company_name and company_name.lower() != "acme global hub":
+        query = query.filter(models.Requisitions.company_id == company_id)
 
     # ✅ Admin: all (pending + approved + rejected)
     if role == "admin":
@@ -94,9 +118,15 @@ def update_requisition(db: Session, requisition_id: int, req: schemas.Requisitio
     if not db_req:
         return None
 
-    # Update fields from schema
-    for key, value in req.dict(exclude_unset=True).items():
+    update_data = req.dict(exclude_unset=True, exclude={"skills"})
+    for key, value in update_data.items():
         setattr(db_req, key, value)
+
+    if req.skills is not None:
+        db_req.skills.clear()
+        for skill_name in req.skills:
+            skill = skills_crud.get_or_create_skill(db, skill_name=skill_name.strip())
+            db_req.skills.append(skill)
 
     # Update the recruiter if provided
     if recruiter_id is not None:

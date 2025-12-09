@@ -51,6 +51,7 @@ export interface Candidate {
   dob?: string;
   marital_status?: string;
   nationality?: string;
+  company_id?:number;
 }
 
 export function CandidateManager({ selectedCompany, selectedCountry }: CandidateManagerProps) {
@@ -74,7 +75,6 @@ export function CandidateManager({ selectedCompany, selectedCountry }: Candidate
     try {
       const response = await fetch(`${API_BASE_URL}/candidates`, {
         headers: {
-          'Content-Type': 'application/json',
           authorization: `Bearer ${token}`,
         },
       });
@@ -97,10 +97,9 @@ export function CandidateManager({ selectedCompany, selectedCountry }: Candidate
       const response = await fetch(`${API_BASE_URL}/candidates`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
           authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(candidateData),
+        body: candidateData,
       });
 
       if (response.ok) {
@@ -125,7 +124,7 @@ export function CandidateManager({ selectedCompany, selectedCountry }: Candidate
     // tolerant checks using includes for variations
     if (s.includes('new')) return 'screening';
     if (s.includes('approve') || s === 'approved') return 'selected'; // approve / approved
-    if (s === 'selected' || s.includes('selected')) return 'offer proposal';
+    if (s === 'selected' || s.includes('selected')) return 'Job offer';
     if (s.includes('offer')) return 'offer proposal';
     if (s.includes('hire')) return 'hired';
     if (s.includes('reject')) return 'rejected';
@@ -134,7 +133,7 @@ export function CandidateManager({ selectedCompany, selectedCountry }: Candidate
     return 'screening';
   };
 
-  const stages = ['all', 'screening', 'selected', 'offer proposal', 'hired', 'rejected'];
+  const stages = ['all', 'screening', 'selected', 'Job offer', 'hired', 'rejected'];
 
   // memoize filtered candidates for performance
   const filteredCandidates = useMemo(() => {
@@ -213,7 +212,7 @@ export function CandidateManager({ selectedCompany, selectedCountry }: Candidate
           <p className="text-gray-600">Manage candidate pipeline and applications</p>
         </div>
 
-        {user?.company?.trim().toLowerCase() === 'acme global' && (
+        {user?.company?.name?.trim().toLowerCase() === 'acme global hub' && user?.role === 'recruiter' &&(
           <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
             <DialogTrigger asChild>
               <Button>
@@ -271,7 +270,7 @@ export function CandidateManager({ selectedCompany, selectedCountry }: Candidate
                 <TableHead>Position</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Rating</TableHead>
-                {user?.company?.trim().toLowerCase() === 'acme global' && <TableHead>Source</TableHead>}
+                {user?.company?.name?.trim().toLowerCase() === 'acme global hub' && <TableHead>Source</TableHead>}
                 <TableHead>Applied</TableHead>
                 <TableHead className="rounded-r-lg">Recruiter</TableHead>
               </TableRow>
@@ -312,7 +311,7 @@ export function CandidateManager({ selectedCompany, selectedCountry }: Candidate
                           <div>
                             <div className="font-medium">{candidate.name}</div>
 
-                            {user?.company?.trim().toLowerCase() === 'acme global' && (
+                            {user?.company?.name?.trim().toLowerCase() === 'acme global hub' && (
                               <div className="text-sm text-gray-500 flex items-center space-x-2">
                                 <Mail className="h-3 w-3" />
                                 <span>{candidate.email}</span>
@@ -330,7 +329,7 @@ export function CandidateManager({ selectedCompany, selectedCountry }: Candidate
                       <TableCell>
                         <div>
                           <div className="font-medium">{candidate.position}</div>
-                          <div className="text-sm text-gray-500">{candidate.requisition_id}</div>
+                          <div className="text-sm text-gray-500">Req-id: {candidate.requisition_id}</div>
                           <div className="text-sm text-gray-500">{candidate.experience ?? 0} yrs</div>
                         </div>
                       </TableCell>
@@ -343,7 +342,7 @@ export function CandidateManager({ selectedCompany, selectedCountry }: Candidate
                         <div className="flex items-center space-x-1">{renderStars(candidate.rating)}</div>
                       </TableCell>
 
-                      {user?.company?.trim().toLowerCase() === 'acme global' && (
+                      {user?.company?.name?.trim().toLowerCase() === 'acme global hub' && (
                         <TableCell>
                           <Badge variant="outline" className={getSourceColor(candidate.source)}>
                             {candidate.source ?? 'N/A'}

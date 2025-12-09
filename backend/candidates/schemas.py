@@ -2,9 +2,17 @@ from pydantic import BaseModel, EmailStr, Field
 from datetime import date,datetime
 from typing import Optional, List, Dict, Any
 import enum
+from app.schemas import Skill
 
 
+class FileResponse(BaseModel):
+    id: str
+    file_name: str
+    file_url: str
+    file_type: Optional[str] = None
 
+    class Config:
+        from_attributes = True
 
 class CandidateBase(BaseModel):
     name: str
@@ -27,7 +35,7 @@ class CandidateBase(BaseModel):
     current_company: Optional[str] = None
     dob: Optional[date] = None
     marital_status: Optional[str] = None
-    resume_file_id: Optional[str] = None 
+    # resume_file_id: Optional[str] = None 
 
 class CandidateCreate(CandidateBase):
     requisition_id: Optional[int] = None
@@ -54,7 +62,7 @@ class CandidateUpdate(CandidateBase):
     marital_status: Optional[str] = None
     reject_reason: Optional[str] = None
     # add this:
-    resume_file_id: Optional[str] = None  # link to File table if needed
+    # resume_file_id: Optional[str] = None  # link to File table if needed
 
 class CandidateResponse(CandidateBase):
     id: str
@@ -63,6 +71,8 @@ class CandidateResponse(CandidateBase):
     created_date: datetime
     requisition_id: Optional[int] = None
     reject_reason: Optional[str] = None
+    skills: List[Skill] = []
+    files: List[FileResponse] = []
 
     class Config:
         from_attributes = True
@@ -99,3 +109,6 @@ class CandidateActivityLogOut(CandidateActivityLogBase):
 
     class Config:
         from_attributes = True
+
+
+   

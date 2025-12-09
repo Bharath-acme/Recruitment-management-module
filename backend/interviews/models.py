@@ -29,7 +29,8 @@ class Interview(Base):
     score = Column(Integer, nullable=True)
     notes = Column(Text, nullable=True)
     # created_date = Column(DateTime, default=datetime.utcnow)
-
+    company_id = Column(Integer, ForeignKey("companies.id"))
+    company = relationship("Company",back_populates="interviews")
     # Relationships
     requisition = relationship("Requisitions", back_populates="interviews")
     scorecard = relationship("Scorecard", back_populates="interview", uselist=False)

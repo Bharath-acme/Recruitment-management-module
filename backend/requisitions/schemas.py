@@ -4,7 +4,8 @@ from typing import Optional, List, Dict, Any
 import enum
 from .models import EmploymentType, WorkMode, Priority, Status
 from candidates.schemas import CandidateResponse
-
+from app.schemas import Department, Location
+from app.schemas import Skill,CompanyOut
 
 
 class RecruiterBase(BaseModel):
@@ -15,30 +16,6 @@ class RecruiterBase(BaseModel):
         from_attributes = True
 
 
-
-class UserBase(BaseModel):
-    name: str
-    email: EmailStr
-    role: str
-    company: str
-    country: str
-    
-
-class UserCreate(UserBase):
-    password: str
-    confirm_password: str
-
-class UserResponse(UserBase):
-    id: int
-    requisitions: List["RequisitionMini"] = [] 
-    class Config:
-        from_attributes = True
-    # Resolve forward references
-    
-
-class LoginRequest(BaseModel):
-    email: str
-    password: str
 
 class RecruiterOut(BaseModel):
     id: int
@@ -68,19 +45,20 @@ class PositionResponse(PositionBase):
 
 # Base schema (common fields)
 class RequisitionBase(BaseModel):
+    company_id: Optional[int] = None
     position: str
-    department: str
+    department_id: int
     experience: Optional[int] = None
     grade: Optional[str] = None
     employment_type: EmploymentType
     work_mode: WorkMode
-    location: Optional[str] = None
+    location_id: Optional[int] = None
     priority: Priority
     min_salary: Optional[float] = None
     max_salary: Optional[float] = None
     currency: Optional[str] = None
     positions_count: Optional[int] = None
-    skills: Optional[str] = None
+    skills: Optional[List[str]] = []
     target_startdate: Optional[date] = None
     hiring_manager: Optional[str] = None
     status: Status = Status.OPEN   
@@ -109,8 +87,12 @@ class RequisitionResponse(RequisitionBase):
     req_id: str 
     recruiter_id: Optional[int] = None   
     recruiter: Optional[RecruiterOut]
+    department: Department
+    location: Optional[Location]
+    company: Optional[CompanyOut]  
     candidates: List["CandidateResponse"] = [] 
     approval_status: Optional[str] = "pending"
+    skills: List[Skill] = []
     # positions: List[PositionResponse] = []
     class Config:
         from_attributes = True
@@ -148,5 +130,5 @@ class ActivityLogResponse(ActivityLogBase):
     class Config:
         from_attributes = True
 
-UserResponse.update_forward_refs()
+# UserResponse.update_forward_refs()
 RequisitionResponse.update_forward_refs()
