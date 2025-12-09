@@ -244,14 +244,14 @@ console.log("Candidates:", candidates);
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-               <InterviewScheduler/>
-            {/* <DialogHeader>
+               {/* <InterviewScheduler/> */}
+            <DialogHeader>
               <DialogTitle>Schedule New Interview</DialogTitle>
               <DialogDescription>
                 Fill in the details below to schedule a new interview with the candidate.
               </DialogDescription>
-            </DialogHeader> */}
-            {/* <div className="space-y-4">
+            </DialogHeader>
+            <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 
                 <div>
@@ -410,7 +410,7 @@ console.log("Candidates:", candidates);
                   Schedule Interview
                 </Button>
               </div>
-            </div> */}
+            </div>
           </DialogContent>
         </Dialog>)}
       </div>
