@@ -23,6 +23,8 @@ import InvoiceManagement from "./components/invoices/InvoiceManagement";
 import InvoiceDetails from "./components/invoices/InvoiceDetails";
 import NotificationBell from "./components/Notifications";
 import HeaderNavigation from "./components/ClientNavigation";
+import EntityManagementPage from "./components/EntityManagement";
+import { Dashboard2 } from "./components/Dashboard2";
 
 
 
@@ -97,7 +99,7 @@ function AppContent() {
       style={{ marginLeft: mainMargin }} 
       className="flex-1 p-6 pt-4 transition-all duration-300">
         <Routes>
-          <Route path="/dashboard" element={<Dashboard selectedCompany={selectedCompany} selectedCountry={selectedCountry}  />} />
+          <Route path="/dashboard" element={<Dashboard2 selectedCompany={selectedCompany} selectedCountry={selectedCountry}  />} />
           <Route path="/requisitions" element={<RequisitionManager selectedCompany={selectedCompany} selectedCountry={selectedCountry} />} />
           <Route path="/candidates" element={<CandidateManager selectedCompany={selectedCompany} selectedCountry={selectedCountry} />} />
           <Route path="/interviews" element={<InterviewManager 
@@ -115,6 +117,7 @@ function AppContent() {
           <Route path="/interviews/:id" element={<InterviewDetail />} />
           <Route path="/invoices" element={<InvoiceManagement/>}/>
           <Route path="/invoices/:id" element={<InvoiceDetails/>}/>
+          <Route path="/entity" element={<EntityManagementPage/>}/>
           {/* Redirect any unknown route to dashboard */}
           <Route path="*" element={<Dashboard selectedCompany={selectedCompany} selectedCountry={selectedCountry} />}/>
         </Routes>
