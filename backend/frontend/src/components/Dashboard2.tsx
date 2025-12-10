@@ -159,7 +159,7 @@ const Select = ({ value, onChange, options, icon: Icon, placeholder }: any) => (
 );
 
 // --- MODAL COMPONENT ---
-const Modal = ({ isOpen, onClose, title, children }: any) => {
+export const Modal = ({ isOpen, onClose, title, children }: any) => {
   if (!isOpen) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
@@ -205,7 +205,7 @@ export function Dashboard2({ selectedCompany, selectedCountry }: DashboardProps)
 
   useEffect(() => {
     dashboardData();
-    loadDemoData();
+    // loadDemoData();
   }, [selectedCompany, selectedCountry]);
 
   // Simulate API Fetch
@@ -218,7 +218,7 @@ export function Dashboard2({ selectedCompany, selectedCountry }: DashboardProps)
       });
       if (!response.ok) throw new Error('Failed to fetch dashboard data');
       const data = await response.json();
-      
+      console.log('Dashboard', data)
       setDashCount(data.summary);  
       setRecentRequisitions(data.recent_requisitions);
       setUpcomingInterviews(data.upcoming_interviews);
@@ -247,12 +247,7 @@ export function Dashboard2({ selectedCompany, selectedCountry }: DashboardProps)
       { id: 3, candidateName: 'Omar Hassan', position: 'UI/UX Designer', time: '9:00 AM', date: 'Tomorrow', interviewer: 'Lisa Park', type: 'Portfolio Review' }
     ]);
 
-    setRecentRequisitions([
-      { id: 'REQ-001', title: 'Senior Frontend Engineer', department: 'Engineering', status: 'Active', daysOpen: 12, applicants: 45, stage: 'Screening', priority: 'high', location: 'Remote' },
-      { id: 'REQ-002', title: 'Product Manager', department: 'Product', status: 'Active', daysOpen: 5, applicants: 28, stage: 'Interview', priority: 'medium', location: 'London' },
-      { id: 'REQ-003', title: 'UX Designer', department: 'Design', status: 'On Hold', daysOpen: 25, applicants: 12, stage: 'Offer', priority: 'low', location: 'New York' },
-      { id: 'REQ-004', title: 'Marketing Specialist', department: 'Marketing', status: 'Active', daysOpen: 2, applicants: 8, stage: 'Sourcing', priority: 'medium', location: 'Dubai' },
-    ]);
+    
   };
 
   const handleCardClick = (route: string) => {
@@ -349,7 +344,7 @@ export function Dashboard2({ selectedCompany, selectedCountry }: DashboardProps)
         </div>
         
         {/* Dynamic Filters Area */}
-        <div className="flex flex-col sm:flex-row gap-3 bg-white p-2 rounded-2xl shadow-sm border border-gray-100">
+        {/* <div className="flex flex-col sm:flex-row gap-3 bg-white p-2 rounded-2xl shadow-sm border border-gray-100">
            <div className="w-full sm:w-48">
               <Select 
                  icon={Building2}
@@ -372,7 +367,7 @@ export function Dashboard2({ selectedCompany, selectedCountry }: DashboardProps)
               <Download className="h-4 w-4 mr-2" />
               Export
            </Button>
-        </div>
+        </div> */}
       </div>
 
       {/* Main Tabs */}
@@ -474,7 +469,7 @@ export function Dashboard2({ selectedCompany, selectedCountry }: DashboardProps)
 
             {/* Right: Interviews & Goal */}
             <div className="space-y-6">
-              <Card className="bg-gradient-to-br from-indigo-900 to-slate-900 text-white border-none shadow-xl">
+              {/* <Card className="bg-gradient-to-br from-indigo-900 to-slate-900 text-white border-none shadow-xl">
                 <div className="p-6 relative overflow-hidden">
                   <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none">
                      <Target className="h-40 w-40 transform rotate-12" />
@@ -493,7 +488,7 @@ export function Dashboard2({ selectedCompany, selectedCountry }: DashboardProps)
                     </div>
                   </div>
                 </div>
-              </Card>
+              </Card> */}
 
               <Card>
                 <CardHeader>
@@ -594,7 +589,7 @@ export function Dashboard2({ selectedCompany, selectedCountry }: DashboardProps)
       )}
 
       {/* Notifications Panel */}
-      <NotificationsPanel userId={Number(user?.id || 0)} />
+      {/* <NotificationsPanel userId={Number(user?.id || 0)} /> */}
 
       {/* RAS PREVIEW MODAL */}
       <Modal 

@@ -8,7 +8,7 @@ from app.database import get_db
 from typing import List, Optional
 from fastapi import APIRouter
 from app import celery_worker, websocket
-
+from app.utils.tasks import send_requisition_created_email
 from app.crud import create_notification
 from app.utils.notifier import send_requisition_for_approval, send_requisition_approval_update, send_requisition_deleted, send_team_assignment_notification
 # from celery.results import AsyncResult
@@ -17,8 +17,12 @@ from app.utils.notifier import send_requisition_for_approval, send_requisition_a
 router = APIRouter()
 
 @router.post("", response_model=RequisitionResponse)
-async def create_requisition(req: RequisitionCreate, db: Session = Depends(get_db),current_user=Depends(get_current_user)):
+async def create_requisition(req: RequisitionCreate, 
+                             db: Session = Depends(get_db),
+                             current_user=Depends(get_current_user)):
+
     requisition = crud.create_requisition(db, req)
+
     crud.create_activity_log(
         db,
         requisition_id=requisition.id,
@@ -27,15 +31,24 @@ async def create_requisition(req: RequisitionCreate, db: Session = Depends(get_d
         details=f"Requisition '{requisition.position}' created by {current_user.name}"
     )
 
-   # Trigger approval request notifications (async)
+    # 🔥 Send email notification to sales
+    try:
+        send_requisition_created_email.delay(
+            requisition.id,
+            requisition.position,
+            current_user.name
+        )
+    except Exception:
+        pass
+
+    # Your existing approval workflow
     try:
         send_requisition_for_approval.delay(requisition.id, current_user.id)
     except Exception:
-        # don't let task queue failure break the response
         pass
 
     return requisition
-   
+
 
 
 @router.get("", response_model=list[RequisitionResponse])
