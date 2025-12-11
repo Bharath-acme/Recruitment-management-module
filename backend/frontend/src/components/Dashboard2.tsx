@@ -22,7 +22,7 @@ import {
   MoreHorizontal
 } from 'lucide-react';
 // import { useNavigate } from 'react-router-dom';
-// import { useAuth } from './AuthProvider';
+import { useAuth } from './AuthProvider';
 // import { NotificationService, Notification } from '../utils/Utils';
 
 // --- !!! IMPORTANT: UNCOMMENT THE LINE BELOW IN YOUR VITE PROJECT !!! ---
@@ -30,13 +30,13 @@ import {
 const API_BASE_URL = 'http://localhost:3000/api'; // Hardcoded for preview environment
 
 // Mock Auth Provider for Preview
-const AuthContext = createContext(null);
-const useAuth = () => {
-  return { 
-    user: { id: 1, name: "Sarah Jenkins", role: "Senior Recruiter" },
-    allCompanies: [{ id: 1, name: "Global Tech" }]
-  };
-};
+//const AuthContext = createContext(null);
+//const useAuth = () => {
+//  return { 
+//    user: { id: 1, name: "Sarah Jenkins", role: "Senior Recruiter" },
+//    allCompanies: [{ id: 1, name: "Global Tech" }]
+//  };
+//};
 // Mock Notification Service for Preview
 class NotificationService {
   constructor(userId, callback) {
@@ -207,7 +207,6 @@ export function Dashboard2({ selectedCompany, selectedCountry }: DashboardProps)
     dashboardData();
     // loadDemoData();
   }, [selectedCompany, selectedCountry]);
-
   // Simulate API Fetch
   const dashboardData = async () => {
     setLoading(true);
@@ -332,10 +331,18 @@ export function Dashboard2({ selectedCompany, selectedCountry }: DashboardProps)
   }
 
   return (
-    <div className="p-8 space-y-8 pb-10 min-h-screen bg-[#F8FAFC]">
+    <div className="pt-16 p-8 space-y-10 pb-10 min-h-screen bg-[#F8FAFC]">
+       <header
+       className={`fixed top-0 right-0 h-14 flex items-center px-6 z-40 transition-all duration-300 `}
+       style={{
+         background: "navy",
+         color: "#fff",
+         width: 1240 + "px",
+        }}>
+       </header>
       
       {/* Header & Filter Bar */}
-      <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-6">
+      <div className="flex flex-col xl:flex-row justify-between gap-6">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Executive Overview</h1>
           <p className="text-gray-500 mt-2 font-medium">
@@ -344,7 +351,7 @@ export function Dashboard2({ selectedCompany, selectedCountry }: DashboardProps)
         </div>
         
         {/* Dynamic Filters Area */}
-        {/* <div className="flex flex-col sm:flex-row gap-3 bg-white p-2 rounded-2xl shadow-sm border border-gray-100">
+         <div className="flex flex-col sm:flex-row gap-3 bg-white p-2 rounded-2xl shadow-sm border border-gray-100">
            <div className="w-full sm:w-48">
               <Select 
                  icon={Building2}
@@ -364,10 +371,9 @@ export function Dashboard2({ selectedCompany, selectedCountry }: DashboardProps)
               />
            </div>
            <Button variant="dark" className="px-6" onClick={() => {}}>
-              <Download className="h-4 w-4 mr-2" />
-              Export
+              <Bell className="h-4 w-4 mr-2" />
            </Button>
-        </div> */}
+        </div> 
       </div>
 
       {/* Main Tabs */}

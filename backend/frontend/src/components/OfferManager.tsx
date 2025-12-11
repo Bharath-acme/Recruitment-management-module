@@ -265,7 +265,15 @@ export function OfferManager({ selectedCompany, selectedCountry }: OfferManagerP
   };
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="pt-16 p-6 space-y-6">
+       <header
+       className={`fixed top-0 right-0 h-14 flex items-center px-6 z-40 transition-all duration-300 `}
+       style={{
+         background: "navy",
+         color: "#fff",
+         width: 1240 + "px",
+        }}>
+       </header>
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Offer Management</h1>

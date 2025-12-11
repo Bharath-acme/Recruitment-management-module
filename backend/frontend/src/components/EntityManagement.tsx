@@ -83,7 +83,15 @@ const EntitySection: React.FC<EntitySectionProps> = ({
   };
 
   return (
-    <Card className="overflow-hidden transition-all hover:shadow-lg">
+    <Card className="pt-16 overflow-hidden transition-all hover:shadow-lg">
+      <header
+       className={`fixed top-0 right-0 h-14 flex items-center px-6 z-40 transition-all duration-300 `}
+       style={{
+         background: "navy",
+         color: "#fff",
+         width: 1240 + "px",
+        }}>
+       </header>
       <CardHeader className={`${colorClass} text-white`}>
         <div className="flex items-center gap-3">
           <div className="bg-white/20 p-2 rounded-lg">
