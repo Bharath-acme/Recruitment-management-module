@@ -2,8 +2,8 @@ from sqlalchemy.orm import Session
 from app import models, schemas
 from .models import Offer, OfferStatus, ApprovalRecord, ApprovalState, SalaryBand
 from .schemas import OfferCreate
-
-from datetime import datetime
+import uuid
+from datetime import datetime,timedelta
 from typing import List, Optional
 
 OUTSIDE_BAND_ROLES = ["finance", "leadership"]
@@ -66,7 +66,7 @@ def submit_for_approval(db: Session, offer: Offer, country: str = "IN"):
     notify_roles(roles, f"Offer {offer.offer_id} requires approval", {"offer_id": offer.offer_id})
     return {"outside": outside, "roles": roles}
 
-def record_approval(db: Session, offer: Offer, role: str, approver_user_id: int, action: str, comment: Optional[str] = None):
+def record_approval(db: Session, offer: Offer, role: str, approver_user_id: str, action: str, comment: Optional[str] = None):
     # find pending record for this role
     rec = db.query(ApprovalRecord).filter(
         ApprovalRecord.offer_id == offer.id,

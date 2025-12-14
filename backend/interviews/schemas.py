@@ -6,6 +6,27 @@ from candidates.schemas import CandidateMini
 from requisitions.schemas import RequisitionMini    
 
 
+class CalendarRequest(BaseModel):
+    recruiter_email: str
+    start: str
+    end: str
+
+class CreateEventPayload(BaseModel):
+    recruiter_email: str
+    candidate_email: str
+    candidate_name: str
+    start: str
+    end: str
+    subject: str
+    body: str
+
+class EmailPayload(BaseModel):
+    recruiter_email: str
+    candidate_email: str
+    subject: str
+    body: str
+
+
 class InterviewBase(BaseModel):
     candidate_id: str
     requisition_id: int
@@ -29,6 +50,28 @@ class InterviewResponse(InterviewBase):
     created_date: datetime
     candidate: CandidateMini
     requisition: RequisitionMini
+
+    class Config:
+        from_attributes = True
+
+class ScorecardBase(BaseModel):
+    technical_score: float
+    behavioral_score: float
+    cultural_score: float
+    overall_recommendation: str
+    technical_comments: Optional[str] = None
+    behavioral_comments: Optional[str] = None
+    cultural_comments: Optional[str] = None
+    overall_comments: Optional[str] = None
+
+class ScorecardCreate(ScorecardBase):
+    candidate_id: str
+    interview_id: str
+
+class ScorecardResponse(ScorecardBase):
+    id: int
+    candidate_id: str
+    interview_id: str
 
     class Config:
         from_attributes = True

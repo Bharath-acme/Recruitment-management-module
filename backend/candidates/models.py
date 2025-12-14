@@ -1,6 +1,8 @@
 from sqlalchemy import Column, Integer, String, Float, Date, Text, Enum, DateTime,Table, ForeignKey,UniqueConstraint
 from sqlalchemy.orm import relationship
 from app.database import Base
+from app.models import requisition_skills, candidate_skills
+
 from sqlalchemy.dialects.sqlite import JSON
 from datetime import datetime
 import uuid
@@ -18,19 +20,24 @@ class Candidate(Base):
     phone = Column(String(100), nullable=True)
     location = Column(String(100), nullable=True)
     experience = Column(Integer, nullable=True)
-    skills = Column(JSON, nullable=True)
     applied_date = Column(DateTime, default=datetime.utcnow)
     last_activity = Column(DateTime, default=datetime.utcnow)
     rating = Column(Integer, default=0)
     notes = Column(Text, nullable=True)
-    resume_url = Column(String(1000), default='active')
+    resume_url = Column(String(1000), default='new')
     recruiter = Column(String(100), nullable=True)
     status = Column(String(100), nullable=True)
+    reject_reason = Column(String(100), nullable=True)
     created_date = Column(DateTime, default=datetime.utcnow)
+    offer_made_date = Column(Date, nullable=True)
+    offer_acceptence_date=Column(Date, nullable=True)
+    offer_rejected_date = Column(Date,nullable=True)
 
     # FIX: Match Requisition.id type
     requisition_id = Column(Integer, ForeignKey("requisitions.id"), nullable=True)
     requisition = relationship("Requisitions", backref="candidates")
+    company_id = Column(Integer, ForeignKey("companies.id"))
+    company = relationship("Company",back_populates="candidates")
     offers = relationship("Offer", back_populates="candidate", cascade="all, delete-orphan")
 
     source = Column(String(50), nullable=True)
@@ -41,7 +48,12 @@ class Candidate(Base):
     dob = Column(Date, nullable=True)
     marital_status = Column(String(50), nullable=True)
     interviews = relationship("Interview", back_populates="candidate")
-   
+
+    files = relationship("File", back_populates="candidate", cascade="all, delete-orphan")
+    scorecards = relationship("Scorecard", back_populates="candidate", cascade="all, delete")
+
+    # Many-to-Many relationship for skills
+    skills = relationship("Skill", secondary=candidate_skills, back_populates="candidates")
     
 
 
@@ -59,3 +71,17 @@ class CandidateActivityLog(Base):
 
     candidate = relationship("Candidate", backref="activity_logs")
     user = relationship("User", backref="candidate_activity_logs")
+
+
+class File(Base):
+    __tablename__ = "files"
+
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    file_name = Column(String(255), nullable=False)
+    file_type = Column(String(50), nullable=True)  # e.g., resume, jd, others
+    file_url = Column(String(1000), nullable=False)  # path or S3/public URL
+    uploaded_at = Column(DateTime, default=datetime.utcnow)
+
+    # Relationship to Candidate (if file belongs to candidate)
+    candidate_id = Column(String(36), ForeignKey("candidates.id", ondelete="CASCADE"), nullable=True)
+    candidate = relationship("Candidate", back_populates="files")

@@ -1,0 +1,68 @@
+name: Build and deploy FastAPI + React app to Azure Web App - acmeglobal-rmm
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install and build React app
+        run: |
+          cd backend/frontend
+          npm ci
+          npm run build
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install backend dependencies
+        run: |
+          cd backend
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Make startup.sh executable
+        run: |
+          cd backend
+          chmod +x startup.sh
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-app
+          path: backend/
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: python-app
+          path: backend
+
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: 'acmeglobal-rmm'
+          slot-name: 'Production'
+          package: backend
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_00262C6EC3F349FF8787398F76DEF2D2 }}
+

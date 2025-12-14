@@ -1,233 +1,249 @@
+// OfferForm.tsx
 import React, { useState } from "react";
 import { Input } from "./ui/input";
-import { Button } from "./ui/button"; // assuming shadcn/ui button
-import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
+import { Button } from "./ui/button";
 import { Label } from "./ui/label";
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+} from "./ui/select";
+import { XCircle } from "lucide-react";
 
-interface Allowance {
+type Candidate = {
+  id: string;
   name: string;
-  value: number;
-}
+  email?: string | null;
+  position?: string;
+  requisition_id?: number | string;
+};
 
-interface Benefit {
-  name: string;
-  value: string | number | boolean;
-}
+export default function OfferForm({
+  candidates,
+  onSubmit,
+  onCancel,
+}: {
+  candidates: Candidate[];
+  onSubmit: (data: any) => void;
+  onCancel?: () => void;
+}) {
+  const [candidateKey, setCandidateKey] = useState("");
 
-const OfferForm: React.FC = () => {
-  const [appId, setAppId] = useState<number>(0);
-  const [candidateId, setCandidateId] = useState<number>(0);
-  const [grade, setGrade] = useState<string>("");
-  const [base, setBase] = useState<number>(0);
-  const [allowances, setAllowances] = useState<Allowance[]>([
-    { name: "housing", value: 0 },
-    { name: "transport", value: 0 },
+  const [grade, setGrade] = useState("");
+  const [base, setBase] = useState("");
+  const [variablePay, setVariablePay] = useState("");
+  const [currency, setCurrency] = useState("INR");
+  const [expiryDays, setExpiryDays] = useState(14);
+
+  const [allowances, setAllowances] = useState([
+    { name: "Food", value: "0" },
+    { name: "Transport", value: "0" },
   ]);
-  const [benefits, setBenefits] = useState<Benefit[]>([
-    { name: "medical", value: false },
-    { name: "tickets", value: 0 },
+
+  const [benefits, setBenefits] = useState([
+    { name: "Medical Insurance", value: "Provided" },
+    { name: "Annual Leave", value: "30 days" },
   ]);
-  const [variablePay, setVariablePay] = useState<number>(0);
-  const [currency, setCurrency] = useState<string>("USD");
-  const [expiryDays, setExpiryDays] = useState<number>(14);
-  const [country, setCountry] = useState<string>("IN");
 
-  // Handlers for dynamic fields
-  const addAllowance = () =>
-    setAllowances([...allowances, { name: "", value: 0 }]);
+  const selectedCandidate = candidates.find(
+    (c) => (c.email ?? `no-email-${c.id}`) === candidateKey
+  );
 
-  const removeAllowance = (index: number) => {
-    setAllowances(allowances.filter((_, i) => i !== index));
-  };
+  const handleSelectCandidate = (key: string) => {
+    setCandidateKey(key);
+    const cand = candidates.find((c) => (c.email ?? `no-email-${c.id}`) === key);
 
-  const updateAllowance = (index: number, key: keyof Allowance, value: any) => {
-    const updated = [...allowances];
-    if (key === "name") {
-      updated[index].name = value as string;
-    } else if (key === "value") {
-      updated[index].value = Number(value);
+    if (cand) {
+      setGrade(cand.position ?? "");
     }
-    setAllowances(updated);
   };
 
-  const addBenefit = () => setBenefits([...benefits, { name: "", value: "" }]);
+  // Dynamic Allowances
+  const addAllowance = () =>
+    setAllowances([...allowances, { name: "", value: "0" }]);
 
-  const removeBenefit = (index: number) => {
-    setBenefits(benefits.filter((_, i) => i !== index));
+  const updateAllowance = (i: number, field: "name" | "value", value: string) => {
+    const copy = [...allowances];
+    copy[i][field] = value;
+    setAllowances(copy);
   };
 
-  const updateBenefit = (index: number, key: keyof Benefit, value: any) => {
-    const updated = [...benefits];
-    updated[index][key] = value;
-    setBenefits(updated);
+  const deleteAllowance = (i: number) =>
+    setAllowances(allowances.filter((_, idx) => idx !== i));
+
+  // Dynamic Benefits
+  const addBenefit = () =>
+    setBenefits([...benefits, { name: "", value: "" }]);
+
+  const updateBenefit = (i: number, field: "name" | "value", value: string) => {
+    const copy = [...benefits];
+    copy[i][field] = value;
+    setBenefits(copy);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const deleteBenefit = (i: number) =>
+    setBenefits(benefits.filter((_, idx) => idx !== i));
+
+  const handleSubmit = (e: any) => {
     e.preventDefault();
+
+    if (!selectedCandidate) {
+      alert("Select a candidate");
+      return;
+    }
+
+    const allowancesObj: any = {};
+    allowances.forEach((a) => {
+      if (a.name) allowancesObj[a.name.toLowerCase()] = Number(a.value) || 0;
+    });
+
+    const benefitsObj: any = {};
+    benefits.forEach((b) => {
+      if (b.name) benefitsObj[b.name.toLowerCase()] = b.value;
+    });
+
     const payload = {
-      app_id: appId,
-      candidate_id: candidateId,
+      app_id: selectedCandidate.requisition_id,
+      candidate_id: selectedCandidate.id,
       grade,
-      base,
-      allowances,
-      benefits,
-      variable_pay: variablePay,
+      base: Number(base),
+      allowances: allowancesObj,
+      benefits: benefitsObj,
+      variable_pay: Number(variablePay),
       currency,
       expiry_days: expiryDays,
-      country,
     };
-    console.log("Form Submitted:", payload);
-    // API call here
+
+    onSubmit(payload);
   };
 
   return (
-    <Card className="max-w-3xl mx-auto p-6 shadow-lg">
-      <CardHeader>
-        <CardTitle>Create Offer</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Basic Info */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label>App ID</Label>
-              <Input
-                type="number"
-                value={appId}
-                onChange={(e) => setAppId(Number(e.target.value))}
-              />
-            </div>
-            <div>
-              <Label>Candidate ID</Label>
-              <Input
-                type="number"
-                value={candidateId}
-                onChange={(e) => setCandidateId(Number(e.target.value))}
-              />
-            </div>
-            <div>
-              <Label>Grade</Label>
-              <Input
-                value={grade}
-                onChange={(e) => setGrade(e.target.value)}
-              />
-            </div>
-            <div>
-              <Label>Base Salary</Label>
-              <Input
-                type="number"
-                value={base}
-                onChange={(e) => setBase(Number(e.target.value))}
-              />
-            </div>
-          </div>
+    <form className="space-y-4" onSubmit={handleSubmit}>
+      {/* Candidate Selector */}
+      <div>
+        <Label>Candidate</Label>
+        <Select value={candidateKey} onValueChange={handleSelectCandidate}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select candidate" />
+          </SelectTrigger>
+          <SelectContent>
+            {candidates.map((c) => {
+              const key = c.email ?? `no-email-${c.id}`;
+              return (
+                <SelectItem key={key} value={key}>
+                  {c.email ? `${c.email} — ${c.name}` : `${c.name} (No Email)`} — Req{" "}
+                  {c.requisition_id}
+                </SelectItem>
+              );
+            })}
+          </SelectContent>
+        </Select>
+      </div>
 
-          {/* Allowances */}
-          <div>
-            <Label className="text-lg">Allowances</Label>
-            {allowances.map((allowance, index) => (
-              <div key={index} className="flex gap-2 items-center mt-2">
-                <Input
-                  placeholder="Name"
-                  value={allowance.name}
-                  onChange={(e) =>
-                    updateAllowance(index, "name", e.target.value)
-                  }
-                />
-                <Input
-                  type="number"
-                  placeholder="Value"
-                  value={allowance.value}
-                  onChange={(e) =>
-                    updateAllowance(index, "value", Number(e.target.value))
-                  }
-                />
-                <Button
-                  type="button"
-                  variant="destructive"
-                  onClick={() => removeAllowance(index)}
-                >
-                  Remove
-                </Button>
-              </div>
-            ))}
-            <Button type="button" onClick={addAllowance} className="mt-2">
-              Add Allowance
-            </Button>
-          </div>
+      {/* Grade */}
+      <div>
+        <Label>Grade</Label>
+        <Input
+          value={grade}
+          onChange={(e) => setGrade(e.target.value)}
+          placeholder="Enter grade"
+        />
+      </div>
 
-          {/* Benefits */}
-          <div>
-            <Label className="text-lg">Benefits</Label>
-            {benefits.map((benefit, index) => (
-              <div key={index} className="flex gap-2 items-center mt-2">
-                <Input
-                  placeholder="Name"
-                  value={benefit.name}
-                  onChange={(e) => updateBenefit(index, "name", e.target.value)}
-                />
-                <Input
-                  placeholder="Value"
-                  value={benefit.value as string}
-                  onChange={(e) =>
-                    updateBenefit(index, "value", e.target.value)
-                  }
-                />
-                <Button
-                  type="button"
-                  variant="destructive"
-                  onClick={() => removeBenefit(index)}
-                >
-                  Remove
-                </Button>
-              </div>
-            ))}
-            <Button type="button" onClick={addBenefit} className="mt-2">
-              Add Benefit
-            </Button>
-          </div>
+      {/* Base Salary */}
+      <div>
+        <Label>Base Salary</Label>
+        <Input value={base} onChange={(e) => setBase(e.target.value)} />
+      </div>
 
-          {/* Other Fields */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label>Variable Pay</Label>
-              <Input
-                type="number"
-                value={variablePay}
-                onChange={(e) => setVariablePay(Number(e.target.value))}
-              />
-            </div>
-            <div>
-              <Label>Currency</Label>
-              <Input
-                value={currency}
-                onChange={(e) => setCurrency(e.target.value)}
-              />
-            </div>
-            <div>
-              <Label>Expiry Days</Label>
-              <Input
-                type="number"
-                value={expiryDays}
-                onChange={(e) => setExpiryDays(Number(e.target.value))}
-              />
-            </div>
-            <div>
-              <Label>Country</Label>
-              <Input
-                value={country}
-                onChange={(e) => setCountry(e.target.value)}
-              />
-            </div>
-          </div>
+      {/* Variable Pay */}
+      <div>
+        <Label>Variable Pay</Label>
+        <Input
+          value={variablePay}
+          onChange={(e) => setVariablePay(e.target.value)}
+        />
+      </div>
 
-          <Button type="submit" className="w-full">
-            Submit
-          </Button>
-        </form>
-      </CardContent>
-    </Card>
+      {/* Currency */}
+      <div>
+        <Label>Currency</Label>
+        <Select value={currency} onValueChange={setCurrency}>
+          <SelectTrigger>
+            <SelectValue placeholder="Currency" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="INR">INR</SelectItem>
+            <SelectItem value="USD">USD</SelectItem>
+            <SelectItem value="AED">AED</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Expiry Days */}
+      <div>
+        <Label>Offer Validity (days)</Label>
+        <Input
+          type="number"
+          value={expiryDays}
+          onChange={(e) => setExpiryDays(Number(e.target.value))}
+        />
+      </div>
+
+      {/* Dynamic Allowances */}
+      <div>
+        <Label>Allowances</Label>
+        {allowances.map((a, i) => (
+          <div key={i} className="flex gap-2 mb-2">
+            <Input
+              value={a.name}
+              onChange={(e) => updateAllowance(i, "name", e.target.value)}
+              placeholder="Allowance Name"
+            />
+            <Input
+              value={a.value}
+              onChange={(e) => updateAllowance(i, "value", e.target.value)}
+              placeholder="Value"
+            />
+            <XCircle onClick={() => deleteAllowance(i)} className="cursor-pointer" />
+          </div>
+        ))}
+        <Button type="button" onClick={addAllowance}>
+          Add Allowance
+        </Button>
+      </div>
+
+      {/* Dynamic Benefits */}
+      <div>
+        <Label>Benefits</Label>
+        {benefits.map((b, i) => (
+          <div key={i} className="flex gap-2 mb-2">
+            <Input
+              value={b.name}
+              onChange={(e) => updateBenefit(i, "name", e.target.value)}
+              placeholder="Benefit Name"
+            />
+            <Input
+              value={b.value}
+              onChange={(e) => updateBenefit(i, "value", e.target.value)}
+              placeholder="Description"
+            />
+            <XCircle onClick={() => deleteBenefit(i)} className="cursor-pointer" />
+          </div>
+        ))}
+        <Button type="button" onClick={addBenefit}>
+          Add Benefit
+        </Button>
+      </div>
+
+      <div className="flex justify-end gap-3 pt-4">
+        <Button variant="outline" onClick={onCancel} type="button">
+          Cancel
+        </Button>
+        <Button type="submit">Create Offer</Button>
+      </div>
+    </form>
   );
-};
-
-export default OfferForm;
+}

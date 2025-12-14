@@ -16,6 +16,7 @@ import logo from "../media/profile_logo.png";
 import companyLogo from "../media/acme_logo.png";
 import { Capitalize } from "../utils/Utils";
 import acmelogo from "../media/acmelogo.png";
+import NotificationBell from "./Notifications";
 
 interface NavigationProps {
   selectedCompany: string;
@@ -24,7 +25,7 @@ interface NavigationProps {
   onCountryChange: (country: string) => void;
   userRole: string | null;
   isCollapsed?: boolean;
-}
+} 
 
 export function Navigation({
   selectedCompany,
@@ -43,10 +44,13 @@ export function Navigation({
     { path: "/requisitions", label: "Requisitions", icon: FileText, roles: ["admin", "recruiter", "hiring_manager"] },
     { path: "/candidates", label: "Candidates", icon: Users, roles: ["admin", "recruiter", "hiring_manager", "interviewer"] },
     { path: "/interviews", label: "Interviews", icon: Calendar, roles: ["admin", "recruiter", "hiring_manager", "interviewer"] },
-    // { path: "/offers", label: "Offers", icon: HandHeart, roles: ["admin", "recruiter", "finance", "hiring_manager"] },
-    // { path: "/analytics", label: "Analytics", icon: BarChart3, roles: ["admin", "recruiter", "hiring_manager"] },
+    { path: "/offers", label: "Offers", icon: HandHeart, roles: ["admin", "recruiter", "finance", "hiring_manager"] },
+     { path: "/invoices", label: "Invoice", icon: HandHeart, roles: ["admin", "recruiter", "finance", "hiring_manager"] },
+    { path: "/analytics", label: "Analytics", icon: BarChart3, roles: ["admin", "recruiter", "hiring_manager"] },
+    { path: "/entity", label: "Entity Management", icon: FileText, roles: ["admin", "hiring_manager"] },
     // { path: "/vendors", label: "Vendors", icon: Building2, roles: ["admin", "recruiter", "hiring_manager"] },
     // { path: "/team", label: "Team", icon: Settings, roles: ["admin", "hiring_manager"] },
+    
   ];
 
   const filteredNavItems = navItems.filter(
@@ -63,7 +67,7 @@ export function Navigation({
 
   return (
     <nav
-      className={`flex flex-col mt-2 h-full w-full border-r transition-all duration-300 ${
+      className={`flex flex-col mt-4 h-full w-full border-r transition-all duration-300 ${
         isCollapsed ? "items-center" : ""
       }`}
     >
@@ -127,8 +131,9 @@ export function Navigation({
             </Link>
           );
         })}
-
+      
         {/* Logout Button */}
+        
         <Button
           className={` absolute bottom-10 flex items-center justify-start px-3 py-3 mb-1 space-x-2 transition-all duration-300 ${
             isCollapsed ? "justify-center px-0 w-[85%]" : " w-[95%] px-3"
@@ -140,6 +145,8 @@ export function Navigation({
           <LogOut className={`${iconSize} shrink-0`} />
           {!isCollapsed && <span className="text-[15px]">Logout</span>}
         </Button>
+
+       
       </div>
 
      

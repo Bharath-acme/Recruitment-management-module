@@ -9,6 +9,8 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Calendar } from './ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
+import { useAuth } from './AuthProvider';
+import { SideDrawer } from './invoices/InvoiceDialog';
 import { 
   Plus, 
   Search, 
@@ -26,6 +28,7 @@ import {
 import { toast } from 'sonner';
 import { useNavigate } from "react-router-dom";
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+import InterviewScheduler from './interviews/ParentForom';
 
 
 interface InterviewManagerProps {
@@ -52,6 +55,7 @@ interface Interview {
   notes?: string;
   createdDate: string;
   cadidate_id: string;
+  company_id:number;
   candidate: { id: string; name: string; email: string; position: string; requisition_id: string};
   requisition: { id: string; position: string };
 }
@@ -63,6 +67,7 @@ export function InterviewManager({ selectedCompany, selectedCountry }: Interview
   const [statusFilter, setStatusFilter] = useState('all');
   const [showScheduleDialog, setShowScheduleDialog] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const [open,setOpen] = useState(false)
 
 
   const [newInterview, setNewInterview] = useState({
@@ -77,8 +82,12 @@ export function InterviewManager({ selectedCompany, selectedCountry }: Interview
     duration: 60,
     location: '',
     interviewers: '',
-    cadidate_id: ''
+    cadidate_id: '',
+    company_id:null
   });
+
+  const token = localStorage.getItem('token');
+  const {user} = useAuth()
 
   const [candidates, setCandidates] = useState<
   { id:string, email: string; name: string; position: string; requisition_id: string }[]
@@ -87,7 +96,11 @@ const navigate = useNavigate();
 
 useEffect(() => {
   fetch(`${API_BASE_URL}/candidates`)
-  fetch("http://localhost:8000/candidates")
+  fetch("http://localhost:8000/candidates", {
+      headers: { 'Content-Type': 'application/json',
+        authorization: `Bearer ${token}`
+       }
+    })
     .then((res) => res.json())
     .then((data) => setCandidates(data));
 
@@ -207,20 +220,39 @@ console.log("Candidates:", candidates);
   };
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="pt-16 p-6 space-y-6">
+       <header
+       className={`fixed top-0 right-0 h-14 flex items-center px-6 z-40 transition-all duration-300 `}
+       style={{
+         background: "navy",
+         color: "#fff",
+         width: 1240 + "px",
+        }}>
+       </header>
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Interview Management</h1>
           <p className="text-gray-600">Schedule and manage candidate interviews</p>
         </div>
-        <Dialog open={showScheduleDialog} onOpenChange={setShowScheduleDialog}>
+
+         {/* <Button onClick={()=>setOpen(true) }>
+              <Plus className="h-4 w-4 mr-2" />
+              Schedule Interview
+          </Button>
+
+        <SideDrawer open={open} onClose={() => setOpen(false)}>
+          <InterviewScheduler/>
+        </SideDrawer> */}
+
+       {user?.company?.name?.trim().toLowerCase() === 'acme global hub' && user?.role === 'recruiter' &&( <Dialog open={showScheduleDialog} onOpenChange={setShowScheduleDialog}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="h-4 w-4 mr-2" />
               Schedule Interview
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+               {/* <InterviewScheduler/> */}
             <DialogHeader>
               <DialogTitle>Schedule New Interview</DialogTitle>
               <DialogDescription>
@@ -244,7 +276,8 @@ console.log("Candidates:", candidates);
                         cadidate_id: selectedCandidate.id,
                         candidateName: selectedCandidate.name,
                         position: selectedCandidate.position,
-                        requisition_id: selectedCandidate.requisition_id
+                        requisition_id: selectedCandidate.requisition_id,
+                        company_id:selectedCandidate.company_id
                       });
                     }
                   }}
@@ -387,7 +420,7 @@ console.log("Candidates:", candidates);
               </div>
             </div>
           </DialogContent>
-        </Dialog>
+        </Dialog>)}
       </div>
 
       <div className="flex space-x-4">
@@ -459,7 +492,7 @@ console.log("Candidates:", candidates);
                       </TableCell>
                       <TableCell>
                         <div className="space-y-1">
-                          <Badge className={getTypeColor(interview.interview_type)}>{interview.interview_type}</Badge>
+                          <Badge className={getTypeColor(interview.interviewType)}>{interview.interviewType}</Badge>
                           <div className="text-sm text-gray-600 flex items-center">
                             {interview.mode === 'Video Call' && <Video className="h-3 w-3 mr-1" />}
                             {interview.mode === 'In-Person' && <MapPin className="h-3 w-3 mr-1" />}

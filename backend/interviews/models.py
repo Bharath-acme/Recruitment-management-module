@@ -5,7 +5,7 @@ from sqlalchemy.dialects.sqlite import JSON
 from datetime import datetime
 import uuid
 import enum
-from candidates.models import Candidate
+
 
 class Interview(Base):
     __tablename__ = "interviews"
@@ -29,6 +29,29 @@ class Interview(Base):
     score = Column(Integer, nullable=True)
     notes = Column(Text, nullable=True)
     # created_date = Column(DateTime, default=datetime.utcnow)
-
+    company_id = Column(Integer, ForeignKey("companies.id"))
+    company = relationship("Company",back_populates="interviews")
     # Relationships
     requisition = relationship("Requisitions", back_populates="interviews")
+    scorecard = relationship("Scorecard", back_populates="interview", uselist=False)
+
+
+
+class Scorecard(Base):
+    __tablename__ = "scorecards"
+
+    id = Column(Integer, primary_key=True, index=True)
+    candidate_id = Column(String(100), ForeignKey("candidates.id", ondelete="CASCADE"))
+    interview_id = Column(String(100), ForeignKey("interviews.id", ondelete="CASCADE"))
+
+    technical_score = Column(Float)
+    behavioral_score = Column(Float)
+    cultural_score = Column(Float)
+    overall_recommendation = Column(String(50))
+    technical_comments = Column(Text)
+    behavioral_comments = Column(Text)
+    cultural_comments = Column(Text)
+    overall_comments = Column(Text)
+
+    candidate = relationship("Candidate", back_populates="scorecards")
+    interview = relationship("Interview", back_populates="scorecard")

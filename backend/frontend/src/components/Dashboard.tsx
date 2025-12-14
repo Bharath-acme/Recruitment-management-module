@@ -19,7 +19,6 @@ import {
   Download
 } from 'lucide-react';
 import { useAuth } from './AuthProvider';
-import { projectId, publicAnonKey } from '../utils/supabase/info';
 import { NotificationService, Notification } from '../utils/Utils';
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -42,7 +41,7 @@ interface MetricCard {
 interface RequisitionItem {
   id: string;
   title: string;
-  department: string;
+  // department: string;
   status: string;
   daysOpen: number;
   applicants: number;
@@ -51,7 +50,7 @@ interface RequisitionItem {
 }
 
 export function Dashboard({ selectedCompany, selectedCountry  }: DashboardProps) {
-  const { user } = useAuth();
+  const { user,allCompanies } = useAuth();
   const [loading, setLoading] = useState(false);
   // const [metrics, setMetrics] = useState<MetricCard[]>([]);
   const [recentRequisitions, setRecentRequisitions] = useState<RequisitionItem[]>([]);
@@ -65,7 +64,8 @@ export function Dashboard({ selectedCompany, selectedCountry  }: DashboardProps)
       dashboardData();
       loadDemoData();
   }, [selectedCompany, selectedCountry]);
-
+   console.log('user', user)
+   console.log('companies', allCompanies)
   // Icon mapping for server responses
   const iconMap: { [key: string]: any } = {
     'FileText': FileText,
@@ -162,49 +162,6 @@ export function Dashboard({ selectedCompany, selectedCountry  }: DashboardProps)
     ]
   const loadDemoData = () => {
    
-
-    // setRecentRequisitions([
-    //   {
-    //     id: 'REQ-2025-001',
-    //     title: 'Senior Software Engineer',
-    //     department: 'Engineering',
-    //     status: 'Active',
-    //     daysOpen: 12,
-    //     applicants: 23,
-    //     stage: 'Screening',
-    //     priority: 'high'
-    //   },
-    //   {
-    //     id: 'REQ-2025-002', 
-    //     title: 'Product Manager',
-    //     department: 'Product',
-    //     status: 'Active',
-    //     daysOpen: 8,
-    //     applicants: 31,
-    //     stage: 'Interview',
-    //     priority: 'high'
-    //   },
-    //   {
-    //     id: 'REQ-2025-003',
-    //     title: 'UI/UX Designer',
-    //     department: 'Design',
-    //     status: 'Pending Approval',
-    //     daysOpen: 3,
-    //     applicants: 0,
-    //     stage: 'Draft',
-    //     priority: 'medium'
-    //   },
-    //   {
-    //     id: 'REQ-2025-004',
-    //     title: 'Sales Manager - KSA',
-    //     department: 'Sales',
-    //     status: 'Active',
-    //     daysOpen: 15,
-    //     applicants: 18,
-    //     stage: 'Offer',
-    //     priority: 'high'
-    //   }
-    // ]);
 
     setUpcomingInterviews([
       {
@@ -396,7 +353,7 @@ export function Dashboard({ selectedCompany, selectedCountry  }: DashboardProps)
                         <Badge className={getPriorityColor(req.priority)}>{req.priority}</Badge>
                       </div>
                       <div className="flex items-center text-sm text-gray-600 space-x-4">
-                        <span>{req.department}</span>
+                        {/* <span>{req.department}</span> */}
                         <span>{req.req_id}</span>
                         <span>{daysOpen(req.created_date)} days open</span>
                         <span>{req.applications_count} applicants</span>
@@ -508,3 +465,5 @@ export function Dashboard({ selectedCompany, selectedCountry  }: DashboardProps)
     </div>
   );
 };
+
+

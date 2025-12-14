@@ -11,7 +11,8 @@ import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import CandidateForm from './CandidateForm';
 import { formatDate } from '../utils/Utils';
-import profileLogo from '../media/profile_logo.png';
+import { ResumeDialog } from './ResumePreview';
+import { Capitalize } from '../utils/Utils';
 
 import { 
   Mail, 
@@ -31,6 +32,8 @@ import {
   Download,
   MessageSquare,
   Activity,
+  ThumbsUp,
+  AlertCircle
 } from "lucide-react";
 
 import { Badge } from "./ui/badge";
@@ -73,53 +76,62 @@ const { id } = useParams<{ id: string }>();
    const [showFeedback, setShowFeedback] = useState(false);
    const [logs, setLogs] = useState<CandidateLog[]>([]);
    const [logsLoading, setLogsLoading] = useState(true);
+   const [feedbacks, setFeedbacks] = useState<InterviewFeedback[]>([])
    const { user } = useAuth();
-  const [candidate, setCandidate] = useState<Candidate>({
-    id: '',
-    name: '',
-    position: '',
-    email: '',
-    phone: '',
-    location: '',
-    experience: 0,
-    skills: [],
-    applied_date: '',
-    last_activity: '',
-    rating: 0,
-    notes: '',
-    current_ctc: '',
-    expected_ctc: '',
-    notice_period: '',
-    current_company: '',
-    dob: '',
-    marital_status: '',
-    requisition_id: '',
-    stage: '',
-    status: '',
-    source: '',
-    recruiter: ''
-  });
+   const [showRejectDialog, setShowRejectDialog] = useState(false);
+   const [rejectReason, setRejectReason] = useState("");
+  const [candidate, setCandidate] = useState<Candidate | null>(null);
 
   const navigate = useNavigate();
 
-  const [currentRating, setCurrentRating] = useState<number>(candidate.rating);
+  const [currentRating, setCurrentRating] = useState<number>(0);
   const [loading, setLoading] = useState(true);
+  const token = localStorage.getItem('token');
 
-  useEffect(() => {
-    if (!id) return;
-    fetch(`${API_BASE_URL}/candidates/${id}`)
-      .then((res) => res.json())
-      .then((data: Candidate) => {
-        setCandidate(data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error("Error fetching candidate:", err);
-        setLoading(false);
+ useEffect(() => {
+  if (!id) return;
+
+  const fetchCandidate = async () => {
+    try {
+      setLoading(true);
+
+      const res = await fetch(`${API_BASE_URL}/candidates/${id}`, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`, // 🔒 include token
+        },
       });
 
-      fetchLogs();
-  }, [id,]);
+      if (!res.ok) {
+        console.error("Failed to fetch candidate:", res.status);
+        setCandidate(null);
+        return;
+      }
+
+      const data = await res.json();
+
+      // 👇 handle missing (masked) fields gracefully
+      const safeData = {
+        ...data,
+        email: data.email || "Hidden",
+        phone: data.phone || "Hidden",
+        resume_url: data.resume_url || null,
+        source: data.source || "Hidden",
+      };
+
+      setCandidate(safeData);
+      setCurrentRating(safeData.rating || 0);
+    } catch (err) {
+      console.error("Error fetching candidate:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchCandidate();
+  fetchLogs();
+}, [id, token]); // 👈 add token if it’s used inside
+
 
 
   const fetchLogs = async () => {
@@ -136,8 +148,8 @@ const { id } = useParams<{ id: string }>();
   };
 
   
-const token = localStorage.getItem('token');
   const handleRatingClick = (value: number) => {
+    if (!candidate) return;
     setCurrentRating(value);
     setCandidate({ ...candidate, rating: value });
   };
@@ -173,6 +185,36 @@ const token = localStorage.getItem('token');
     }
   };
 
+  const updateStatus = async (newStatus: string, reason?: string) => {
+  try {
+    const payload: any = { status: newStatus };
+
+    if (reason) payload.reject_reason = reason;
+
+    const response = await fetch(`${API_BASE_URL}/candidates/${candidate.id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (response.ok) {
+      const updatedCandidate = await response.json();
+      setCandidate(updatedCandidate);
+      toast.success("Status updated");
+      fetchLogs();
+    } else {
+      toast.error("Failed to update status");
+    }
+  } catch (error) {
+    console.error("Status update failed:", error);
+    toast.error("Error updating status");
+  }
+};
+
+
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -186,9 +228,10 @@ const token = localStorage.getItem('token');
 
   const getStatusColor = (status: string) => {
     const colors: { [key: string]: string } = {
-      'Active': 'bg-green-100 text-green-700 border-green-200',
-      'On Hold': 'bg-yellow-100 text-yellow-700 border-yellow-200',
+      'selected': 'bg-green-100 text-green-700 border-green-200',
+      'new': 'bg-yellow-100 text-yellow-700 border-yellow-200',
       'Rejected': 'bg-red-100 text-red-700 border-red-200',
+      "approved" : 'bg-green-100 text-green-700 border-green-400'
     };
     return colors[status] || 'bg-gray-100 text-gray-700 border-gray-200';
   };
@@ -227,6 +270,10 @@ const token = localStorage.getItem('token');
     return colors[recommendation] || 'bg-gray-100 text-gray-700 border-gray-200';
   };
 
+  const url = candidate.files.map((resume)=>resume.file_url)
+
+  console.log('url',String(url))
+
   return (
     <div className="max-w-7xl mx-auto p-6 space-y-6">
       {/* Header Card */}
@@ -244,7 +291,7 @@ const token = localStorage.getItem('token');
               <div className="mt-4 flex gap-2">
               
                {/* {user?.role == 'recruiter' &&   */}
-                <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+               {user?.company?.name?.trim().toLowerCase() == 'acme global hub' ? <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
                 <DialogTrigger asChild>
                   <Button variant="outline" size="sm" className="bg-blue-50 border-blue-200 hover:bg-blue-100">
                     Edit Profile
@@ -262,9 +309,9 @@ const token = localStorage.getItem('token');
                           onCancel={() =>  setShowAddDialog(false)}
                       />
                 </DialogContent>
-              </Dialog>
+              </Dialog>:''}
               {/* // } */}
-              
+             {user?.company?.name?.trim().toLowerCase() == 'acme global hub' ? <ResumeDialog resumeUrl={String(url)}/>:''}
               {/* <Button variant="outline" size="sm" className="bg-purple-50 border-purple-200 hover:bg-purple-100">
                 <Download className="h-4 w-4 mr-2" />
                 Resume
@@ -281,8 +328,8 @@ const token = localStorage.getItem('token');
                   <p className="text-gray-600 mb-4">{candidate.position}</p>
                   
                   <div className="flex flex-wrap gap-2 mb-4">
-                    <Badge className={`${getStatusColor(candidate.status? candidate.status:'Active')} border`}>
-                      {candidate.status? candidate.status:'active'}
+                    <Badge className={`${getStatusColor(candidate.status? candidate.status:'new')} border`}>
+                      {candidate.status? candidate.status:'new'}
                     </Badge>
                     <Badge className={`${getStageColor(candidate.stage? candidate.stage:'Technical Interview')} border`}>
                       {candidate.stage? candidate.stage:'Technical Interview'}
@@ -294,14 +341,14 @@ const token = localStorage.getItem('token');
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-gray-600">
-                    <div className="flex items-center gap-2">
-                      <Mail className="h-4 w-4 text-blue-500" />
-                      <span>{candidate.email}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Phone className="h-4 w-4 text-green-500" />
-                      <span>{candidate.phone}</span>
-                    </div>
+                  { user?.company?.name?.trim().toLowerCase() == 'acme global hub' ? <div className="flex items-center gap-2">
+                    <Mail className="h-4 w-4 text-blue-500" />
+                    <span>{candidate.email}</span>
+                  </div>:''}
+                 {user?.company?.name?.trim().toLowerCase() == 'acme global hub' ? <div className="flex items-center gap-2">
+                    <Phone className="h-4 w-4 text-green-500" />
+                    <span>{candidate.phone}</span>
+                  </div>:''}
                     <div className="flex items-center gap-2">
                       <MapPin className="h-4 w-4 text-red-500" />
                       <span>{candidate.location}</span>
@@ -315,15 +362,83 @@ const token = localStorage.getItem('token');
 
                 {/* Quick Stats */}
                 <div className="flex flex-col items-center space-y-6">
+                    {(user?.role === 'hiring_manager' || user?.role === 'admin') && (
+                    <div className="flex gap-3 mb-8">
+          
+                      {candidate.status === "approved" && (
+                          <Button
+                            className="bg-blue-100"
+                            variant="outline"
+                            // onClick={() => updateApprovalStatus("pending")}
+                          >
+                            Revoke
+                          </Button>
+                        )}
+          
+                    {candidate.status === "new" ? (
+                          <>
+                            <Button
+                              className="bg-green-100"
+                              variant="outline"
+                              onClick={() => updateStatus("approved")}
+                            >
+                              Select
+                            </Button>
+                            <Button
+                              className="bg-red-100"
+                              variant="outline"
+                             onClick={() => setShowRejectDialog(true)}
+                            >
+                              Reject
+                            </Button>
+                          </>
+                        ) : (
+                          <Button variant="outline" className={ candidate.status === "approved" ? "bg-green-500 h-9 px-4 py-2 has-[>svg]:px-3":"bg-red-200 text-black"}>
+                            {Capitalize(candidate.status)}
+                          </Button>
+                        )}
+                  
+                </div>)}
+
+                <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
+                  <DialogContent className="max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Reason for Rejection</DialogTitle>
+                      <DialogDescription>
+                        Please provide the reason for rejecting this candidate..
+                      </DialogDescription>
+                    </DialogHeader>
+
+                    <textarea
+                      className="w-full border rounded-md p-2 mt-3"
+                      rows={4}
+                      value={rejectReason}
+                      onChange={(e) => setRejectReason(e.target.value)}
+                      placeholder="Enter rejection reason..."
+                    />
+
+                    <div className="flex justify-end gap-3 mt-4">
+                      <Button variant="outline" onClick={() => setShowRejectDialog(false)}>
+                        Cancel
+                      </Button>
+
+                      <Button
+                        className="bg-red-500 text-white"
+                        onClick={() => {
+                          updateStatus("rejected", rejectReason);
+                          setShowRejectDialog(false);
+                        }}
+                      >
+                        Submit
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+
                 <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg p-4 border border-blue-100">
-                  {/* <div className="text-center mb-2">
-                    <p className="text-gray-600 mb-1">Candidate ID</p>
-                    <p className="text-gray-900">{candidate.id}</p>
-                  </div>
-                  <Separator className="my-2" /> */}
                   <div className="text-center">
-                    <p className="text-gray-600 mb-1">Requisition ID</p>
-                    <p className="text-gray-900">{candidate.requisition_id}</p>
+                    <p className="text-gray-600 mb-1">Req_id: {candidate.requisition_id}</p>
+                    <p className="text-gray-900"></p>
                    </div>
                 </div>
                   <Button 
@@ -335,6 +450,7 @@ const token = localStorage.getItem('token');
                     <MessageSquare className="h-4 w-4 mr-2" />
                     {showFeedback ? 'Hide Feedback' : 'View Feedback'}
                   </Button>
+                  
                 </div>
               </div>
             </div>
@@ -344,7 +460,7 @@ const token = localStorage.getItem('token');
 
       {/* Feedback Section */}
       
-     {/* {showFeedback && (
+      {showFeedback && (
         <Card className="bg-white shadow-lg border-0">
           <div className="p-6">
             <div className="flex items-center gap-2 mb-6">
@@ -397,7 +513,7 @@ const token = localStorage.getItem('token');
                     </div>
                     
                     <CardContent className="p-4 space-y-4">
-                      {/* Strengths 
+                      {/* Strengths */}
                       {feedback.strengths.length > 0 && (
                         <div>
                           <div className="flex items-center gap-2 mb-2">
@@ -412,7 +528,7 @@ const token = localStorage.getItem('token');
                         </div>
                       )}
 
-                      {/* Areas of Improvement 
+                      {/* Areas of Improvement*/} 
                       {feedback.areasOfImprovement.length > 0 && (
                         <div>
                           <div className="flex items-center gap-2 mb-2">
@@ -427,13 +543,13 @@ const token = localStorage.getItem('token');
                         </div>
                       )}
 
-                      {/* Comments 
+                      {/* Comments */}
                       <div>
                         <h3 className="text-gray-900 mb-2">Overall Comments</h3>
                         <p className="text-gray-700 bg-gray-50 p-3 rounded-lg">{feedback.comments}</p>
                       </div>
 
-                      {/* Recommendation 
+                      {/* Recommendation */}
                       <div className="flex items-center justify-between pt-2 border-t">
                         <span className="text-gray-600">Recommendation:</span>
                         <Badge className={`${getRecommendationColor(feedback.recommendation)} border`}>
@@ -696,7 +812,7 @@ const token = localStorage.getItem('token');
             </Tabs>
           </div>
         </Card>
-      )} */}
+      )}
 
       {/* Main Content */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -762,6 +878,22 @@ const token = localStorage.getItem('token');
 
           {/* Skills */}
           <Card className="bg-white shadow-md border-0">
+        <div className="p-6 bg-gradient-to-r from-purple-50 to-pink-50 border-b border-purple-100">
+          <h2 className="text-gray-900 flex items-center gap-2">
+            <Award className="h-5 w-5 text-purple-600" />
+            Skills & Expertise
+          </h2>
+        </div>
+
+        <div className="p-6">
+          <p className="text-gray-800 text-sm">
+            {candidate.skills && candidate.skills.length > 0
+              ? candidate.skills.map(s => s.name).join(", ")
+              : "No skills added"}
+          </p>
+        </div>
+      </Card>
+          {/* <Card className="bg-white shadow-md border-0">
             <div className="p-6 bg-gradient-to-r from-purple-50 to-pink-50 border-b border-purple-100">
               <h2 className="text-gray-900 flex items-center gap-2">
                 <Award className="h-5 w-5 text-purple-600" />
@@ -781,7 +913,7 @@ const token = localStorage.getItem('token');
                 ))}
               </div>
             </div>
-          </Card>
+          </Card> */}
 
            {/* Timeline */}
           <Card className="bg-white shadow-md border-0">
@@ -933,7 +1065,7 @@ const token = localStorage.getItem('token');
           </Card> */}
         </div>
       </div>
-        <Card className="bg-white border border-indigo-100 shadow-sm hover:shadow-md transition-shadow lg:col-span-2">
+      {user?.company?.name?.trim().toLowerCase() == 'acme global' &&  <Card className="bg-white border border-indigo-100 shadow-sm hover:shadow-md transition-shadow lg:col-span-2">
               <CardHeader className="bg-gradient-to-r from-indigo-50 to-blue-50 border-b border-indigo-100">
                 <CardTitle className="flex items-center gap-2 text-indigo-900">
                   <Activity className="w-5 h-5" />
@@ -978,7 +1110,7 @@ const token = localStorage.getItem('token');
                   </ul>
                 )}
               </CardContent>
-            </Card>
+            </Card>}
     </div>
   );
 }

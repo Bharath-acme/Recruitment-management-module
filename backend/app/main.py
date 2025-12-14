@@ -1,3 +1,16 @@
+# FILE: app/main.py
+"""
+Fixed main.py: removed automatic Base.metadata.create_all from production startup.
+This file will only create tables automatically if the environment variable
+RUN_CREATE_ALL is set to a truthy value ("1", "true", "yes", or "local") —
+useful for local development only.
+
+In production, run Alembic migrations separately (recommended):
+    alembic revision --autogenerate -m "..."
+    alembic upgrade head
+
+Do NOT run RUN_CREATE_ALL=true in production.
+"""
 import os
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
@@ -6,6 +19,7 @@ from starlette.responses import FileResponse, HTMLResponse
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 from app import models, schemas, crud, auth
+# from .models import *  # avoid star imports
 from app.schemas import LoginRequest, UserCreate
 from app.auth import *
 from app.database import engine, Base, get_db
@@ -21,16 +35,21 @@ from app.websocket import connect_user, disconnect_user
 from requisitions.models import Requisitions
 from candidates.models import Candidate 
 from interviews.models import Interview
-
+from invoices import api as invoice_api
+from app import locations_and_departments
 
 
 
 # ================== DATABASE SETUP ==================
-Base.metadata.create_all(bind=engine)
+# IMPORTANT: Do NOT run Base.metadata.create_all() in production.
+# If you need to create tables automatically for local development,
+# set the environment variable RUN_CREATE_ALL to a truthy value.
+RUN_CREATE_ALL = os.getenv("RUN_CREATE_ALL", "false").lower() in ("1", "true", "yes", "local")
+if RUN_CREATE_ALL:
+    # Only for local/dev use. In production use Alembic migrations.
+    Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
-
-
 
 # ================== CORS SETUP ==================
 origins = [
@@ -48,9 +67,9 @@ app.add_middleware(
 )
 
 # ================== AUTH & USER LOGIC ==================
-SECRET_KEY = "supersecretkey"
+SECRET_KEY = os.getenv("SECRET_KEY", "supersecretkey")
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "60"))
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
@@ -80,18 +99,56 @@ def login(data: LoginRequest, db: Session = Depends(get_db)):
     if not user or not verify_password(data.password, user.hashed_password):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
-    # Create JWT
+    # Access company details via the relationship (company_rel)
+    company_rel = user.company_rel
+    company_name = company_rel.name if company_rel else ""
+    company_country = company_rel.country if company_rel else ""
+    company_size = company_rel.size if company_rel else ""
+    company_desc = company_rel.sector if company_rel else ""
+    
+    # Initialize the list of all companies
+    all_companies_list = []
+    
+    # 🌟 NEW LOGIC: Check if the user is from 'Acme Global'
+    if company_name.lower() == "acme global": # Case-insensitive check
+        # Fetch all companies and convert them to a simple list of dicts
+        # Assumes the Company model is available via models.Company
+        all_companies = db.query(models.Company).all()
+        
+        # Structure the output data
+        all_companies_list = [
+            {
+                "id": c.id,
+                "name": c.name,
+                "country": c.country,
+                "size": c.size,
+                "description": c.description,
+            }
+            for c in all_companies
+        ]
+
+    # Create JWT (This part remains the same)
     access_token = create_access_token(
         data={
             "sub": user.email,
             "id": str(user.id),
             "role": user.role,
             "name": user.name,
-            "company": user.company,
-            "country": user.country
+            "company": company_name,
+            "country": company_country,
+            "company_size": company_size,
+            "company_desc": company_desc,
+            "company_id": user.company_id
         }
     )
-    return {"access_token": access_token, "token_type": "bearer", "user_data": user}
+    
+    # Return both user data and the list of companies (if applicable)
+    return {
+        "access_token": access_token, 
+        "token_type": "bearer", 
+        "user_data": user, 
+        "all_companies": all_companies_list # 🌟 ADDED THIS FIELD
+    }
 
 
 @app.get("/me", response_model=schemas.UserResponse)
@@ -190,14 +247,88 @@ def get_dashboard_summary(db: Session = Depends(get_db)):
     }
 
 
+@app.get("/skills", response_model=List[schemas.Skill])
+def read_skills(q: str = "", db: Session = Depends(get_db)):
+    """
+    Search for skills.
+    """
+    if not q:
+        skills = crud.get_all_skills(db)
+        return skills
+    skills = crud.search_skills(db, query=q)
+    return skills
+
+@app.post("/skills", response_model=schemas.Skill)
+def create_skill(
+    skill: schemas.SkillCreate, 
+    db: Session = Depends(get_db)
+):
+
+    # The CRUD logic is already available via crud.create_skill or similar
+    db_skill = db.query(models.Skill).filter(models.Skill.name == skill.name).first()
+    if db_skill:
+        raise HTTPException(status_code=400, detail="Skill already exists")
+    
+    new_skill = models.Skill(name=skill.name)
+    db.add(new_skill)
+    db.commit()
+    db.refresh(new_skill)
+    return new_skill
+
+
+@app.post("/departments", response_model=schemas.Department)
+def create_department(department: schemas.DepartmentCreate, db: Session = Depends(get_db)):
+    db_department = db.query(models.Department).filter(models.Department.name == department.name).first()
+    if db_department:
+        raise HTTPException(status_code=400, detail="Department already exists")
+    new_department = models.Department(name=department.name)
+    db.add(new_department)
+    db.commit()
+    db.refresh(new_department)
+    return new_department
+
+@app.get("/departments", response_model=List[schemas.Department])
+def read_departments(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    departments = db.query(models.Department).offset(skip).limit(limit).all()
+    return departments
+
+# --- Location CRUD ---
+
+@app.post("/locations", response_model=schemas.Location)
+def create_location(location: schemas.LocationCreate, db: Session = Depends(get_db)):
+    db_location = db.query(models.Location).filter(models.Location.name == location.name).first()
+    if db_location:
+        raise HTTPException(status_code=400, detail="Location already exists")
+    new_location = models.Location(name=location.name)
+    db.add(new_location)
+    db.commit()
+    db.refresh(new_location)
+    return new_location
+
+@app.get("/locations", response_model=List[schemas.Location])
+def read_locations(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    locations = db.query(models.Location).offset(skip).limit(limit).all()
+    return locations
+
 
 # ================== MODULE ROUTERS ==================
 app.include_router(candidates_api.router, prefix="/candidates", tags=["Candidates"])
 app.include_router(requisitions_api.router, prefix="/requisitions", tags=["Requisitions"])
 app.include_router(interviews_api.router, prefix="/interviews", tags=["Interviews"])
 app.include_router(offers_api.router, prefix="/offers", tags=["Offers"])
+app.include_router(invoice_api.router, prefix="/invoices", tags=["Invoices"])
+app.include_router(locations_and_departments.router, prefix="/list", tags=["Departments & Locations"])
+
 
 # ================== FRONTEND PATH SETUP (SIMPLIFIED FIX) ==================
+# 🟢 Create the directory if it doesn't exist
+if not os.path.exists("uploads"):
+    os.makedirs("uploads")
+
+# 🟢 MOUNT THE DIRECTORY
+# This makes http://localhost:8000/uploads/filename.pdf accessible
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+app.mount("/pdfs", StaticFiles(directory="pdfs"), name="pdfs")
 # 1️⃣ Define frontend build directory
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 FRONTEND_BUILD_DIR = os.path.abspath(os.path.join(BASE_DIR, '..', 'frontend', 'build'))
@@ -218,5 +349,7 @@ else:
     async def frontend_missing_fallback():
         return HTMLResponse("<h2>Frontend build not found. Run `npm run build` in frontend/</h2>")
 
-# 4️⃣ REMOVE THE EXPLICIT CATCH-ALL ROUTE!
-# The `html=True` in StaticFiles now handles the refresh/deep-linking
+# NOTE: No explicit catch-all route — StaticFiles(html=True) handles deep-links.
+
+
+

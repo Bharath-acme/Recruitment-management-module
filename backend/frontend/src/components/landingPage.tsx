@@ -1,8 +1,11 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "./ui/button";
-import acme_white_logo from "../media/acme_logo.png";
-import req_img from "../media/req_img.png";
+import req_img from "../media/requisitions.png";
+import candidate_img from "../media/candidates.png"
+import interview_img from "../media/interviews.png"
+import offer_img from "../media/offers.png"
+import vedors_img from "../media/vendors.png"
 import dash_img from "../media/dash_img.png";
 import analytics_img from "../media/analytics_img.png";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
@@ -28,6 +31,10 @@ import {
 import { FeaturesSection } from "./landingsections/FeaturesSection";
 import { BenefitsSection } from "./landingsections/BenefitsSection";
 import { CTASection } from "./landingsections/CTASection";
+import { Footer } from "./landingsections/Footer"
+import landing_img from "../media/landing_img6.png"
+import people_img from "../media/people_img.png"
+
 
 const exploreData = [
   {
@@ -49,21 +56,21 @@ const exploreData = [
     title: "Candidates",
     description:
       "Collect profiles via portal, email, or recruiter upload. Auto-parse CVs, remove duplicates, and shortlist effortlessly.",
-    image: dash_img,
+    image: candidate_img,
   },
   {
     id: "interviews",
     title: "Interviews",
     description:
       "Plan interviews, coordinate panels, and capture structured feedback to make data-driven decisions.",
-    image: analytics_img,
+    image: interview_img,
   },
   {
     id: "offers",
     title: "Offers",
     description:
       "Streamline offer generation, approval, and acceptance with customizable templates and digital workflows.",
-    image: dash_img,
+    image: offer_img,
   },
   {
     id: "analytics",
@@ -77,7 +84,7 @@ const exploreData = [
     title: "Vendors",
     description:
       "Manage third-party vendor performance and collaborate through a unified platform for external hiring.",
-    image: req_img,
+    image: vedors_img,
   },
 ];
 
@@ -165,7 +172,7 @@ const HomePage: React.FC = () => {
       </nav>
 
       {/* Hero Section */}
-      <header className="grid md:grid-cols-2 gap-8 items-center h-[90vh] w-full px-4 md:px-8 bg-gradient-to-br from-[#0a1628] via-[#1e3a5f] to-[#0f2847]">
+      <header className="grid md:grid-cols-2 gap-10 items-center h-[90vh] w-full px-4 md:px-8 bg-gradient-to-br from-[#0a1628] via-[#1e3a5f] to-[#0f2847]">
 
   {/* Background pattern */}
       <div className="absolute inset-0 opacity-10 pointer-events-none">
@@ -175,9 +182,9 @@ const HomePage: React.FC = () => {
         }} />
       </div>
 
-        <div className="space-y-6 px-20">
+        <div className="space-y-8 px-20">
           <h3 className="text-2xl md:text-3xl font-semibold tracking-tight text-white">
-            The Future of Intelligent Hiring
+            Intelligent Hiring Now
           </h3>
           <h1 className="text-3xl md:text-5xl font-medium tracking-tight  leading-snug  text-white">
             Transform Your Hiring Lifecycle with ACME Global’s Recruitment
@@ -198,8 +205,16 @@ const HomePage: React.FC = () => {
               Get Started
              <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
           </Button>
+          
+        </div>
+        <div className="h-[90vh] relative overflow-hidden">
+          <img src={landing_img}
+          className=" relative top-18"
+          />
+          {/* <img src={people_img} className="absolute top-35 left-15  w-[38vw]"/> */}
         </div>
       </header>
+      {/* <div className="absolute h-10 w-10 bg-red-200 bottom-[-5rem] ">yes</div> */}
     <section className="relative py-20 px-6 overflow-hidden">
       {/* Background with gradient */}
       <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-100/40"></div>
@@ -249,13 +264,13 @@ const HomePage: React.FC = () => {
 
               {/* Content */}
               <div className="p-8">
-                <h3 className="text-slate-800 mb-6">Current Pain Points</h3>
+                <h3 className="text-xl text-slate-800 mb-6">Current Pain Points</h3>
 
                 <div className="space-y-4">
                   {challenges.map((challenge, index) => (
                     <div 
                       key={index}
-                      className="group/item relative backdrop-blur-sm bg-gradient-to-br from-white/60 to-slate-50/60 rounded-2xl border border-slate-200/60 p-5 transition-all duration-300 hover:border-red-300/60 hover:shadow-lg hover:bg-white/80"
+                      className="group/item relative backdrop-blur-sm bg-gradient-to-br from-white/60 to-slate-50/60 rounded-2xl border border-red-300/60 p-5 transition-all duration-300 hover:border-red-300/60 hover:shadow-lg hover:bg-white/80"
                     >
                       <div className="flex gap-4">
                         <div className="flex-shrink-0 p-3 bg-gradient-to-br from-red-500 to-orange-500 rounded-xl text-white shadow-md group-hover/item:shadow-lg transition-shadow">
@@ -315,13 +330,13 @@ const HomePage: React.FC = () => {
 
               {/* Content */}
               <div className="p-8">
-                <h3 className="text-slate-800 mb-6">RMM Platform Benefits</h3>
+                <h3 className="text-xl text-slate-800 mb-6">RMM Platform Benefits</h3>
 
                 <div className="space-y-3.5">
                   {solutions.map((solution, index) => (
                     <div 
                       key={index}
-                      className="group/item relative backdrop-blur-sm bg-gradient-to-br from-white/60 to-blue-50/60 rounded-2xl border border-blue-200/60 p-5 transition-all duration-300 hover:border-blue-400/60 hover:shadow-lg hover:bg-white/80"
+                      className="group/item relative backdrop-blur-sm bg-gradient-to-br from-white/60 to-blue-50/60 rounded-2xl border border-blue-400/60 p-5 transition-all duration-300 hover:border-blue-400/60 hover:shadow-lg hover:bg-white/80"
                     >
                       <div className="flex gap-4">
                         <div className="flex-shrink-0 p-3 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl text-white shadow-md group-hover/item:shadow-lg transition-shadow">
@@ -447,6 +462,7 @@ const HomePage: React.FC = () => {
       <BenefitsSection />
       <FeaturesSection />
       <CTASection />
+      <Footer/>
    
     </div>
 
@@ -455,9 +471,6 @@ const HomePage: React.FC = () => {
   //     <ProblemStatement />
   //     <WorkflowSection />
   //     <DashboardSection />
-  //     <FeaturesSection />
-  //     <BenefitsSection />
-  //     <CTASection />
   //   </div>
    );
 };

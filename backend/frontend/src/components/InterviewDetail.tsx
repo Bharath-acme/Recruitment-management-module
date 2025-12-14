@@ -29,7 +29,7 @@ import {
   MessagesSquare,
 } from "lucide-react";
 import { motion } from "framer-motion";
-import { toast } from "sonner@2.0.3";
+import { toast } from "sonner";
 
 const API_BASE_URL = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_BASE_URL) || "http://localhost:8000";
 
@@ -71,6 +71,8 @@ interface ScorecardData {
   cultural_comments: string;
   overall_recommendation: string;
   overall_comments: string;
+  interview_id:string;
+  candidate_id:string
 }
 
 export function InterviewDetail() {
@@ -92,6 +94,8 @@ export function InterviewDetail() {
     cultural_comments: "",
     overall_recommendation: "",
     overall_comments: "",
+    interview_id:interview?.id || '',
+    candidate_id:interview?.candidate?.id || ''
   });
 
   // Fetch interview data
@@ -123,9 +127,34 @@ export function InterviewDetail() {
         setLoading(false);
       }
     };
-
+    
     fetchInterview();
+
+    const fetchScorecard = async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/interviews/${id}/scorecard`);
+      if (res.ok) {
+        const data = await res.json();
+        setScorecard(data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch scorecard", err);
+    }
+  };
+
+  if (id) fetchScorecard();
+
   }, [id]);
+
+  useEffect(() => {
+  if (interview) {
+    setScorecard(prev => ({
+      ...prev,
+      interview_id: interview.id,
+      candidate_id: interview.candidate?.id || ''
+    }));
+  }
+}, [interview]);
 
   // Helper Functions
   const formatDate = (dt: string) => {
@@ -386,10 +415,14 @@ export function InterviewDetail() {
 
         {/* Tabs Section */}
 <<<<<<< HEAD
+<<<<<<< HEAD
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6 shadow-sm">
 =======
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6 sha">
 >>>>>>> a5888acac09cf0a12d7e98944f7d6e1d7c0daa79
+=======
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6 sha">
+>>>>>>> de4702b9d975366e6415d4b2c5e4682832599e1a
            <TabsList className=" border rounded-lg flex space-x-4 p-2">
            <TabsTrigger
       value="overview"
@@ -507,174 +540,213 @@ export function InterviewDetail() {
 
           {/* Scorecard Tab */}
           <TabsContent value="scorecard" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle>Interview Evaluation Scorecard</CardTitle>
-                    <p className="text-sm text-gray-600 mt-1">
-                      Evaluate the candidate's performance across key competencies
-                    </p>
-                  </div>
-                  {!isEditing && (
-                    <Button variant="outline" onClick={() => setIsEditing(true)} className="gap-2">
-                      <Edit2 className="w-4 h-4" />
-                      Edit
-                    </Button>
-                  )}
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                
-                {/* Technical Skills */}
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-base">Technical Skills</Label>
-                    <span className="text-sm text-gray-500">1-10 scale</span>
-                  </div>
-                  <Input
-                    type="number"
-                    min={1}
-                    max={10}
-                    value={scorecard.technical_score || ''}
-                    onChange={(e) => handleScoreChange('technical_score', parseInt(e.target.value) || 0)}
-                    disabled={!isEditing}
-                    placeholder="Enter score (1-10)"
-                    className="max-w-xs"
-                  />
-                  <Textarea
-                    placeholder="Provide detailed feedback on technical competency, problem-solving, and domain knowledge..."
-                    value={scorecard.technical_comments}
-                    onChange={(e) => handleScoreChange('technical_comments', e.target.value)}
-                    disabled={!isEditing}
-                    rows={3}
-                  />
-                </div>
+  <Card>
+    <CardHeader>
+      <div className="flex items-center justify-between">
+        <div>
+          <CardTitle>Interview Evaluation Scorecard</CardTitle>
+          <p className="text-sm text-gray-600 mt-1">
+            Evaluate the candidate's performance across key competencies
+          </p>
+        </div>
+        {scorecard && !isEditing && (
+          <Button variant="outline" onClick={() => setIsEditing(true)} className="gap-2">
+            <Edit2 className="w-4 h-4" />
+            Edit
+          </Button>
+        )}
+      </div>
+    </CardHeader>
 
-                <Separator />
+    {/* ✅ Conditional rendering for view vs edit mode */}
+    {scorecard && !isEditing ? (
+      <CardContent className="space-y-6">
+        {/* View Mode */}
+        <div className="grid grid-cols-2 gap-4">
+          <p><strong>Technical Skills:</strong> {scorecard.technical_score}/10</p>
+          <p><strong>Behavioral Competencies:</strong> {scorecard.behavioral_score}/10</p>
+          <p><strong>Cultural Fit:</strong> {scorecard.cultural_score}/10</p>
+          <p><strong>Recommendation:</strong> {scorecard.overall_recommendation || "N/A"}</p>
+        </div>
 
-                {/* Behavioral Competencies */}
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-base">Behavioral Competencies</Label>
-                    <span className="text-sm text-gray-500">1-10 scale</span>
-                  </div>
-                  <Input
-                    type="number"
-                    min={1}
-                    max={10}
-                    value={scorecard.behavioral_score || ''}
-                    onChange={(e) => handleScoreChange('behavioral_score', parseInt(e.target.value) || 0)}
-                    disabled={!isEditing}
-                    placeholder="Enter score (1-10)"
-                    className="max-w-xs"
-                  />
-                  <Textarea
-                    placeholder="Assess communication, teamwork, leadership, and soft skills..."
-                    value={scorecard.behavioral_comments}
-                    onChange={(e) => handleScoreChange('behavioral_comments', e.target.value)}
-                    disabled={!isEditing}
-                    rows={3}
-                  />
-                </div>
+        <Separator />
 
-                <Separator />
+        <div>
+          <p><strong>Technical Comments:</strong></p>
+          <p className="text-gray-700">{scorecard.technical_comments || "—"}</p>
+        </div>
 
-                {/* Cultural Fit */}
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-base">Cultural Fit</Label>
-                    <span className="text-sm text-gray-500">1-10 scale</span>
-                  </div>
-                  <Input
-                    type="number"
-                    min={1}
-                    max={10}
-                    value={scorecard.cultural_score || ''}
-                    onChange={(e) => handleScoreChange('cultural_score', parseInt(e.target.value) || 0)}
-                    disabled={!isEditing}
-                    placeholder="Enter score (1-10)"
-                    className="max-w-xs"
-                  />
-                  <Textarea
-                    placeholder="Evaluate alignment with company values, work style, and team dynamics..."
-                    value={scorecard.cultural_comments}
-                    onChange={(e) => handleScoreChange('cultural_comments', e.target.value)}
-                    disabled={!isEditing}
-                    rows={3}
-                  />
-                </div>
+        <div>
+          <p><strong>Behavioral Comments:</strong></p>
+          <p className="text-gray-700">{scorecard.behavioral_comments || "—"}</p>
+        </div>
 
-                <Separator />
+        <div>
+          <p><strong>Cultural Comments:</strong></p>
+          <p className="text-gray-700">{scorecard.cultural_comments || "—"}</p>
+        </div>
 
-                {/* Overall Recommendation */}
-                <div className="space-y-3">
-                  <Label className="text-base">Overall Recommendation</Label>
-                  <select
-                    value={scorecard.overall_recommendation}
-                    onChange={(e) => handleScoreChange('overall_recommendation', e.target.value)}
-                    disabled={!isEditing}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
-                  >
-                    <option value="">Select recommendation</option>
-                    <option value="strong_hire">Strong Hire</option>
-                    <option value="hire">Hire</option>
-                    <option value="maybe">Maybe</option>
-                    <option value="no_hire">No Hire</option>
-                  </select>
-                  
-                  <Textarea
-                    placeholder="Provide overall assessment and final thoughts..."
-                    value={scorecard.overall_comments}
-                    onChange={(e) => handleScoreChange('overall_comments', e.target.value)}
-                    disabled={!isEditing}
-                    rows={4}
-                  />
-                </div>
+        <div>
+          <p><strong>Overall Comments:</strong></p>
+          <p className="text-gray-700">{scorecard.overall_comments || "—"}</p>
+        </div>
+      </CardContent>
+    ) : (
+      <CardContent className="space-y-6">
+        {/* Edit Mode */}
+        {/* Technical Skills */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <Label className="text-base">Technical Skills</Label>
+            <span className="text-sm text-gray-500">1-10 scale</span>
+          </div>
+          <Input
+            type="number"
+            min={1}
+            max={10}
+            value={scorecard.technical_score || ''}
+            onChange={(e) => handleScoreChange('technical_score', parseInt(e.target.value) || 0)}
+            disabled={!isEditing}
+            placeholder="Enter score (1-10)"
+            className="max-w-xs"
+          />
+          <Textarea
+            placeholder="Provide detailed feedback on technical competency, problem-solving, and domain knowledge..."
+            value={scorecard.technical_comments || ''}
+            onChange={(e) => handleScoreChange('technical_comments', e.target.value)}
+            disabled={!isEditing}
+            rows={3}
+          />
+        </div>
 
-                {isEditing && (
-                  <div className="flex gap-3 pt-4">
-                    <Button 
-                      onClick={handleSubmitScorecard} 
-                      disabled={submitting}
-                      className="gap-2"
-                    >
-                      <Save className="w-4 h-4" />
-                      {submitting ? 'Submitting...' : 'Submit Scorecard'}
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      onClick={handleSaveDraft}
-                      className="gap-2"
-                    >
-                      <FileText className="w-4 h-4" />
-                      Save Draft
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      onClick={() => setIsEditing(false)}
-                    >
-                      Cancel
-                    </Button>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+        <Separator />
 
-            {/* Scoring Guidelines */}
-            <Card className="bg-blue-50 border-blue-200">
-              <CardHeader>
-                <CardTitle className="text-base">Scoring Guidelines</CardTitle>
-              </CardHeader>
-              <CardContent className="text-sm space-y-2">
-                <p><strong>9-10:</strong> Exceptional - Exceeds all expectations</p>
-                <p><strong>7-8:</strong> Strong - Meets and exceeds most expectations</p>
-                <p><strong>5-6:</strong> Adequate - Meets basic expectations</p>
-                <p><strong>3-4:</strong> Below Average - Concerns about key competencies</p>
-                <p><strong>1-2:</strong> Poor - Does not meet requirements</p>
-              </CardContent>
-            </Card>
-          </TabsContent>
+        {/* Behavioral Competencies */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <Label className="text-base">Behavioral Competencies</Label>
+            <span className="text-sm text-gray-500">1-10 scale</span>
+          </div>
+          <Input
+            type="number"
+            min={1}
+            max={10}
+            value={scorecard.behavioral_score || ''}
+            onChange={(e) => handleScoreChange('behavioral_score', parseInt(e.target.value) || 0)}
+            disabled={!isEditing}
+            placeholder="Enter score (1-10)"
+            className="max-w-xs"
+          />
+          <Textarea
+            placeholder="Assess communication, teamwork, leadership, and soft skills..."
+            value={scorecard.behavioral_comments || ''}
+            onChange={(e) => handleScoreChange('behavioral_comments', e.target.value)}
+            disabled={!isEditing}
+            rows={3}
+          />
+        </div>
+
+        <Separator />
+
+        {/* Cultural Fit */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <Label className="text-base">Cultural Fit</Label>
+            <span className="text-sm text-gray-500">1-10 scale</span>
+          </div>
+          <Input
+            type="number"
+            min={1}
+            max={10}
+            value={scorecard.cultural_score || ''}
+            onChange={(e) => handleScoreChange('cultural_score', parseInt(e.target.value) || 0)}
+            disabled={!isEditing}
+            placeholder="Enter score (1-10)"
+            className="max-w-xs"
+          />
+          <Textarea
+            placeholder="Evaluate alignment with company values, work style, and team dynamics..."
+            value={scorecard.cultural_comments || ''}
+            onChange={(e) => handleScoreChange('cultural_comments', e.target.value)}
+            disabled={!isEditing}
+            rows={3}
+          />
+        </div>
+
+        <Separator />
+
+        {/* Overall Recommendation */}
+        <div className="space-y-3">
+          <Label className="text-base">Overall Recommendation</Label>
+          <select
+            value={scorecard.overall_recommendation || ''}
+            onChange={(e) => handleScoreChange('overall_recommendation', e.target.value)}
+            disabled={!isEditing}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+          >
+            <option value="">Select recommendation</option>
+            <option value="strong_hire">Strong Hire</option>
+            <option value="hire">Hire</option>
+            <option value="maybe">Maybe</option>
+            <option value="no_hire">No Hire</option>
+          </select>
+
+          <Textarea
+            placeholder="Provide overall assessment and final thoughts..."
+            value={scorecard.overall_comments || ''}
+            onChange={(e) => handleScoreChange('overall_comments', e.target.value)}
+            disabled={!isEditing}
+            rows={4}
+          />
+        </div>
+
+        {isEditing && (
+          <div className="flex gap-3 pt-4">
+            <Button
+              onClick={handleSubmitScorecard}
+              disabled={submitting}
+              className="gap-2"
+            >
+              <Save className="w-4 h-4" />
+              {submitting ? 'Submitting...' : 'Submit Scorecard'}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleSaveDraft}
+              className="gap-2"
+            >
+              <FileText className="w-4 h-4" />
+              Save Draft
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={() => setIsEditing(false)}
+            >
+              Cancel
+            </Button>
+          </div>
+        )}
+      </CardContent>
+    )}
+  </Card>
+
+  {/* Scoring Guidelines */}
+  <Card className="bg-blue-50 border-blue-200">
+    <CardHeader>
+      <CardTitle className="text-base">Scoring Guidelines</CardTitle>
+    </CardHeader>
+    <CardContent className="text-sm space-y-2">
+      <p><strong>9-10:</strong> Exceptional - Exceeds all expectations</p>
+      <p><strong>7-8:</strong> Strong - Meets and exceeds most expectations</p>
+      <p><strong>5-6:</strong> Adequate - Meets basic expectations</p>
+      <p><strong>3-4:</strong> Below Average - Concerns about key competencies</p>
+      <p><strong>1-2:</strong> Poor - Does not meet requirements</p>
+    </CardContent>
+  </Card>
+</TabsContent>
+
+   
+         
 
           {/* Notes & Actions Tab */}
           <TabsContent value="notes" className="space-y-6">
@@ -736,7 +808,11 @@ export function InterviewDetail() {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 export default InterviewDetail;
 =======
 export default InterviewDetail;
 >>>>>>> a5888acac09cf0a12d7e98944f7d6e1d7c0daa79
+=======
+export default InterviewDetail;
+>>>>>>> de4702b9d975366e6415d4b2c5e4682832599e1a

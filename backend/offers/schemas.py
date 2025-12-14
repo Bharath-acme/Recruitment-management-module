@@ -18,7 +18,7 @@ class Benefits(BaseModel):
 
 class OfferCreate(BaseModel):
     app_id: int
-    candidate_id: int
+    candidate_id: str
     grade: str
     base: float
     allowances: Optional[Allowances] = Allowances()
@@ -31,7 +31,7 @@ class OfferCreate(BaseModel):
 class OfferOut(BaseModel):
     offer_id: str
     app_id: int
-    candidate_id: int
+    candidate_id: str
     grade: str
     base: float
     allowances: Dict[str, Any]

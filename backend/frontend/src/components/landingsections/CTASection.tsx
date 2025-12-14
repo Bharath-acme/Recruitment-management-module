@@ -3,15 +3,17 @@ import { useInView } from "motion/react";
 import { useRef } from "react";
 import { Button } from "../ui/button";
 import { ArrowRight, Calendar, MessageCircle } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export function CTASection() {
   const ref = useRef(null);
+  const navigate = useNavigate()
   const isInView = useInView(ref, { once: true, amount: 0.3 });
 
   return (
     <section
       ref={ref}
-      className="py-24 bg-gradient-to-br from-[#0a1628] via-[#1e3a5f] to-[#0f2847] relative overflow-hidden"
+      className="py-24 bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-100/40  relative overflow-hidden"
     >
       {/* Background elements */}
       <div className="absolute inset-0">
@@ -76,7 +78,7 @@ export function CTASection() {
             initial={{ opacity: 0, y: 20 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="mb-6 text-white"
+            className="mb-6"
           >
             Experience Smarter Hiring with{" "}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400">
@@ -88,7 +90,7 @@ export function CTASection() {
             initial={{ opacity: 0, y: 20 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.6, delay: 0.3 }}
-            className="text-gray-300 text-lg mb-10 max-w-2xl mx-auto"
+            className="text-lg mb-10 max-w-2xl mx-auto"
           >
             Join leading enterprises who have transformed their recruitment
             process. See how RMM can revolutionize your hiring operations.
@@ -120,6 +122,7 @@ export function CTASection() {
 
              <Button
               size="lg"
+              onClick={() => navigate("/login?tab=signup")}
               // variant="outline"
               // className="border-white/20 text-white hover:bg-white/10"
               className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white group"

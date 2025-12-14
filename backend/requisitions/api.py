@@ -8,17 +8,21 @@ from app.database import get_db
 from typing import List, Optional
 from fastapi import APIRouter
 from app import celery_worker, websocket
-
+from app.utils.tasks import send_requisition_created_email
 from app.crud import create_notification
-from app.utils.notifier import send_requisition_created, send_requisition_approval_update, send_requisition_deleted, send_team_assignment_notification
+from app.utils.notifier import send_requisition_for_approval, send_requisition_approval_update, send_requisition_deleted, send_team_assignment_notification
 # from celery.results import AsyncResult
 
 
 router = APIRouter()
 
 @router.post("", response_model=RequisitionResponse)
-async def create_requisition(req: RequisitionCreate, db: Session = Depends(get_db),current_user=Depends(get_current_user)):
+async def create_requisition(req: RequisitionCreate, 
+                             db: Session = Depends(get_db),
+                             current_user=Depends(get_current_user)):
+
     requisition = crud.create_requisition(db, req)
+
     crud.create_activity_log(
         db,
         requisition_id=requisition.id,
@@ -27,44 +31,45 @@ async def create_requisition(req: RequisitionCreate, db: Session = Depends(get_d
         details=f"Requisition '{requisition.position}' created by {current_user.name}"
     )
 
-    # Trigger async notification task
-    # send_requisition_created.delay(requisition.id, current_user.id)
+    # 🔥 Send email notification to sales
+    try:
+        send_requisition_created_email.delay(
+            requisition.id,
+            requisition.position,
+            current_user.name
+        )
+    except Exception:
+        pass
 
-    # # Create DB notification
-    # notif = create_notification(
-    #     db,
-    #     user_id=current_user.id,
-    #     title="Requisition Created",
-    #     message=f"You created requisition '{requisition.position}'"
-    # )
-
-    # # Send real-time WebSocket message (if user is connected)
-    # await websocket.send_notification(current_user.id,{
-    #     "title": "Requisition Created",
-    #     "message": f"You created requisition '{requisition.position}'",
-    #     "time": requisition.created_at.isoformat() if hasattr(requisition, 'created_at') else None
-    #     })
+    # Your existing approval workflow
+    try:
+        send_requisition_for_approval.delay(requisition.id, current_user.id)
+    except Exception:
+        pass
 
     return requisition
-   
+
 
 
 @router.get("", response_model=list[RequisitionResponse])
 def read_requisitions(
     skip: int = 0,
     limit: int = 10,
+    approval_status: str = Query("approved"),
     db: Session = Depends(get_db),
-    role: Optional[str] = Query(None),
-    user_id: Optional[int] = Query(None),
-    approval_status: str = Query("approved")
-):
+    current_user: User = Depends(get_current_user)
+    ):
     db_reqs = crud.get_requisitions(
-        db,
+        db=db,
         skip=skip,
         limit=limit,
-        role=role,
-        user_id=user_id,
-        approval_status=approval_status
+        role=current_user.role,
+        user_id=current_user.id,
+        approval_status=approval_status,
+        
+        # 🔥 Always pass server-trusted values
+        company_id=current_user.company_rel.id,
+        company_name=current_user.company_rel.name,
     )
 
     result = []
@@ -90,17 +95,16 @@ def get_req(
     skip: int = 0,
     limit: int = 10,
     db: Session = Depends(get_db),
-    role: Optional[str] = Query(None),
-    user_id: Optional[int] = Query(None),
+    current_user: User = Depends(get_current_user),
     approval_status: str = Query("approved")
 ):
     db_reqs = crud.get_requisitions(
         db,
         skip=skip,
         limit=limit,
-        role=role,
-        user_id=user_id,
-        approval_status=approval_status
+        role=current_user.role,
+        user_id=current_user.id,
+        approval_status=approval_status,
     )
 
     return db_reqs
@@ -166,8 +170,11 @@ def update_requisition_approval(
         action="Approval Status Updated",
         details=f"Changed from '{old_status}' to '{approval_update.approval_status}'"
     )
-    # 3️ Trigger async notification task
-    # send_requisition_approval_update.delay(requisition.id, current_user.id)
+    try:
+        send_requisition_approval_update.delay(requisition.id, current_user.id)
+    except Exception:
+        pass
+
     return requisition
 
 @router.put("/{req_id}/assignTeam", response_model=RequisitionResponse)
@@ -204,8 +211,10 @@ def update_requisition_team(
         action="Assigned Recruiter",
         details=f"Recruiter ID {requisition.recruiter_id} assigned by {current_user.name}"
     )
-    # 3️ Trigger async notification task
-    # send_team_assignment_notification.delay(requisition.id, requisition.recruiter_id)
+    try:
+        send_team_assignment_notification.delay(requisition.id, requisition.recruiter_id)
+    except Exception:
+        pass
 
     return requisition
 
@@ -215,8 +224,10 @@ def delete_requisition(requisition_id: int, db: Session = Depends(get_db)):
     db_req = crud.delete_requisition(db, requisition_id)
     if not db_req:
         raise HTTPException(status_code=404, detail="Requisition not found")
-    # Trigger async notification task
-    # send_requisition_deleted.delay(db_req.id)
+    try:
+        send_requisition_deleted.delay(db_req.id)
+    except Exception:
+        pass
     return db_req
 
 

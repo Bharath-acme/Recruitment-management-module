@@ -29,3 +29,27 @@ def send_email(to_emails, subject, body):
         )
 
     asyncio.run(_send())
+
+# utils/email.py
+# from fastapi_mail import FastMail, MessageSchema, ConnectionConfig
+
+# conf = ConnectionConfig(
+#     MAIL_USERNAME="your_email@example.com",
+#     MAIL_PASSWORD="your_password",
+#     MAIL_FROM="your_email@example.com",
+#     MAIL_PORT=587,
+#     MAIL_SERVER="smtp.gmail.com",
+#     MAIL_TLS=True,
+#     MAIL_SSL=False,
+# )
+
+# async def send_reset_email(to_email: str, link: str):
+#     message = MessageSchema(
+#         subject="Reset your RMM password",
+#         recipients=[to_email],
+#         body=f"Click this link to reset your password: {link}",
+#         subtype="plain"
+#     )
+#     fm = FastMail(conf)
+#     await fm.send_message(message)
+
