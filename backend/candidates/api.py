@@ -7,6 +7,7 @@ from typing import List
 from app.auth import get_current_user
 from app.models import User
 <<<<<<< HEAD
+<<<<<<< HEAD
 <<<<<<< Updated upstream
 =======
 from requisitions.schemas import RequisitionMini
@@ -25,6 +26,15 @@ from app.utils.parse_resume import parse_resume
 
 router = APIRouter()
 
+=======
+from fastapi import UploadFile, File
+import tempfile
+from app.utils.parse_resume import parse_resume
+
+
+router = APIRouter()
+
+>>>>>>> a5888acac09cf0a12d7e98944f7d6e1d7c0daa79
 @router.post("/parse-resume")
 def parse_resume_endpoint(file: UploadFile = File(...)):
     # Save temporarily
@@ -36,7 +46,11 @@ def parse_resume_endpoint(file: UploadFile = File(...)):
     result = parse_resume(tmp_path)
     return result
 
+<<<<<<< HEAD
 >>>>>>> Stashed changes
+=======
+
+>>>>>>> a5888acac09cf0a12d7e98944f7d6e1d7c0daa79
 @router.post("", response_model=CandidateResponse)
 def create_candidate(
     candidate: CandidateCreate,

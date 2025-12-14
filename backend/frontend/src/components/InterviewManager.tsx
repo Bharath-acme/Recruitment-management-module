@@ -24,6 +24,7 @@ import {
   MessageSquare
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useNavigate } from "react-router-dom";
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 
@@ -82,6 +83,7 @@ export function InterviewManager({ selectedCompany, selectedCountry }: Interview
   const [candidates, setCandidates] = useState<
   { id:string, email: string; name: string; position: string; requisition_id: string }[]
 >([]);
+const navigate = useNavigate();
 
 useEffect(() => {
   fetch(`${API_BASE_URL}/candidates`)
@@ -414,17 +416,18 @@ console.log("Candidates:", candidates);
         </Select>
       </div>
 
-      <Card>
+      
         <CardContent className="p-0">
-          <Table>
-            <TableHeader>
+           <div className="overflow-x-auto">
+            <Table className="w-full border-separate border-spacing-y-3">
+            <TableHeader className='border bg-blue-100 rounded-lg shadow-sm'>
               <TableRow>
-                <TableHead>Candidate & Position</TableHead>
+                <TableHead className=' first:pl-4'>Candidate & Position</TableHead>
                 <TableHead>Interview Details</TableHead>
                 <TableHead>Date & Time</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Interviewers</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableHead className='rounded-r-lg'>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -443,8 +446,11 @@ console.log("Candidates:", candidates);
                 filteredInterviews.map((interview) => {
                   const { date, time } = formatDateTime(interview.datetime);
                   return (
-                    <TableRow key={interview.id} className={isToday(interview.datetime) ? 'bg-blue-50' : ''}>
-                      <TableCell>
+                    <TableRow key={interview.id} 
+                     onClick={() => navigate(`/interviews/${interview.id}`)}
+                   
+                     className="border border-gray-200 rounded-lg shadow-sm transition-all duration-200 ease-in-out hover:shadow-lg hover:bg-blue-50 hover:-translate-y-[2px] cursor-pointer">
+                      <TableCell className="border-l-[5px] border-blue-800 pl-4 rounded-l-lg">
                         <div>
                           <div className="font-medium">{interview.candidate.name}</div>
                           <div className="text-sm text-gray-500">{interview.requisition.position}</div>
@@ -453,7 +459,7 @@ console.log("Candidates:", candidates);
                       </TableCell>
                       <TableCell>
                         <div className="space-y-1">
-                          <Badge className={getTypeColor(interview.interviewType)}>{interview.interviewType}</Badge>
+                          <Badge className={getTypeColor(interview.interview_type)}>{interview.interview_type}</Badge>
                           <div className="text-sm text-gray-600 flex items-center">
                             {interview.mode === 'Video Call' && <Video className="h-3 w-3 mr-1" />}
                             {interview.mode === 'In-Person' && <MapPin className="h-3 w-3 mr-1" />}
@@ -514,8 +520,9 @@ console.log("Candidates:", candidates);
               )}
             </TableBody>
           </Table>
+          </div>
         </CardContent>
-      </Card>
+      
     </div>
   );
 }

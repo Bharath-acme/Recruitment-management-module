@@ -26,6 +26,7 @@ import { InterviewDetail } from "./components/InterviewDetail";
 >>>>>>> Stashed changes
 =======
 import { Menu } from "lucide-react"; 
+import {InterviewDetail} from "./components/InterviewDetail";
 
 >>>>>>> e561f9799a65bfecdaaa04822805a896b14baa17
 
@@ -102,6 +103,7 @@ function AppContent() {
           {userRole === "admin" && (
             <Route path="/admin" element={<AdminPanel />} />
           )}
+<<<<<<< HEAD
           <Route path="/open-positions" element={<OpenPositions />} />
           <Route path="/candidates/:id" element={<CandidateProfile />} />
 <<<<<<< HEAD
@@ -114,6 +116,12 @@ function AppContent() {
 =======
           <Route path="/requisitions/:id" element={<RquisitionPage2 />} />
 >>>>>>> e561f9799a65bfecdaaa04822805a896b14baa17
+=======
+           <Route path="/open-positions" element={<OpenPositions />} />
+           <Route path="/candidates/:id" element={<CandidateProfile />} />
+           <Route path="/requisitions/:id" element={<RquisitionPage2 />} />
+           <Route path="/interviews/:id" element={<InterviewDetail />} />
+>>>>>>> a5888acac09cf0a12d7e98944f7d6e1d7c0daa79
           {/* Redirect any unknown route to dashboard */}
           <Route path="*" element={<Dashboard selectedCompany={selectedCompany} selectedCountry={selectedCountry} />}/>
         </Routes>

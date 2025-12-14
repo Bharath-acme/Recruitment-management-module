@@ -385,7 +385,11 @@ export function InterviewDetail() {
         </Card>
 
         {/* Tabs Section */}
+<<<<<<< HEAD
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6 shadow-sm">
+=======
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6 sha">
+>>>>>>> a5888acac09cf0a12d7e98944f7d6e1d7c0daa79
            <TabsList className=" border rounded-lg flex space-x-4 p-2">
            <TabsTrigger
       value="overview"
@@ -731,4 +735,8 @@ export function InterviewDetail() {
   );
 }
 
+<<<<<<< HEAD
 export default InterviewDetail;
+=======
+export default InterviewDetail;
+>>>>>>> a5888acac09cf0a12d7e98944f7d6e1d7c0daa79

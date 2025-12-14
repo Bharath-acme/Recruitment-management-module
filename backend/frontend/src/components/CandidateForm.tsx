@@ -69,6 +69,7 @@ export default function CandidateForm({ initialData, onSubmit, onCancel }: Candi
     } 
   };
 
+<<<<<<< HEAD
 >>>>>>> e561f9799a65bfecdaaa04822805a896b14baa17
    const handleResumeUpload = (file: File) => {
 =======
@@ -104,6 +105,10 @@ export default function CandidateForm({ initialData, onSubmit, onCancel }: Candi
     const handleResumeUpload = async (file: File) => {
 >>>>>>> Stashed changes
     setFormData(prev => ({ ...prev, resume: file }));
+=======
+    const handleResumeUpload = async (file: File) => {
+  setFormData(prev => ({ ...prev, resume: file }));
+>>>>>>> a5888acac09cf0a12d7e98944f7d6e1d7c0daa79
 
   const formData = new FormData();
   formData.append("file", file);
@@ -128,7 +133,11 @@ export default function CandidateForm({ initialData, onSubmit, onCancel }: Candi
     console.error("Resume parsing failed:", error);
   }
 };
+<<<<<<< HEAD
  
+=======
+
+>>>>>>> a5888acac09cf0a12d7e98944f7d6e1d7c0daa79
 
   const handleChange = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
