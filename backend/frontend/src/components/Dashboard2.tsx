@@ -331,15 +331,7 @@ export function Dashboard2({ selectedCompany, selectedCountry }: DashboardProps)
   }
 
   return (
-    <div className="pt-16 p-8 space-y-10 pb-10 min-h-screen bg-[#F8FAFC]">
-       <header
-       className={`fixed top-0 right-0 h-14 flex items-center px-6 z-40 transition-all duration-300 `}
-       style={{
-         background: "navy",
-         color: "#fff",
-         width: 1240 + "px",
-        }}>
-       </header>
+    <div className="p-8 space-y-10 pb-10 min-h-screen bg-[#F8FAFC]">
       
       {/* Header & Filter Bar */}
       <div className="flex flex-col xl:flex-row justify-between gap-6">
