@@ -226,6 +226,18 @@ export function RequisitionManager({ selectedCompany, selectedCountry }: Requisi
   return (
     <div className="p-6 space-y-6">
       {/* 🔹 Header */}
+<<<<<<< Updated upstream
+=======
+      <header
+       className={`fixed top-0 right-0 h-14 flex items-center px-6 z-40 transition-all duration-300 `}
+       style={{
+        background: "navy",
+        color: "#fff",
+        width: 1240 + "px",
+  }} 
+>
+</header>
+>>>>>>> Stashed changes
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Requisition Management</h1>

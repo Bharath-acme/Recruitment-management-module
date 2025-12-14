@@ -61,7 +61,19 @@ export default function InvoiceManagement() {
   }, []);
 
   return (
+<<<<<<< Updated upstream
     <div className="p-6">
+=======
+    <div className="pt-16 p-6">
+      <header
+       className={`fixed top-0 right-0 h-14 flex items-center px-6 z-40 transition-all duration-300 `}
+       style={{
+         background: "navy",
+         color: "#fff",
+         width: 1240 + "px",
+        }}>
+       </header> 
+>>>>>>> Stashed changes
       {/* Top Section */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Invoice Management</h1>
