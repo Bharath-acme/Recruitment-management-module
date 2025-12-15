@@ -155,10 +155,14 @@ def login(data: LoginRequest, db: Session = Depends(get_db)):
 def read_users_me(current_user=Depends(get_current_user)):
     return current_user
 
-@app.get("/companies", response_model=List[schemas.CompanyOut])
-def get_companies(current_user = Depends(get_current_user), db: Session = Depends(get_db)):
+@app.get("/companies", response_model=List[schemas.CompanyBase])
+def get_companies(
+    current_user=Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
     if current_user.role.lower() != "admin":
-        raise HTTPException(status_code=403, detail="Not authorized to view companies")
+        raise HTTPException(status_code=403, detail="Not authorized")
+
     companies = db.query(models.Company).all()
     return companies
 

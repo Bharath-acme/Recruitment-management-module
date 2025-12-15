@@ -88,4 +88,20 @@ def search_skills(db: Session, query: str, skip: int = 0, limit: int = 100):
 def get_all_skills(db: Session, skip: int = 0, limit: int = 100):
     return db.query(Skill).offset(skip).limit(limit).all()
 
+def get_all_companies(db: Session):
+    return db.query(models.Company).all()
 
+
+def get_company_by_id(db: Session, company_id: int):
+    return db.query(models.Company).filter(models.Company.id == company_id).first()
+
+
+def get_company_by_user(db: Session, user):
+    """
+    Used for client users → fetch only their company
+    """
+    return (
+        db.query(models.Company)
+        .filter(models.Company.id == user.company_id)
+        .first()
+    )

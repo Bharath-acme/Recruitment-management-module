@@ -5,9 +5,9 @@ from app.utils.email_utils import send_email_requisition_created
 # @shared_task
 def send_requisition_created_email(req_id: int, position: str, created_by: str):
     """
-    Async task: sends email to Bharath.K@acmeglobal.tech when a new requisition is created.
+    Async task: sends email to bharath.k@acmeglobal.tech when a new requisition is created.
     """
-    recipient = ["Bharath.K@acmeglobal.tech"]
+    recipient = ["bharath.k@acmeglobal.tech"]
     print('recipient',recipient)
 
     subject = f"New Requisition Created {position}"
