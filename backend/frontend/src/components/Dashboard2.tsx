@@ -376,7 +376,7 @@ export function Dashboard2({ selectedCompany, selectedCountry }: DashboardProps)
         </div>
         
         {/* Dynamic Filters Area */}
-         <div className="flex flex-col sm:flex-row gap-3 bg-white p-2 rounded-2xl shadow-sm border border-gray-100">
+         {/* <div className="flex flex-col sm:flex-row gap-3 bg-white p-2 rounded-2xl shadow-sm border border-gray-100">
            <div className="w-full sm:w-48">
               <Select 
                  icon={Building2}
@@ -398,7 +398,7 @@ export function Dashboard2({ selectedCompany, selectedCountry }: DashboardProps)
            <Button variant="dark" className="px-6" onClick={() => {}}>
               <Bell className="h-4 w-4 mr-2" />
            </Button>
-        </div> 
+        </div>  */}
       </div>
 
       {/* Main Tabs */}
