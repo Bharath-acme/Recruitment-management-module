@@ -7,7 +7,7 @@ from app.auth import get_current_user
 from app.database import get_db
 from typing import List, Optional
 from fastapi import APIRouter
-from app import celery_worker, websocket
+# from app import celery_worker, websocket
 from app.utils.tasks import( send_requisition_created_email,
                                 send_requisition_approval_email,
                                 send_hiring_manager_assigned_email,

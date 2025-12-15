@@ -1,5 +1,5 @@
 # app/utils/tasks.py
-from celery import shared_task
+# from celery import shared_task
 from app.utils.email_utils import send_email_requisition_created
 
 # @shared_task
