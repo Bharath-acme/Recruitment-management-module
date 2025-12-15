@@ -6,53 +6,90 @@ from .models import *
 from candidates import models
 from requisitions.models import Requisitions
 
-from app.auth import oauth2_scheme
+from app.auth import oauth2_scheme,get_current_user
 from app.database import get_db
 from typing import List
 from msal import ConfidentialClientApplication
 from config import CLIENT_ID, CLIENT_SECRET, TENANT_ID,GRAPH_API
 import requests
+from msal import ConfidentialClientApplication
+import time
 
 router = APIRouter()
-
 
 AUTHORITY = f"https://login.microsoftonline.com/{TENANT_ID}"
 SCOPE = ["https://graph.microsoft.com/.default"]
 
-def get_graph_token():
+
+
+def refresh_graph_token(user):
+    """
+    Refresh recruiter’s delegated access token using the refresh token.
+    """
+
     app = ConfidentialClientApplication(
         client_id=CLIENT_ID,
         client_credential=CLIENT_SECRET,
         authority=AUTHORITY
     )
-    token = app.acquire_token_for_client(scopes=SCOPE)
-    if "access_token" not in token:
-        raise Exception("Unable to get Graph token")
-    return token["access_token"]
 
-def graph_headers():
+    result = app.acquire_token_by_refresh_token(
+        user.graph_refresh_token,
+        scopes=SCOPE
+    )
+
+    if "access_token" not in result:
+        raise Exception("Failed to refresh Microsoft Graph token")
+
+    # Save latest tokens in DB
+    user.graph_access_token = result["access_token"]
+    user.graph_refresh_token = result.get("refresh_token", user.graph_refresh_token)
+
+    return user.graph_access_token
+
+
+def graph_headers(user):
+    access_token = user.graph_access_token
+
+    # If token expired → refresh
+    if not access_token:
+        access_token = refresh_graph_token(user)
+
     return {
-        "Authorization": f"Bearer {get_graph_token()}",
+        "Authorization": f"Bearer {access_token}",
         "Content-Type": "application/json"
     }
 
-@router.post("/free-busy")
-def get_free_busy(req: CalendarRequest):
+# @router.post("/free-busy")
+# async def get_free_busy(request: FreeBusyRequest, current_user=Depends(get_current_user)):
+#     access_token = current_user.graph_access_token  # Your stored MS token
 
-    url = "https://graph.microsoft.com/v1.0/users/{}/calendar/getSchedule".format(
-        req.recruiter_email
-    )
+#     start = datetime.utcnow()
+#     end = start + timedelta(days=30)
 
-    body = {
-        "schedules": [req.recruiter_email],
-        "startTime": {"dateTime": req.start, "timeZone": "UTC"},
-        "endTime": {"dateTime": req.end, "timeZone": "UTC"},
-        "availabilityViewInterval": 30
-    }
+#     url = "https://graph.microsoft.com/v1.0/me/calendar/getSchedule"
 
-    response = requests.post(url, json=body, headers=graph_headers())
-    print("my_calendar", response.json())
-    return response.json()
+#     payload = {
+#         "schedules": [current_user.email],  # recruiter calendar ONLY
+#         "startTime": {"dateTime": start.isoformat(), "timeZone": "UTC"},
+#         "endTime": {"dateTime": end.isoformat(), "timeZone": "UTC"},
+#         "availabilityViewInterval": 30
+#     }
+
+#     headers = {"Authorization": f"Bearer {access_token}"}
+
+#     res = requests.post(url, json=payload, headers=headers)
+#     data = res.json()
+
+#     busy = data["value"][0]["scheduleItems"]
+
+#     events = [
+#         {"start": item["start"]["dateTime"], "end": item["end"]["dateTime"]}
+#         for item in busy
+#     ]
+
+#     return {"calendarEvents": events}
+
 
 
 

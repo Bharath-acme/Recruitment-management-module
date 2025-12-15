@@ -1,28 +1,47 @@
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-from fastapi import HTTPException
+import requests
 import os
+from app.utils.graph_auth import get_graph_token
 
-SMTP_HOST = os.getenv("SMTP_HOST", "smtp.office365.com")
-SMTP_PORT = int(os.getenv("SMTP_PORT", 587))
-SMTP_USER = os.getenv("SMTP_USER", "no-reply@acmeglobal.tech")
-SMTP_PASS = os.getenv("SMTP_PASS", "")
+MAIL_SENDER = os.getenv("MAIL_SENDER", "b.kumar@aiatacme.com")
+GRAPH_URL = "https://graph.microsoft.com/v1.0/users/{sender}/sendMail"
 
-def send_email_requisition_created(to_email: str, subject: str, message: str):
-    try:
-        msg = MIMEMultipart()
-        msg["From"] = SMTP_USER
-        msg["To"] = to_email
-        msg["Subject"] = subject
+def send_email_requisition_created(to_emails, subject, body):
+    """
+    to_emails: list[str]
+    """
+    token = get_graph_token()
 
-        msg.attach(MIMEText(message, "plain"))
+    payload = {
+        "message": {
+            "subject": subject,
+            "body": {
+                "contentType": "Text",
+                "content": body
+            },
+            "toRecipients": [
+                {"emailAddress": {"address": email}}
+                for email in to_emails
+            ],
+            "from": {
+                "emailAddress": {"address": MAIL_SENDER}
+            }
+        },
+        "saveToSentItems": True
+    }
 
-        with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
-            server.starttls()
-            server.login(SMTP_USER, SMTP_PASS)
-            server.sendmail(SMTP_USER, to_email, msg.as_string())
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json"
+    }
 
-    except Exception as e:
-        print("Email sending failed:", e)
-        return False
+    res = requests.post(
+        GRAPH_URL.format(sender=MAIL_SENDER),
+        headers=headers,
+        json=payload,
+        timeout=10
+    )
+
+    if res.status_code not in (200, 202):
+        raise Exception(res.text)
+
+    return True

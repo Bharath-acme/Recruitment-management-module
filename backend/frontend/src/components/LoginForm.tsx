@@ -10,16 +10,8 @@ import { toast } from 'sonner';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import logo from '../media/thumbnail_image001.png';
 
-// Mock Avatars for the visual panel
-const Avatars = [
-  'https://placehold.co/40x40/4c7c64/ffffff?text=J',
-  'https://placehold.co/40x40/3e4e5e/ffffff?text=A',
-  'https://placehold.co/40x40/7a909a/ffffff?text=K',
-  'https://placehold.co/40x40/8f3a3a/ffffff?text=L',
-  'https://placehold.co/40x40/a6c4c4/ffffff?text=M',
-  'https://placehold.co/40x40/c8976a/ffffff?text=N',
-  'https://placehold.co/40x40/e3b505/ffffff?text=P',
-];
+
+
 
 export function LoginForm() {
   const { signIn, signUp } = useAuth();
@@ -148,11 +140,12 @@ export function LoginForm() {
                 {roles.slice(0, 1).map((item, index) => {
                     const angle = Math.PI / 2; // Bottom center
                     const radius = 150;
-                    const top = -10 - radius * Math.cos(angle);
+                    const top = -30 - radius * Math.cos(angle);
                     const left =  -80+ radius * Math.sin(angle);
                     return (
                         <div key={item.value} className="absolute text-center" style={{ top: `${top}%`, left: `${left}%`, transform: 'translate(-50%, -50%)' }}>
-                            <img src={Avatars[0]} alt={item.label} className="w-12 h-12 rounded-full border-2 border-blue-300/50 shadow-lg mb-1" />
+                            {/* <img src='' alt={item.label} className="w-12 h-12 rounded-full border-2 border-blue-300/50 shadow-lg mb-1" /> */}
+                            <Avatar label={item.label} index={index} />
                             <span className="text-[10px] font-semibold text-blue-200">{item.label}</span>
                         </div>
                     );
@@ -161,12 +154,13 @@ export function LoginForm() {
                 {/* Middle Circle (2 items) */}
                 {roles.slice(1, 3).map((item, index) => {
                     const angle = (index * Math.PI) - (Math.PI / 2); // Left and Right
-                    const radius = 57;
-                    const top = 60 - radius * Math.cos(angle);
-                    const left = 50 + radius * Math.sin(angle);
+                    const radius = 53;
+                    const top = 40 - radius * Math.cos(angle);
+                    const left = 55 + radius * Math.sin(angle);
                     return (
                         <div key={item.value} className="absolute text-center" style={{ top: `${top}%`, left: `${left}%`, transform: 'translate(-50%, -50%)' }}>
-                            <img src={Avatars[index + 1]} alt={item.label} className="w-12 h-12 rounded-full border-2 border-blue-300/50 shadow-lg mb-1" />
+                            <Avatar label={item.label} index={index} />
+                            {/* <img src='' alt={item.label} className="w-12 h-12 rounded-full border-2 border-blue-300/50 shadow-lg mb-1" /> */}
                             <span className="text-[10px] font-semibold text-blue-200">{item.label}</span>
                         </div>
                     );
@@ -175,12 +169,13 @@ export function LoginForm() {
                 {/* Inner Circle (3 items) */}
                 {roles.slice(3, 6).map((item, index) => {
                     const angle = (index / 3) * 2 * Math.PI + (Math.PI / 2); // 3 items, spaced out
-                    const radius = 28;
-                    const top = 50 - radius * Math.cos(angle);
-                    const left = 50 + radius * Math.sin(angle);
+                    const radius = 35;
+                    const top = 53 - radius * Math.sin(angle);
+                    const left = 55 + radius * Math.cos(angle);
                     return (
                         <div key={item.value} className="absolute text-center" style={{ top: `${top}%`, left: `${left}%`, transform: 'translate(-50%, -50%)' }}>
-                            <img src={Avatars[index + 3]} alt={item.label} className="w-12 h-12 rounded-full border-2 border-blue-300/50 shadow-lg mb-1" />
+                            <Avatar label={item.label} index={index} />
+                            {/* <img src='' alt={item.label} className="w-12 h-12 rounded-full border-2 border-blue-300/50 shadow-lg mb-1" /> */}
                             <span className="text-[10px] font-semibold text-blue-200">{item.label}</span>
                         </div>
                     );
@@ -342,3 +337,45 @@ export function LoginForm() {
     </div>
   );
 }
+
+
+const avatarColors = [
+  "bg-blue-600",
+  "bg-yellow-400",
+  "bg-purple-600",
+  "bg-teal-600",
+  "bg-blue-200",
+  "bg-rose-600",
+];
+
+function Avatar({
+  label,
+  image,
+  index,
+}: {
+  label: string;
+  image?: string;
+  index: number;
+}) {
+  const firstLetter = label.charAt(0).toUpperCase();
+  const bgColor = avatarColors[index % avatarColors.length];
+
+  if (image) {
+    return (
+      <img
+        src={image}
+        alt={label}
+        className="w-12 h-12 rounded-full border-2 border-blue-300/50 shadow-lg mb-1 object-cover"
+      />
+    );
+  }
+
+  return (
+    <div
+      className={`w-12 h-12 rounded-full ${bgColor} flex items-center justify-center text-white font-bold text-lg shadow-lg mb-1`}
+    >
+      {firstLetter}
+    </div>
+  );
+}
+export { Avatar };

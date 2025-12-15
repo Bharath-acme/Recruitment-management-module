@@ -158,6 +158,7 @@ export function RequisitionManager({ selectedCompany, selectedCountry }: Requisi
         toast.success('Requisition created successfully!');
         setShowCreateDialog(false);
         loadRequisitions();
+        window.dispatchEvent(new CustomEvent('refreshDashboard'));
       } else {
         toast.error('Failed to create requisition');
       }

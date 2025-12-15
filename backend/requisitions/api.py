@@ -180,7 +180,7 @@ def update_requisition_approval(
 
     try:
         status_text = approval_update.approval_status
-        client_email = "client@example.com"  # TODO: replace with actual client email field
+        client_email = "bharathvd01@gmail.com"  # TODO: replace with actual client email field
 
         send_requisition_approval_email.delay(
             requisition.id,
