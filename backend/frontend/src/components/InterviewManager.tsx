@@ -236,7 +236,7 @@ console.log("Candidates:", candidates);
           <InterviewScheduler/>
         </SideDrawer> */}
 
-       {user?.company?.name?.trim().toLowerCase() === 'acme global hub' && ( <Dialog open={showScheduleDialog} onOpenChange={setShowScheduleDialog}>
+       {user?.company?.name?.trim().toLowerCase() === 'acme global hub' && user?.role?.trim().toLowerCase() === 'recruiter' && ( <Dialog open={showScheduleDialog} onOpenChange={setShowScheduleDialog}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="h-4 w-4 mr-2" />
@@ -244,8 +244,8 @@ console.log("Candidates:", candidates);
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-               <InterviewScheduler/>
-            {/* <DialogHeader>
+               {/* <InterviewScheduler/> */}
+            <DialogHeader>
               <DialogTitle>Schedule New Interview</DialogTitle>
               <DialogDescription>
                 Fill in the details below to schedule a new interview with the candidate.
@@ -410,7 +410,7 @@ console.log("Candidates:", candidates);
                   Schedule Interview
                 </Button>
               </div>
-            </div> */}
+            </div>
           </DialogContent>
         </Dialog>)}
       </div>

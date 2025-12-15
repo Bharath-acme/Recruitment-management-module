@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 // import { useNavigate } from 'react-router-dom';
 import { useAuth } from './AuthProvider';
+import file from '../media/RSA.pdf'
 // import { NotificationService, Notification } from '../utils/Utils';
 
 // --- !!! IMPORTANT: UNCOMMENT THE LINE BELOW IN YOUR VITE PROJECT !!! ---
@@ -243,12 +244,16 @@ export function Dashboard2({ selectedCompany, selectedCountry }: DashboardProps)
         setLoading(false);
     }}
 
+      const token = localStorage.getItem("token");
+
+
   const loadCompanies = async () => {
     try { 
       const response = await fetch(`${API_BASE_URL}/companies`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
+           Authorization: `Bearer ${token}`,
         },
       });
       if(!response.ok){
@@ -557,10 +562,10 @@ export function Dashboard2({ selectedCompany, selectedCountry }: DashboardProps)
                     <CardTitle>Client Agreements</CardTitle>
                     <p className="text-sm text-gray-500 mt-1">Manage RAS documents and status</p>
                  </div>
-                 <Button variant="dark">
+                 {/* <Button variant="dark">
                     <Building2 className="h-4 w-4 mr-2" />
                     Add Partner
-                 </Button>
+                 </Button> */}
               </CardHeader>
               <div className="overflow-x-auto">
                  <table className="w-full text-left border-collapse">
@@ -628,7 +633,13 @@ export function Dashboard2({ selectedCompany, selectedCountry }: DashboardProps)
         onClose={() => setPreviewOpen(false)}
         title={selectedClient ? `RAS Agreement - ${selectedClient.name}` : 'Agreement Preview'}
       >
-        <div className="bg-white p-12 max-w-4xl mx-auto shadow-sm min-h-[600px] border border-gray-100 m-4 relative">
+
+        <iframe
+              src={file}
+              title="Resume Preview"
+              className="w-full h-[90vh]"
+            />
+        {/* <div className="bg-white  max-w-4xl mx-auto shadow-sm h-[90vh] border border-gray-100 overflow-hidden  relative">
            <div className="absolute top-0 right-0 p-8 opacity-[0.03]">
               <FileCheck className="h-48 w-48" />
            </div>
@@ -692,7 +703,8 @@ export function Dashboard2({ selectedCompany, selectedCountry }: DashboardProps)
                  </div>
               </div>
            </div>
-        </div>
+          
+        </div> */}
       </Modal>
     </div>
   );
