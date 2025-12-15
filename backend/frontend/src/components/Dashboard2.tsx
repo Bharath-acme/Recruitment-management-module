@@ -1,4 +1,4 @@
-import React, { useState, useEffect, createContext, useContext } from 'react';
+import React, { useState, useEffect, createContext, useContext, use } from 'react';
 import { 
   Users, 
   FileText, 
@@ -202,11 +202,17 @@ export function Dashboard2({ selectedCompany, selectedCountry }: DashboardProps)
   const [activeTab, setActiveTab] = useState('overview');
   const [previewOpen, setPreviewOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState<any>(null);
+  const [companies, setCompanies] = useState<any[]>([]);
 
   useEffect(() => {
     dashboardData();
     // loadDemoData();
+    
   }, [selectedCompany, selectedCountry]);
+
+  useEffect(() => {
+    loadCompanies();
+  }, []);
   // Simulate API Fetch
  const dashboardData = async ()=>{
       setLoading(true);
@@ -236,6 +242,25 @@ export function Dashboard2({ selectedCompany, selectedCountry }: DashboardProps)
     finally{
         setLoading(false);
     }}
+
+  const loadCompanies = async () => {
+    try { 
+      const response = await fetch(`${API_BASE_URL}/companies`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      if(!response.ok){
+          throw new Error('Failed to fetch companies data');
+        }
+      const data = await response.json();
+      console.log('Companies data:', data);
+      setCompanies(data);
+    } catch (error) {
+      console.error('Error fetching companies:', error);
+
+  }};
 
 
   const loadDemoData = () => {

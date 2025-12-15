@@ -1,31 +1,24 @@
-from celery import Celery
 import os
+from celery import Celery
 
-REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+REDIS_HOST = os.getenv("REDIS_HOST")
+REDIS_PORT = os.getenv("REDIS_PORT", "6380")
+REDIS_PASSWORD = os.getenv("REDIS_PASSWORD")
+REDIS_DB = os.getenv("REDIS_DB", "0")
 
-# IMPORTANT: Load models before Celery starts
-from app.models import User, Notification
-from requisitions.models import Requisitions
-from candidates.models import Candidate
-from interviews.models import Interview
-from offers.models import Offer
+REDIS_URL = (
+    f"rediss://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}"
+)
 
 celery_app = Celery(
-    "recruitment_tasks",
+    "rmm",
     broker=REDIS_URL,
     backend=REDIS_URL,
-    include=["app.utils.notifier"]    # ensure tasks are imported
 )
 
 celery_app.conf.update(
+    broker_connection_retry_on_startup=True,
     task_serializer="json",
     accept_content=["json"],
     result_serializer="json",
-    timezone="Asia/Kolkata",
-    enable_utc=True,
 )
-
-celery_app.autodiscover_tasks([
-    "app.utils",
-    "app.tasks"
-])

@@ -2,7 +2,7 @@
 from celery import shared_task
 from app.utils.email_utils import send_email_requisition_created
 
-@shared_task
+# @shared_task
 def send_requisition_created_email(req_id: int, position: str, created_by: str):
     """
     Async task: sends email to bharath.k@acmeglobal.tech when a new requisition is created.
@@ -26,7 +26,7 @@ def send_requisition_created_email(req_id: int, position: str, created_by: str):
 
 
 # 1️⃣ Approval notification (approved or rejected)
-@shared_task
+# @shared_task
 def send_requisition_approval_email(req_id: int, position: str, status: str, client_email: str):
     subject = f"Requisition {position} has been {status}"
     message = f"""
@@ -46,7 +46,7 @@ def send_requisition_approval_email(req_id: int, position: str, status: str, cli
 
 
 # 2️⃣ Hiring Manager assignment email
-@shared_task
+# @shared_task
 def send_hiring_manager_assigned_email(req_id: int, position: str, hm_email: str):
     subject = f"You have been assigned as Hiring Manager for {position}"
     message = f"""
@@ -64,7 +64,7 @@ def send_hiring_manager_assigned_email(req_id: int, position: str, hm_email: str
 
 
 # 3️⃣ Recruiter assignment email
-@shared_task
+# @shared_task
 def send_recruiter_assigned_email(req_id: int, position: str, recruiter_email: str):
     subject = f"You have been assigned as Recruiter for {position}"
     message = f"""

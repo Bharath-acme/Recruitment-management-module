@@ -36,7 +36,13 @@ async def create_requisition(req: RequisitionCreate,
 
     # 🔥 Send email notification to sales
     try:
-        send_requisition_created_email.delay(
+        # send_requisition_created_email.delay(
+        #     requisition.id,
+        #     requisition.position,
+        #     current_user.name
+        # )
+
+         send_requisition_created_email(
             requisition.id,
             requisition.position,
             current_user.name
@@ -45,10 +51,10 @@ async def create_requisition(req: RequisitionCreate,
         print("Celery connection failed:", str(e))
 
     # Your existing approval workflow
-    try:
-        send_requisition_for_approval.delay(requisition.id, current_user.id)
-    except Exception:
-        pass
+    # try:
+    #     send_requisition_for_approval.delay(requisition.id, current_user.id)
+    # except Exception:
+    #     pass
 
     return requisition
 
@@ -173,16 +179,22 @@ def update_requisition_approval(
         action="Approval Status Updated",
         details=f"Changed from '{old_status}' to '{approval_update.approval_status}'"
     )
-    try:
-        send_requisition_approval_update.delay(requisition.id, current_user.id)
-    except Exception:
-        pass
+    # try:
+    #     send_requisition_approval_update.delay(requisition.id, current_user.id)
+    # except Exception:
+    #     pass
 
     try:
         status_text = approval_update.approval_status
         client_email = "bharathvd01@gmail.com"  # TODO: replace with actual client email field
 
-        send_requisition_approval_email.delay(
+        # send_requisition_approval_email.delay(
+        #     requisition.id,
+        #     requisition.position,
+        #     status_text,
+        #     client_email
+        # )
+         send_requisition_approval_email(
             requisition.id,
             requisition.position,
             status_text,
@@ -228,13 +240,19 @@ def update_requisition_team(
         action="Assigned Recruiter",
         details=f"Recruiter ID {requisition.recruiter_id} assigned by {current_user.name}"
     )
-    try:
-        send_team_assignment_notification.delay(requisition.id, requisition.recruiter_id)
-    except Exception:
-        pass
+    # try:
+    #     send_team_assignment_notification.delay(requisition.id, requisition.recruiter_id)
+    # except Exception:
+    #     pass
 
     try:
-        send_recruiter_assigned_email.delay(
+        # send_recruiter_assigned_email.delay(
+        #     requisition.id,
+        #     requisition.position,
+        #     recruiter.email
+        # )
+
+        send_recruiter_assigned_email(
             requisition.id,
             requisition.position,
             recruiter.email
@@ -256,10 +274,10 @@ def delete_requisition(requisition_id: int, db: Session = Depends(get_db)):
     db_req = crud.delete_requisition(db, requisition_id)
     if not db_req:
         raise HTTPException(status_code=404, detail="Requisition not found")
-    try:
-        send_requisition_deleted.delay(db_req.id)
-    except Exception:
-        pass
+    # try:
+    #     send_requisition_deleted.delay(db_req.id)
+    # except Exception:
+    #     pass
     return db_req
 
 

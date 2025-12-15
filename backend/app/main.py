@@ -155,6 +155,12 @@ def login(data: LoginRequest, db: Session = Depends(get_db)):
 def read_users_me(current_user=Depends(get_current_user)):
     return current_user
 
+@app.get("/companies", response_model=List[schemas.Company])
+def get_companies(current_user = Depends(get_current_user) db: Session = Depends(get_db)):
+    if current_user.role.lower() != "admin":
+        raise HTTPException(status_code=403, detail="Not authorized to view companies")
+    companies = db.query(models.Company).all()
+    return companies
 
 @app.get("/recruiter_team", response_model=List[schemas.RecruiterBase])
 def get_team_members(current_user=Depends(get_current_user), db: Session = Depends(get_db)):
