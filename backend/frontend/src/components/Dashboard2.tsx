@@ -204,32 +204,40 @@ export function Dashboard2({ selectedCompany, selectedCountry }: DashboardProps)
   const [selectedClient, setSelectedClient] = useState<any>(null);
 
   useEffect(() => {
-    dashboardData();
-    // loadDemoData();
-  }, [selectedCompany, selectedCountry]);
+        dashboardData();
+        loadDemoData();
+    }, [selectedCompany, selectedCountry]);
 
   // Simulate API Fetch
-  const dashboardData = async () => {
-    setLoading(true);
-    try {
-      const response = await fetch(`${API_BASE_URL}/summary`, { 
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
-      });
-      if (!response.ok) throw new Error('Failed to fetch dashboard data');
-      const data = await response.json();
-      console.log('Dashboard', data)
-      setDashCount(data.summary);  
-      setRecentRequisitions(data.recent_requisitions);
-      setUpcomingInterviews(data.upcoming_interviews);
-      setPendingApprovals(data.pending_approvals);
-    } catch (error) {
-      console.error('Error fetching dashboard data, falling back to demo:', error);
-      // Fallback is handled by loadDemoData initially, or we could trigger it here
-    } finally {
-      setLoading(false);
-    }
-  };
+ const dashboardData = async ()=>{
+      setLoading(true);
+      try{
+        const response = await fetch(`${API_BASE_URL}/summary`,
+        { method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+        );
+        if(!response.ok){
+          throw new Error('Failed to fetch dashboard data');
+        }
+        const data = await response.json();
+        console.log('count',data);
+        setDashCount(data.summary);  
+        setRecentRequisitions(data.recent_requisitions);
+        setUpcomingInterviews(data.upcoming_interviews);
+        setPendingApprovals(data.pending_approvals);
+        console.log('Dashboard data:', data);
+        // Process and set metrics
+      }
+      catch(error){
+        console.error('Error fetching dashboard data:', error);
+      }
+    finally{
+        setLoading(false);
+    }}
+
 
   const loadDemoData = () => {
     // Populate with demo data for UI Preview if API is not available
@@ -241,11 +249,11 @@ export function Dashboard2({ selectedCompany, selectedCountry }: DashboardProps)
       fy_completed: 42,
     });
 
-    setUpcomingInterviews([
-      { id: 1, candidateName: 'Ahmed Al-Rashid', position: 'Senior Software Engineer', time: '10:00 AM', date: 'Today', interviewer: 'Sarah Johnson', type: 'Technical' },
-      { id: 2, candidateName: 'Fatima Al-Zahra', position: 'Product Manager', time: '2:00 PM', date: 'Today', interviewer: 'Mike Chen', type: 'Behavioral' },
-      { id: 3, candidateName: 'Omar Hassan', position: 'UI/UX Designer', time: '9:00 AM', date: 'Tomorrow', interviewer: 'Lisa Park', type: 'Portfolio Review' }
-    ]);
+    // setUpcomingInterviews([
+    //   { id: 1, candidateName: 'Ahmed Al-Rashid', position: 'Senior Software Engineer', time: '10:00 AM', date: 'Today', interviewer: 'Sarah Johnson', type: 'Technical' },
+    //   { id: 2, candidateName: 'Fatima Al-Zahra', position: 'Product Manager', time: '2:00 PM', date: 'Today', interviewer: 'Mike Chen', type: 'Behavioral' },
+    //   { id: 3, candidateName: 'Omar Hassan', position: 'UI/UX Designer', time: '9:00 AM', date: 'Tomorrow', interviewer: 'Lisa Park', type: 'Portfolio Review' }
+    // ]);
 
     
   };

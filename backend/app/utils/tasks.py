@@ -22,3 +22,61 @@ def send_requisition_created_email(req_id: int, position: str, created_by: str):
     print(message)
     send_email_requisition_created(recipient, subject, message)
     return True
+
+
+
+# 1️⃣ Approval notification (approved or rejected)
+@shared_task
+def send_requisition_approval_email(req_id: int, position: str, status: str, client_email: str):
+    subject = f"Requisition {position} has been {status}"
+    message = f"""
+    Hello,
+
+    The requisition for position **{position}** has been {status.upper()}.
+    • Requisition ID: {req_id}
+    • Status: {status}
+
+    Please review details in the RMM portal.
+
+    Regards,
+    RMM System
+    """
+    send_email_requisition_created(client_email, subject, message)
+    return True
+
+
+# 2️⃣ Hiring Manager assignment email
+@shared_task
+def send_hiring_manager_assigned_email(req_id: int, position: str, hm_email: str):
+    subject = f"You have been assigned as Hiring Manager for {position}"
+    message = f"""
+    Hello,
+
+    You have been assigned as the Hiring Manager for:
+
+    • Position: {position}
+    • Requisition ID: {req_id}
+
+    Please log in to the RMM portal to review.
+    """
+    send_email_requisition_created(hm_email, subject, message)
+    return True
+
+
+# 3️⃣ Recruiter assignment email
+@shared_task
+def send_recruiter_assigned_email(req_id: int, position: str, recruiter_email: str):
+    subject = f"You have been assigned as Recruiter for {position}"
+    message = f"""
+    Hello,
+
+    You have been assigned as the Recruiter for:
+
+    • Position: {position}
+    • Requisition ID: {req_id}
+
+    Please log in to the RMM portal to begin your sourcing workflow.
+    """
+    send_email_requisition_created(recruiter_email, subject, message)
+    return True
+

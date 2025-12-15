@@ -4,7 +4,7 @@ from email.mime.multipart import MIMEMultipart
 from fastapi import HTTPException
 import os
 
-SMTP_HOST = os.getenv("SMTP_HOST", "smtp.gmail.com")
+SMTP_HOST = os.getenv("SMTP_HOST", "smtp.office365.com")
 SMTP_PORT = int(os.getenv("SMTP_PORT", 587))
 SMTP_USER = os.getenv("SMTP_USER", "no-reply@acmeglobal.tech")
 SMTP_PASS = os.getenv("SMTP_PASS", "")
@@ -24,4 +24,5 @@ def send_email_requisition_created(to_email: str, subject: str, message: str):
             server.sendmail(SMTP_USER, to_email, msg.as_string())
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Email sending failed: {str(e)}")
+        print("Email sending failed:", e)
+        return False

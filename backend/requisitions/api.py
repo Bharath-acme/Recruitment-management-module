@@ -8,7 +8,10 @@ from app.database import get_db
 from typing import List, Optional
 from fastapi import APIRouter
 from app import celery_worker, websocket
-from app.utils.tasks import send_requisition_created_email
+from app.utils.tasks import( send_requisition_created_email,
+                                send_requisition_approval_email,
+                                send_hiring_manager_assigned_email,
+                                send_recruiter_assigned_email)
 from app.crud import create_notification
 from app.utils.notifier import send_requisition_for_approval, send_requisition_approval_update, send_requisition_deleted, send_team_assignment_notification
 # from celery.results import AsyncResult
@@ -39,7 +42,7 @@ async def create_requisition(req: RequisitionCreate,
             current_user.name
         )
     except Exception:
-        pass
+        print("Celery connection failed:", str(e))
 
     # Your existing approval workflow
     try:
@@ -51,7 +54,7 @@ async def create_requisition(req: RequisitionCreate,
 
 
 
-@router.get("", response_model=list[RequisitionResponse])
+@router.get("", response_model=list[RequisitionList])
 def read_requisitions(
     skip: int = 0,
     limit: int = 10,
@@ -175,6 +178,19 @@ def update_requisition_approval(
     except Exception:
         pass
 
+    try:
+        status_text = approval_update.approval_status
+        client_email = "client@example.com"  # TODO: replace with actual client email field
+
+        send_requisition_approval_email.delay(
+            requisition.id,
+            requisition.position,
+            status_text,
+            client_email
+        )
+    except Exception as e:
+        print("Failed to send approval email:", e)
+
     return requisition
 
 @router.put("/{req_id}/assignTeam", response_model=RequisitionResponse)
@@ -196,6 +212,7 @@ def update_requisition_team(
             User.id == team_update.recruiter_id,
             User.role == "recruiter"
         ).first()
+       
         if not recruiter:
             raise HTTPException(status_code=400, detail="Invalid recruiter ID")
         requisition.recruiter_id = team_update.recruiter_id
@@ -215,6 +232,21 @@ def update_requisition_team(
         send_team_assignment_notification.delay(requisition.id, requisition.recruiter_id)
     except Exception:
         pass
+
+    try:
+        send_recruiter_assigned_email.delay(
+            requisition.id,
+            requisition.position,
+            recruiter.email
+        )
+
+        # send_hiring_manager_assigned_email.delay(
+        #     requisition.id,
+        #     requisition.position,
+        #     hiring_manager.email
+        # )
+    except Exception as e:
+        print("Recruiter email failed:", e)
 
     return requisition
 

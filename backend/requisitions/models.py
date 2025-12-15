@@ -69,18 +69,21 @@ class Requisitions(Base):
     # Additional info
     positions_count = Column(Integer, nullable=False, default=1)
     target_startdate = Column(Date, nullable=True)
+    hiring_manager_id = Column(Integer,ForeignKey("users.id"), nullable=True)
     hiring_manager = Column(String(100), nullable=True)
+    created_by = Column(Integer,ForeignKey("users.id"), nullable=True)
+    created_by_user = relationship("User",foreign_keys=[created_by], back_populates="created_requisitions")
     job_description = Column(Text, nullable=True)
     recruiter_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     company_id = Column(Integer, ForeignKey("companies.id"))
     company = relationship("Company",back_populates="requistions")
-    recruiter = relationship("User", back_populates="requisitions")
+    recruiter = relationship("User",foreign_keys=[recruiter_id], back_populates="requisitions")
     interviews = relationship("Interview", back_populates="requisition")
     # recruiters = relationship("User", secondary=requisition_recruiter, backref="assigned_requisitions")
     offers = relationship("Offer", back_populates="requisitions", cascade="all, delete-orphan")
     activity_logs = relationship("RequisitionActivityLog", back_populates="requisition", cascade="all, delete-orphan", passive_deletes=True)
     notifications = relationship("Notification", back_populates="requisition", cascade="all, delete-orphan")
-
+    hiringManager = relationship("User",foreign_keys=[hiring_manager_id],back_populates='hiring_man')
     # Many-to-Many relationship for skills
     skills = relationship("Skill", secondary=requisition_skills, back_populates="requisitions")
 

@@ -56,9 +56,11 @@ class User(Base):
     company_rel = relationship("Company", back_populates="users")
     # notifications = relationship("Notification", back_populates="user", cascade="all, delete")
     # requisition = relationship("Requisitions", back_populates="user")
-    requisitions = relationship("Requisitions", back_populates="recruiter")
+    requisitions = relationship("Requisitions", foreign_keys="[Requisitions.recruiter_id]",back_populates="recruiter")
     activity_logs = relationship("RequisitionActivityLog", back_populates="user", cascade="all, delete-orphan")
     notifications = relationship("Notification", back_populates="user", cascade="all, delete")
+    created_requisitions = relationship("Requisitions",foreign_keys="[Requisitions.created_by]",back_populates="created_by_user")
+    hiring_man = relationship("Requisitions",foreign_keys="[Requisitions.hiring_manager_id]", back_populates="hiringManager")
 
 # class PasswordResetToken(Base):
 #     __tablename__ = "password_reset_tokens"

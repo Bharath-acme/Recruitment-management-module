@@ -63,6 +63,8 @@ class RequisitionBase(BaseModel):
     hiring_manager: Optional[str] = None
     status: Status = Status.OPEN   
     job_description: Optional[str] = None
+    created_by:Optional[int] = None
+    hiring_manager_id:Optional[int] = None
     
     
 
@@ -96,7 +98,8 @@ class RequisitionResponse(RequisitionBase):
     # positions: List[PositionResponse] = []
     class Config:
         from_attributes = True
-   
+
+
 class RequisitionMini(BaseModel):
     id: int
     position: str
@@ -105,6 +108,20 @@ class RequisitionMini(BaseModel):
 
     class Config:
         from_attributes = True
+
+class RequisitionList(RequisitionMini):
+    department :Department
+    approval_status: Optional[str] = "pending"
+    company: Optional[CompanyOut]  
+    created_date: datetime
+    hiring_manager: Optional[str] = None
+    priority:Priority
+    location: Optional[Location]
+    location_id: Optional[int] = None
+
+
+
+
 
 class RequisitionApprovalUpdate(BaseModel):
     approval_status: str

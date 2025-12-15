@@ -33,7 +33,7 @@ export default function Step1Basic({
     setLoading(true);
 
       const res = await axios.post(`${API_BASE_URL}/interviews/free-busy`, {
-        recruiter_email: "RajendraKumar.C@acmeglobal.tech",
+        recruiter_email: "B.kumar@aiatacme.com",
         start: "2025-12-01T00:00:00",
         end: "2025-12-31T23:59:59"
       });

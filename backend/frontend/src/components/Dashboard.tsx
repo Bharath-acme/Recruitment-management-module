@@ -64,8 +64,10 @@ export function Dashboard({ selectedCompany, selectedCountry  }: DashboardProps)
       dashboardData();
       loadDemoData();
   }, [selectedCompany, selectedCountry]);
+
    console.log('user', user)
    console.log('companies', allCompanies)
+   
   // Icon mapping for server responses
   const iconMap: { [key: string]: any } = {
     'FileText': FileText,
