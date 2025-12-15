@@ -2,13 +2,13 @@ import requests
 import os
 from app.utils.graph_auth import get_graph_token
 
-MAIL_SENDER = os.getenv("MAIL_SENDER", "b.kumar@aiatacme.com")
+MAIL_SENDER = "b.kumar@aiatacme.com"
 GRAPH_URL = "https://graph.microsoft.com/v1.0/users/{sender}/sendMail"
 
 def send_email_requisition_created(to_emails, subject, body):
-    """
-    to_emails: list[str]
-    """
+    if isinstance(to_emails, str):
+        to_emails = [to_emails]
+
     token = get_graph_token()
 
     payload = {
@@ -21,10 +21,7 @@ def send_email_requisition_created(to_emails, subject, body):
             "toRecipients": [
                 {"emailAddress": {"address": email}}
                 for email in to_emails
-            ],
-            "from": {
-                "emailAddress": {"address": MAIL_SENDER}
-            }
+            ]
         },
         "saveToSentItems": True
     }
@@ -40,6 +37,9 @@ def send_email_requisition_created(to_emails, subject, body):
         json=payload,
         timeout=10
     )
+
+    print("Graph status:", res.status_code)
+    print("Graph response:", res.text)
 
     if res.status_code not in (200, 202):
         raise Exception(res.text)

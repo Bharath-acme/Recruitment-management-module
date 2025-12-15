@@ -13,7 +13,7 @@ from app.utils.tasks import( send_requisition_created_email,
                                 send_hiring_manager_assigned_email,
                                 send_recruiter_assigned_email)
 from app.crud import create_notification
-from app.utils.notifier import send_requisition_for_approval, send_requisition_approval_update, send_requisition_deleted, send_team_assignment_notification
+# from app.utils.notifier import send_requisition_for_approval, send_requisition_approval_update, send_requisition_deleted, send_team_assignment_notification
 # from celery.results import AsyncResult
 
 
@@ -47,7 +47,7 @@ async def create_requisition(req: RequisitionCreate,
             requisition.position,
             current_user.name
         )
-    except Exception:
+    except Exception as e:
         print("Celery connection failed:", str(e))
 
     # Your existing approval workflow
@@ -194,7 +194,7 @@ def update_requisition_approval(
         #     status_text,
         #     client_email
         # )
-         send_requisition_approval_email(
+        send_requisition_approval_email(
             requisition.id,
             requisition.position,
             status_text,
