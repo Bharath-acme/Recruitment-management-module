@@ -10,8 +10,8 @@ export PYTHONPATH=/home/site/wwwroot/backend
 echo "🔧 Running Alembic migrations..."
 alembic upgrade head || echo "⚠ Alembic failed, continuing..."
 
-echo "🔥 Starting Celery worker..."
-celery -A app.celery_worker.celery_app worker --loglevel=info &
+# echo "🔥 Starting Celery worker..."
+# celery -A app.celery_worker.celery_app worker --loglevel=info &
 
 echo "🔥 Starting FastAPI with Gunicorn..."
 exec gunicorn app.main:app \
