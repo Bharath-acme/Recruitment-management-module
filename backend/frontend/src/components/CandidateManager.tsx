@@ -141,7 +141,7 @@ export function CandidateManager({ selectedCompany, selectedCountry }: Candidate
     if (!s) return 'screening'; // default fallback
 
     // tolerant checks using includes for variations
-    if (s.includes('new')) return 'screening';
+    // if (s.includes('new')) return 'screening';
     if (s.includes('approve') || s === 'approved') return 'selected'; // approve / approved
     if (s === 'selected' || s.includes('selected')) return 'Job offer';
     if (s.includes('offer')) return 'offer proposal';
@@ -152,7 +152,7 @@ export function CandidateManager({ selectedCompany, selectedCountry }: Candidate
     return 'screening';
   };
 
-  const stages = ['all', 'screening', 'selected', 'Job offer', 'hired', 'rejected'];
+  const stages = ['all',  'selected', 'Job offer', 'hired', 'rejected'];
 
   // memoize filtered candidates for performance
   const filteredCandidates = useMemo(() => {

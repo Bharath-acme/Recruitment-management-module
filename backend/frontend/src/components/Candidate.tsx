@@ -361,7 +361,7 @@ const { id } = useParams<{ id: string }>();
                 </div>
 
                 {/* Quick Stats */}
-                <div className="flex flex-col items-center space-y-6">
+                {/* <div className="flex flex-col items-center space-y-6">
                     {(user?.role === 'hiring_manager' || user?.role === 'admin') && (
                     <div className="flex gap-3 mb-8">
           
@@ -451,7 +451,7 @@ const { id } = useParams<{ id: string }>();
                     {showFeedback ? 'Hide Feedback' : 'View Feedback'}
                   </Button>
                   
-                </div>
+                </div> */}
               </div>
             </div>
           </div>
