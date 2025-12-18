@@ -67,6 +67,7 @@ export function RequisitionManager({ selectedCompany, selectedCountry }: Requisi
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const navigate = useNavigate();
   const { user, allCompanies } = useAuth();
+  const isAcmeUser = user?.company?.name?.toLowerCase() === 'acme global hub';
 
   const token = localStorage.getItem("token");
 
@@ -95,7 +96,6 @@ export function RequisitionManager({ selectedCompany, selectedCountry }: Requisi
 
   try {
     const approvalStatus = queryvalues();
-    const isAcmeUser = user?.company?.name?.toLowerCase() === 'acme global hub pvt ltd';
     let companyIdToFilter;
 
     if (isAcmeUser) {
