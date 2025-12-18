@@ -110,7 +110,7 @@ def login(data: LoginRequest, db: Session = Depends(get_db)):
     all_companies_list = []
     
     # 🌟 NEW LOGIC: Check if the user is from 'Acme Global'
-    if company_name.lower() == "acme global hub": # Case-insensitive check
+    if company_name.lower() == "acme global hub pvt ltd": # Case-insensitive check
         # Fetch all companies and convert them to a simple list of dicts
         # Assumes the Company model is available via models.Company
         all_companies = db.query(models.Company).all()
@@ -233,7 +233,7 @@ def get_dashboard_summary(
 ):
     target_company_id = None
     # Use a safer way to access company name
-    is_acme_user = current_user.company_rel and current_user.company_rel.name.lower() == 'acme global hub'
+    is_acme_user = current_user.company_rel and current_user.company_rel.name.lower() == 'acme global hub pvt ltd'
 
     if is_acme_user:
         if company_id:

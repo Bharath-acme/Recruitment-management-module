@@ -95,7 +95,7 @@ export function RequisitionManager({ selectedCompany, selectedCountry }: Requisi
 
   try {
     const approvalStatus = queryvalues();
-    const isAcmeUser = user?.company?.name?.toLowerCase() === 'acme global hub';
+    const isAcmeUser = user?.company?.name?.toLowerCase() === 'acme global hub pvt ltd';
     let companyIdToFilter;
 
     if (isAcmeUser) {
@@ -314,7 +314,7 @@ export function RequisitionManager({ selectedCompany, selectedCountry }: Requisi
                 <TableHead className="first:pl-10 rounded-l-lg">Position</TableHead>
                 <TableHead>Department</TableHead>
                 <TableHead>Status</TableHead>
-               {user?.company?.name?.trim().toLowerCase() === 'acme global hub' && <TableHead>Company</TableHead>}
+               {isAcmeUser && <TableHead>Company</TableHead>}
                 <TableHead>Priority</TableHead>
                 <TableHead>Progress</TableHead>
                 <TableHead>Days Open</TableHead>
@@ -353,7 +353,7 @@ export function RequisitionManager({ selectedCompany, selectedCountry }: Requisi
                     <TableCell>
                       <Badge className={getStatusColor(req.status)}>{req.status}</Badge>
                     </TableCell>
-                     {user?.company?.name?.trim().toLowerCase() === 'acme global hub' && <TableCell>
+                     {isAcmeUser && <TableCell>
                       <span >{req.company?.name}</span>
                     </TableCell>}
                     <TableCell>

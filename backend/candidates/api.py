@@ -18,7 +18,7 @@ def read_candidates(
     user:User = Depends(get_current_user)
 ):
     query = db.query(models.Candidate)
-    is_acme_user = user.company_rel.name.lower() == "acme global hub"
+    is_acme_user = user.company_rel.name.lower() == "acme global hub pvt ltd"
 
     if is_acme_user:
         if company_id:
@@ -35,7 +35,7 @@ def read_candidates(
     candidates = query.offset(skip).limit(limit).all()
 
     # 🔒 If user is not from Acme Global, hide sensitive fields
-    if user.company_rel.name.lower() != "acme global hub":
+    if user.company_rel.name.lower() != "acme global hub pvt ltd":
         for c in candidates:
             c.email = None
             c.phone = None
@@ -58,7 +58,7 @@ def read_candidate(
         raise HTTPException(status_code=404, detail="Candidate not found")
 
     # 🏢 NEW: Company-based authorization
-    if user.company_rel.name.lower() != "acme global hub":
+    if user.company_rel.name.lower() != "acme global hub pvt ltd":
         if db_candidate.company_id != user.company_rel.id:
             raise HTTPException(status_code=403, detail="Access denied: Candidate does not belong to your company.")
 
@@ -67,7 +67,7 @@ def read_candidate(
         raise HTTPException(status_code=403, detail="Access denied for this candidate")
 
     # 🔒 Hide sensitive info if user is not from Acme Global
-    if user.company_rel.name.lower() != "acme global hub":
+    if user.company_rel.name.lower() != "acme global hub pvt ltd":
         db_candidate.email = None
         db_candidate.phone = None
         db_candidate.resume_url = None

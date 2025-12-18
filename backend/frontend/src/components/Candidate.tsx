@@ -291,7 +291,7 @@ const { id } = useParams<{ id: string }>();
               <div className="mt-4 flex gap-2">
               
                {/* {user?.role == 'recruiter' &&   */}
-               {user?.company?.name?.trim().toLowerCase() == 'acme global hub' ? <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+               {user?.company?.name?.trim().toLowerCase() == 'acme global hub pvt ltd' ? <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
                 <DialogTrigger asChild>
                   <Button variant="outline" size="sm" className="bg-blue-50 border-blue-200 hover:bg-blue-100">
                     Edit Profile
@@ -311,7 +311,7 @@ const { id } = useParams<{ id: string }>();
                 </DialogContent>
               </Dialog>:''}
               {/* // } */}
-             {user?.company?.name?.trim().toLowerCase() == 'acme global hub' ? <ResumeDialog resumeUrl={String(url)}/>:''}
+             {user?.company?.name?.trim().toLowerCase() == 'acme global hub pvt ltd' ? <ResumeDialog resumeUrl={String(url)}/>:''}
               {/* <Button variant="outline" size="sm" className="bg-purple-50 border-purple-200 hover:bg-purple-100">
                 <Download className="h-4 w-4 mr-2" />
                 Resume
@@ -341,11 +341,11 @@ const { id } = useParams<{ id: string }>();
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-gray-600">
-                  { user?.company?.name?.trim().toLowerCase() == 'acme global hub' ? <div className="flex items-center gap-2">
+                  { user?.company?.name?.trim().toLowerCase() == 'acme global hub pvt ltd' ? <div className="flex items-center gap-2">
                     <Mail className="h-4 w-4 text-blue-500" />
                     <span>{candidate.email}</span>
                   </div>:''}
-                 {user?.company?.name?.trim().toLowerCase() == 'acme global hub' ? <div className="flex items-center gap-2">
+                 {user?.company?.name?.trim().toLowerCase() == 'acme global hub pvt ltd' ? <div className="flex items-center gap-2">
                     <Phone className="h-4 w-4 text-green-500" />
                     <span>{candidate.phone}</span>
                   </div>:''}

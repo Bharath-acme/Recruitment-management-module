@@ -205,7 +205,7 @@ export const Modal = ({ isOpen, onClose, title, children, downloadUrl, clientNam
 
 export function Dashboard2({ selectedCompany, selectedCountry, onCompanyChange, onCountryChange }: DashboardProps) {
   const { user, allCompanies } = useAuth();
-  const isAcmeUser = user?.company?.name?.toLowerCase() === "acme global hub";
+  const isAcmeUser = user?.company?.name?.toLowerCase() === "acme global hub pvt ltd";
 
   const navigate = useNavigate(); // Uncomment in production
 

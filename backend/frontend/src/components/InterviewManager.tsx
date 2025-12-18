@@ -117,7 +117,7 @@ console.log("Candidates:", candidates);
   const loadInterviews = async () => {
     setLoading(true);
     try {
-        const isAcmeUser = user?.company?.name?.toLowerCase() === 'acme global hub';
+        const isAcmeUser = user?.company?.name?.toLowerCase() === 'acme global hub pvt ltd';
         let companyIdToFilter;
 
         if (isAcmeUser) {
@@ -267,7 +267,7 @@ console.log("Candidates:", candidates);
           </Button> */}
 
        {/* <ScheduleInterviewDialog /> */}
-       {user?.company?.name?.trim().toLowerCase() === 'acme global hub' && user?.role?.trim().toLowerCase() === 'recruiter' && ( <Dialog open={showScheduleDialog} onOpenChange={setShowScheduleDialog}>
+       {user?.company?.name?.trim().toLowerCase() === 'acme global hub pvt ltd' && user?.role?.trim().toLowerCase() === 'recruiter' && ( <Dialog open={showScheduleDialog} onOpenChange={setShowScheduleDialog}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="h-4 w-4 mr-2" />

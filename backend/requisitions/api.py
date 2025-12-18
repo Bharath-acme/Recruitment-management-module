@@ -72,7 +72,7 @@ def read_requisitions(
 
     req_company_id = company_id
 
-    if current_user.company_rel.name.lower() != 'acme global hub':
+    if current_user.company_rel.name.lower() != 'acme global hub pvt ltd':
         req_company_id = current_user.company_id
         
     db_reqs = crud.get_requisitions(

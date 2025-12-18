@@ -317,7 +317,7 @@ export default function RquisitionPage2() {
                     {requisition.req_id}
                   </span>
                 </p>
-                {user?.company?.name?.trim().toLowerCase() === 'acme global hub' && <p className="text-sm text-slate-500 flex mt-2 ">
+                {user?.company?.name?.trim().toLowerCase() === 'acme global hub pvt ltd' && <p className="text-sm text-slate-500 flex mt-2 ">
                   <Building2 className="w-5 h-5 mr-1 " />
                   Company: 
                   <span className="font-medium text-slate-700 ml-2">
@@ -341,7 +341,7 @@ export default function RquisitionPage2() {
               </div>
             </div>
 
-            {(user?.role === "hiring_manager" || user?.role === "admin") &&(user.company?.name?.trim().toLowerCase() === "acme global hub")&& (
+            {(user?.role === "hiring_manager" || user?.role === "admin") &&(user.company?.name?.trim().toLowerCase() === "acme global hub pvt ltd")&& (
               <div className="flex gap-3 mb-8">
                 {requisition.approval_status !== "pending" && (
                   <Button

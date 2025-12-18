@@ -180,7 +180,7 @@ function AppContent() {
   const selectedCompanyObject = allCompanies.find(c => c.name === selectedCompany);
 
 
-  const isAcmeUser = user?.company?.name?.toLowerCase() === "acme global hub";
+  const isAcmeUser = user?.company?.name?.toLowerCase() === "acme global hub pvt ltd";
 
   if (loading) {
     return (

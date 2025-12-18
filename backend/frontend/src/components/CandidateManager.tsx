@@ -64,6 +64,7 @@ export function CandidateManager({ selectedCompany, selectedCountry }: Candidate
   const { user, allCompanies } = useAuth();
   const navigate = useNavigate();
   const token = localStorage.getItem('token');
+  const isAcmeUser = user?.company?.name?.toLowerCase() === "acme global hub pvt ltd";
 
   useEffect(() => {
     loadCandidates();
@@ -73,7 +74,6 @@ export function CandidateManager({ selectedCompany, selectedCountry }: Candidate
   const loadCandidates = async () => {
     setLoading(true);
     try {
-        const isAcmeUser = user?.company?.name?.toLowerCase() === 'acme global hub';
         let companyIdToFilter;
 
         if (isAcmeUser) {
@@ -231,7 +231,7 @@ export function CandidateManager({ selectedCompany, selectedCountry }: Candidate
           <p className="text-gray-600">Manage candidate pipeline and applications</p>
         </div>
 
-        {user?.company?.name?.trim().toLowerCase() === 'acme global hub' && user?.role === 'recruiter' &&(
+        {user?.company?.name?.trim().toLowerCase() === 'acme global hub pvt ltd' && user?.role === 'recruiter' &&(
           <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
             <DialogTrigger asChild>
               <Button>
@@ -289,7 +289,7 @@ export function CandidateManager({ selectedCompany, selectedCountry }: Candidate
                 <TableHead>Position</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Rating</TableHead>
-                {user?.company?.name?.trim().toLowerCase() === 'acme global hub' && <TableHead>Source</TableHead>}
+                {user?.company?.name?.trim().toLowerCase() === 'acme global hub pvt ltd' && <TableHead>Source</TableHead>}
                 <TableHead>Applied</TableHead>
                 <TableHead className="rounded-r-lg">Recruiter</TableHead>
               </TableRow>
@@ -330,7 +330,7 @@ export function CandidateManager({ selectedCompany, selectedCountry }: Candidate
                           <div>
                             <div className="font-medium">{candidate.name}</div>
 
-                            {user?.company?.name?.trim().toLowerCase() === 'acme global hub' && (
+                            {user?.company?.name?.trim().toLowerCase() === 'acme global hub pvt ltd' && (
                               <div className="text-sm text-gray-500 flex items-center space-x-2">
                                 <Mail className="h-3 w-3" />
                                 <span>{candidate.email}</span>
@@ -361,7 +361,7 @@ export function CandidateManager({ selectedCompany, selectedCountry }: Candidate
                         <div className="flex items-center space-x-1">{renderStars(candidate.rating)}</div>
                       </TableCell>
 
-                      {user?.company?.name?.trim().toLowerCase() === 'acme global hub' && (
+                      {user?.company?.name?.trim().toLowerCase() === 'acme global hub pvt ltd' && (
                         <TableCell>
                           <Badge variant="outline" className={getSourceColor(candidate.source)}>
                             {candidate.source ?? 'N/A'}

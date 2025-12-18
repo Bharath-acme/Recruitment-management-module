@@ -74,7 +74,7 @@ def get_requisitions(
     )
 
     # 🏢 Company-based filtering
-    if company_name and company_name.lower() != "acme global hub":
+    if company_name and company_name.lower() != "acme global hub pvt ltd":
         query = query.filter(models.Requisitions.company_id == company_id)
 
     # ✅ Admin: all (pending + approved + rejected)
