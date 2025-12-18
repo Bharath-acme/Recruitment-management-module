@@ -11,6 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 import { useAuth } from './AuthProvider';
 import { SideDrawer } from './invoices/InvoiceDialog';
+import ScheduleInterviewDialog from './InterviewSchedular';
 import { 
   Plus, 
   Search, 
@@ -87,7 +88,8 @@ export function InterviewManager({ selectedCompany, selectedCountry }: Interview
   });
 
   const token = localStorage.getItem('token');
-  const {user} = useAuth()
+  const {user, allCompanies} = useAuth()
+  // const [showScheduleDialog, setShowScheduleDialog] = useState(false);
 
   const [candidates, setCandidates] = useState<
   { id:string, email: string; name: string; position: string; requisition_id: string }[]
@@ -115,10 +117,33 @@ console.log("Candidates:", candidates);
   const loadInterviews = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/interviews`, {
+        const isAcmeUser = user?.company?.name?.toLowerCase() === 'acme global hub';
+        let companyIdToFilter;
+
+        if (isAcmeUser) {
+            if (selectedCompany) {
+                const company = allCompanies.find(c => c.name === selectedCompany);
+                if (company) {
+                    companyIdToFilter = company.id;
+                }
+            }
+        } else {
+            companyIdToFilter = user?.company?.id;
+        }
+
+        const url = new URL(`${API_BASE_URL}/interviews`);
+        if (companyIdToFilter) {
+            url.searchParams.append("company_id", companyIdToFilter.toString());
+        }
+        if (statusFilter !== 'all') {
+            url.searchParams.append("status", statusFilter);
+        }
+
+      const response = await fetch(url.toString(), {
         headers: {
          
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
         }
       })
 
@@ -236,6 +261,12 @@ console.log("Candidates:", candidates);
           <InterviewScheduler/>
         </SideDrawer> */}
 
+        {/* <Button onClick={()=>setShowScheduleDialog(true) }>
+              <Plus className="h-4 w-4 mr-2" />
+              Schedule Interview
+          </Button> */}
+
+       {/* <ScheduleInterviewDialog /> */}
        {user?.company?.name?.trim().toLowerCase() === 'acme global hub' && user?.role?.trim().toLowerCase() === 'recruiter' && ( <Dialog open={showScheduleDialog} onOpenChange={setShowScheduleDialog}>
           <DialogTrigger asChild>
             <Button>
@@ -244,8 +275,10 @@ console.log("Candidates:", candidates);
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+             <ScheduleInterviewDialog onSuccess={() => { setShowScheduleDialog(false); loadInterviews(); }} />
                {/* <InterviewScheduler/> */}
-            <DialogHeader>
+                
+            {/* <DialogHeader>
               <DialogTitle>Schedule New Interview</DialogTitle>
               <DialogDescription>
                 Fill in the details below to schedule a new interview with the candidate.
@@ -410,7 +443,7 @@ console.log("Candidates:", candidates);
                   Schedule Interview
                 </Button>
               </div>
-            </div>
+            </div> */}
           </DialogContent>
         </Dialog>)}
       </div>

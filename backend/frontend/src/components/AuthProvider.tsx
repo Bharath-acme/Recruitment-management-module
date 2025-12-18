@@ -77,6 +77,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
             const mappedUser = mapBackendUser(data);
             setUser(mappedUser);
             setUserRole(mappedUser.role || null);
+
+            if (mappedUser.company?.name?.toLowerCase() === 'acme global hub') {
+                const companiesRes = await fetch(`${API_BASE_URL}/companies`, {
+                    headers: { 'Authorization': `Bearer ${token}` },
+                });
+                if (companiesRes.ok) {
+                    const companiesData = await companiesRes.json();
+                    setAllCompanies(companiesData);
+                }
+            }
+
         } catch (error) {
             console.error(error);
             localStorage.removeItem('token');

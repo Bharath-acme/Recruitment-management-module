@@ -66,7 +66,7 @@ export function RequisitionManager({ selectedCompany, selectedCountry }: Requisi
   const [approvalFilter, setApprovalFilter] = useState('all'); // 👈 new filter for top tabs
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, allCompanies } = useAuth();
 
   const token = localStorage.getItem("token");
 
@@ -95,8 +95,20 @@ export function RequisitionManager({ selectedCompany, selectedCountry }: Requisi
 
   try {
     const approvalStatus = queryvalues();
-    const companyId = user?.company?.id;
-    const companyName = user?.company?.name;
+    const isAcmeUser = user?.company?.name?.toLowerCase() === 'acme global hub';
+    let companyIdToFilter;
+
+    if (isAcmeUser) {
+        if (selectedCompany) {
+            const company = allCompanies.find(c => c.name === selectedCompany);
+            if (company) {
+                companyIdToFilter = company.id;
+            }
+        }
+    } else {
+        companyIdToFilter = user?.company?.id;
+    }
+
 
     // Build request URL with all backend parameters
     const url = new URL(`${API_BASE_URL}/requisitions`);
@@ -104,8 +116,9 @@ export function RequisitionManager({ selectedCompany, selectedCountry }: Requisi
     url.searchParams.append("approval_status", approvalStatus);
     url.searchParams.append("role", user?.role || "");
     url.searchParams.append("user_id", user?.id?.toString() || "");
-    url.searchParams.append("company_id", companyId?.toString() || "");
-    url.searchParams.append("company_name", companyName || "");
+    if (companyIdToFilter) {
+        url.searchParams.append("company_id", companyIdToFilter.toString());
+    }
 
     const response = await fetch(url.toString(), {
       headers: { 

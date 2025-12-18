@@ -19,16 +19,17 @@ import {
   X,
   MapPin,
   ChevronDown,
-  MoreHorizontal
+  MoreHorizontal,
+  Upload
 } from 'lucide-react';
-// import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from './AuthProvider';
 import file from '../media/RSA.pdf'
 // import { NotificationService, Notification } from '../utils/Utils';
 
 // --- !!! IMPORTANT: UNCOMMENT THE LINE BELOW IN YOUR VITE PROJECT !!! ---
 // const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api';
-const API_BASE_URL = 'http://localhost:3000/api'; // Hardcoded for preview environment
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 // Mock Auth Provider for Preview
 //const AuthContext = createContext(null);
@@ -51,6 +52,8 @@ class NotificationService {
 interface DashboardProps {
   selectedCompany: string;
   selectedCountry: string;
+  onCompanyChange: (company: string) => void;
+  onCountryChange: (country: string) => void;
 }
 
 interface RequisitionItem {
@@ -160,8 +163,20 @@ const Select = ({ value, onChange, options, icon: Icon, placeholder }: any) => (
 );
 
 // --- MODAL COMPONENT ---
-export const Modal = ({ isOpen, onClose, title, children }: any) => {
+export const Modal = ({ isOpen, onClose, title, children, downloadUrl, clientName }: any) => {
   if (!isOpen) return null;
+
+  const handleDownload = () => {
+    if (!downloadUrl) return;
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.setAttribute('download', (clientName || 'agreement') + '.pdf');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    onClose();
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col animate-in zoom-in-95 duration-200 ring-1 ring-white/20">
@@ -176,7 +191,7 @@ export const Modal = ({ isOpen, onClose, title, children }: any) => {
         </div>
         <div className="p-6 border-t border-gray-100 bg-white rounded-b-2xl flex justify-end gap-3">
           <Button variant="outline" onClick={onClose}>Close</Button>
-          <Button variant="primary" onClick={() => { alert('Downloading Agreement...'); onClose(); }}>
+          <Button variant="primary" onClick={handleDownload}>
             <Download className="h-4 w-4 mr-2" />
             Download PDF
           </Button>
@@ -188,9 +203,11 @@ export const Modal = ({ isOpen, onClose, title, children }: any) => {
 
 // --- DASHBOARD COMPONENT ---
 
-export function Dashboard2({ selectedCompany, selectedCountry }: DashboardProps) {
+export function Dashboard2({ selectedCompany, selectedCountry, onCompanyChange, onCountryChange }: DashboardProps) {
   const { user, allCompanies } = useAuth();
-  // const navigate = useNavigate(); // Uncomment in production
+  const isAcmeUser = user?.company?.name?.toLowerCase() === "acme global hub";
+
+  const navigate = useNavigate(); // Uncomment in production
 
   // State
   const [loading, setLoading] = useState(false);
@@ -204,6 +221,50 @@ export function Dashboard2({ selectedCompany, selectedCountry }: DashboardProps)
   const [previewOpen, setPreviewOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState<any>(null);
   const [companies, setCompanies] = useState<any[]>([]);
+  const [showUploadDialog, setShowUploadDialog] = useState(false);
+  const [selectedClientForUpload, setSelectedClientForUpload] = useState<any>(null);
+  const [agreementFile, setAgreementFile] = useState<File | null>(null);
+  const [agreementPreview, setAgreementPreview] = useState<string | null>(null);
+
+  const handleUploadClick = (client: any) => {
+    setSelectedClientForUpload(client);
+    setShowUploadDialog(true);
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files) {
+        setAgreementFile(event.target.files[0]);
+    }
+  };
+
+  const handleFileUpload = async () => {
+    if (!agreementFile || !selectedClientForUpload) return;
+
+    const formData = new FormData();
+    formData.append("agreement", agreementFile);
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/companies/${selectedClientForUpload.id}/agreement`, {
+            method: 'PUT',
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+            body: formData,
+        });
+
+        if (response.ok) {
+            toast.success("Agreement uploaded successfully!");
+            setShowUploadDialog(false);
+            setAgreementFile(null);
+            loadCompanies(); // Refresh the list
+        } else {
+            toast.error("Failed to upload agreement.");
+        }
+    } catch (error) {
+        console.error("Upload error:", error);
+        toast.error("Failed to upload agreement.");
+    }
+  };
 
   useEffect(() => {
     dashboardData();
@@ -212,16 +273,29 @@ export function Dashboard2({ selectedCompany, selectedCountry }: DashboardProps)
   }, [selectedCompany, selectedCountry]);
 
   useEffect(() => {
-    loadCompanies();
-  }, []);
+    if (isAcmeUser) {
+      loadCompanies();
+    }
+  }, [isAcmeUser]);
   // Simulate API Fetch
  const dashboardData = async ()=>{
       setLoading(true);
       try{
-        const response = await fetch(`${API_BASE_URL}/summary`,
+        const token = localStorage.getItem("token");
+        let url = `${API_BASE_URL}/summary`;
+
+        if (isAcmeUser && selectedCompany) {
+            const companyId = companies.find(c => c.name === selectedCompany)?.id;
+            if (companyId) {
+                url += `?company_id=${companyId}`;
+            }
+        }
+        const response = await fetch(url,
         { method: 'GET',
+          cache: 'no-store',
           headers: {
             'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
           },
         }
         );
@@ -251,6 +325,7 @@ export function Dashboard2({ selectedCompany, selectedCountry }: DashboardProps)
     try { 
       const response = await fetch(`${API_BASE_URL}/companies`, {
         method: 'GET',
+        cache: 'no-store',
         headers: {
           'Content-Type': 'application/json',
            Authorization: `Bearer ${token}`,
@@ -268,33 +343,16 @@ export function Dashboard2({ selectedCompany, selectedCountry }: DashboardProps)
   }};
 
 
-  const loadDemoData = () => {
-    // Populate with demo data for UI Preview if API is not available
-    setDashCount({
-      open_positions: 14,
-      active_candidates: 128,
-      scheduled_interviews: 6,
-      pending_offers: 5,
-      fy_completed: 42,
-    });
-
-    // setUpcomingInterviews([
-    //   { id: 1, candidateName: 'Ahmed Al-Rashid', position: 'Senior Software Engineer', time: '10:00 AM', date: 'Today', interviewer: 'Sarah Johnson', type: 'Technical' },
-    //   { id: 2, candidateName: 'Fatima Al-Zahra', position: 'Product Manager', time: '2:00 PM', date: 'Today', interviewer: 'Mike Chen', type: 'Behavioral' },
-    //   { id: 3, candidateName: 'Omar Hassan', position: 'UI/UX Designer', time: '9:00 AM', date: 'Tomorrow', interviewer: 'Lisa Park', type: 'Portfolio Review' }
-    // ]);
-
-    
-  };
-
   const handleCardClick = (route: string) => {
-    // navigate(route);
+    navigate(route);
     console.log('Navigating to:', route);
   };
 
   const handlePreviewRAS = (client: any) => {
     setSelectedClient(client);
+    setAgreementPreview(client.company_agreement || null);
     setPreviewOpen(true);
+    console.log('Previewing RAS for client:', client.company_agreement);
   };
 
   // Mapped Metrics from State
@@ -331,7 +389,7 @@ export function Dashboard2({ selectedCompany, selectedCountry }: DashboardProps)
     },
     {
       title: 'Pending Offers',
-      value: dashCount?.pending_offers || 8, // Fallback to 8 if not in API response
+      value: dashCount?.pending_offers || 0, // Fallback to 8 if not in API response
       change: '-1',
       changeType: 'decrease',
       icon: Clock,
@@ -341,7 +399,7 @@ export function Dashboard2({ selectedCompany, selectedCountry }: DashboardProps)
     },
     {
       title: 'FY Closed Positions',
-      value: dashCount?.fy_completed || 42, // Fallback
+      value: dashCount?.fy_completed || 0, // Fallback
       change: '+15%',
       changeType: 'increase',
       icon: CheckCircle2,
@@ -351,13 +409,7 @@ export function Dashboard2({ selectedCompany, selectedCountry }: DashboardProps)
     }
   ];
 
-  // Mock Clients for the Client Tab (Can be moved to API later)
-  const MOCK_CLIENTS = [
-    { id: 1, name: "TechNova Systems", type: "Technology", ras_status: "Active", location: "New York, USA" },
-    { id: 2, name: "MediCare Plus", type: "Healthcare", ras_status: "Pending Renewal", location: "London, UK" },
-    { id: 3, name: "Global Logistics Co", type: "Supply Chain", ras_status: "Active", location: "Dubai, UAE" },
-    { id: 4, name: "FinServe Capital", type: "Finance", ras_status: "Draft", location: "Singapore" }
-  ];
+
 
   if (loading && !dashCount.open_positions) {
      return (
@@ -369,7 +421,7 @@ export function Dashboard2({ selectedCompany, selectedCountry }: DashboardProps)
   }
 
   return (
-    <div className="p-8 space-y-10 pb-10 min-h-screen bg-[#F8FAFC]">
+    <div className=" space-y-10 pb-10 min-h-screen bg-[#F8FAFC]">
       
       {/* Header & Filter Bar */}
       <div className="flex flex-col xl:flex-row justify-between gap-6">
@@ -379,34 +431,10 @@ export function Dashboard2({ selectedCompany, selectedCountry }: DashboardProps)
              Welcome back, {user?.name}. Here's your recruitment overview.
           </p>
         </div>
-        
-        {/* Dynamic Filters Area */}
-         {/* <div className="flex flex-col sm:flex-row gap-3 bg-white p-2 rounded-2xl shadow-sm border border-gray-100">
-           <div className="w-full sm:w-48">
-              <Select 
-                 icon={Building2}
-                 placeholder="All Companies" 
-                 options={allCompanies?.map((c:any) => c.name) || ["Global Tech"]} 
-                 value={selectedCompany} 
-                 onChange={() => {}} 
-              />
-           </div>
-           <div className="w-full sm:w-48">
-              <Select 
-                 icon={MapPin}
-                 placeholder="All Locations" 
-                 options={["New York", "London", "Dubai", "Remote"]} 
-                 value={selectedCountry} 
-                 onChange={() => {}} 
-              />
-           </div>
-           <Button variant="dark" className="px-6" onClick={() => {}}>
-              <Bell className="h-4 w-4 mr-2" />
-           </Button>
-        </div>  */}
       </div>
 
       {/* Main Tabs */}
+      {isAcmeUser && (
       <div className="flex space-x-1 bg-gray-100/50 p-1 rounded-xl w-fit">
         {['overview', 'clients'].map((tab) => (
           <button
@@ -422,6 +450,7 @@ export function Dashboard2({ selectedCompany, selectedCountry }: DashboardProps)
           </button>
         ))}
       </div>
+      )}
 
       {activeTab === 'overview' ? (
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-8">
@@ -468,15 +497,15 @@ export function Dashboard2({ selectedCompany, selectedCountry }: DashboardProps)
               </CardHeader>
               <div className="divide-y divide-gray-100">
                 {recentRequisitions.length > 0 ? recentRequisitions.map((req) => (
-                  <div key={req.id} className="p-5 hover:bg-indigo-50/30 transition-colors group flex flex-col sm:flex-row sm:items-center justify-between gap-4 cursor-pointer border-l-2 border-transparent hover:border-indigo-500">
+                  <div key={req.id} onClick={() => navigate(`/requisitions/${req.id}`)} className="p-5 hover:bg-indigo-50/30 transition-colors group flex flex-col sm:flex-row sm:items-center justify-between gap-4 cursor-pointer border-l-2 border-transparent hover:border-indigo-500">
                     <div className="flex items-center gap-4">
                       <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center text-gray-600 font-bold text-sm shadow-inner">
-                        {(req.department || req.title).substring(0,2).toUpperCase()}
+                        {req.department?.name?.substring(0,2).toUpperCase()}
                       </div>
                       <div>
-                        <h4 className="font-bold text-gray-900 group-hover:text-indigo-600 transition-colors">{req.title || req.position}</h4>
+                        <h4 className="font-bold text-gray-900 group-hover:text-indigo-600 transition-colors">{req.position}</h4>
                         <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
-                           <span className="flex items-center"><Building2 className="h-3 w-3 mr-1" /> {req.department || 'General'}</span>
+                           <span className="flex items-center"><Building2 className="h-3 w-3 mr-1" /> {req.department?.name || 'General'}</span>
                            <span className="w-1 h-1 rounded-full bg-gray-300"></span>
                            <span className="flex items-center"><MapPin className="h-3 w-3 mr-1" /> {req.location || 'Remote'}</span>
                            <span className="w-1 h-1 rounded-full bg-gray-300"></span>
@@ -486,7 +515,7 @@ export function Dashboard2({ selectedCompany, selectedCountry }: DashboardProps)
                     </div>
                     <div className="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto">
                        <div className="text-right hidden sm:block">
-                          <p className="text-xs font-semibold text-gray-900">{req.applicants || req.applications_count} Applicants</p>
+                          <p className="text-xs font-semibold text-gray-900">{req.applications_count} Applicants</p>
                           <div className="w-24 h-1.5 bg-gray-100 rounded-full mt-1 overflow-hidden">
                              <div className="h-full bg-indigo-500 rounded-full" style={{width: '60%'}}></div>
                           </div>
@@ -573,13 +602,13 @@ export function Dashboard2({ selectedCompany, selectedCountry }: DashboardProps)
                        <tr className="bg-gray-50/50 text-gray-500 text-xs uppercase tracking-wider border-b border-gray-100">
                           <th className="px-6 py-4 font-semibold">Client Entity</th>
                           <th className="px-6 py-4 font-semibold">Location</th>
-                          <th className="px-6 py-4 font-semibold">Status</th>
+                          <th className="px-6 py-4 font-semibold">Client Type</th>
                           <th className="px-6 py-4 font-semibold">Agreement</th>
                           <th className="px-6 py-4 font-semibold text-right"></th>
                        </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-50">
-                       {MOCK_CLIENTS.map((client) => (
+                       {companies.map((client) => (
                           <tr key={client.id} className="hover:bg-gray-50/50 transition-colors group">
                              <td className="px-6 py-4">
                                 <div className="flex items-center gap-3">
@@ -588,39 +617,69 @@ export function Dashboard2({ selectedCompany, selectedCountry }: DashboardProps)
                                    </div>
                                    <div>
                                       <div className="font-bold text-gray-900">{client.name}</div>
-                                      <div className="text-xs text-gray-500">{client.type}</div>
+                                      <div className="text-xs text-gray-500">{client.sector}</div>
                                    </div>
                                 </div>
                              </td>
                              <td className="px-6 py-4 text-sm font-medium text-gray-600 flex items-center">
                                 <MapPin className="h-3 w-3 mr-2 text-gray-400" />
-                                {client.location}
+                                {client.city}, {client.country}
                              </td>
                              <td className="px-6 py-4">
-                                <Badge variant={client.ras_status === 'Active' ? 'success' : 'warning'}>
-                                   {client.ras_status}
+                                <Badge variant={client.client_type === 'Active' ? 'success' : 'warning'}>
+                                   {client.client_type || 'N/A'}
                                 </Badge>
                              </td>
                              <td className="px-6 py-4">
-                                <button 
-                                   onClick={() => handlePreviewRAS(client)}
-                                   className="flex items-center text-sm font-medium text-indigo-600 hover:text-indigo-800 transition-colors bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg w-fit"
-                                >
-                                   <FileCheck className="h-4 w-4 mr-1.5" />
-                                   Review RAS
-                                </button>
+                                {client.company_agreement ? (
+                                    <button 
+                                    onClick={() => handlePreviewRAS(client)}
+                                    className="flex items-center text-sm font-medium text-indigo-600 hover:text-indigo-800 transition-colors bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg w-fit"
+                                    >
+                                    <FileCheck className="h-4 w-4 mr-1.5" />
+                                    Review RAS
+                                    </button>
+                                ) : (
+                                    <button
+                                        onClick={() => handleUploadClick(client)}
+                                        className="flex items-center text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg w-fit"
+                                    >
+                                    <Upload className="h-4 w-4 mr-1.5" />
+                                    Upload
+                                    </button>
+                                )}
                              </td>
-                             <td className="px-6 py-4 text-right">
+                             {/* <td className="px-6 py-4 text-right">
                                 <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-full">
                                    <MoreHorizontal className="h-4 w-4" />
                                 </Button>
-                             </td>
+                             </td> */}
                           </tr>
                        ))}
                     </tbody>
                  </table>
               </div>
            </Card>
+        </div>
+      )}
+
+      {showUploadDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+            <div className="flex items-center justify-between p-6 border-b border-gray-100">
+              <h3 className="text-xl font-bold text-gray-900">Upload Agreement for {selectedClientForUpload?.name}</h3>
+              <button onClick={() => setShowUploadDialog(false)} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                <X className="h-5 w-5 text-gray-500" />
+              </button>
+            </div>
+            <div className="p-6">
+              <input type="file" onChange={handleFileChange} className="w-full border border-gray-300 rounded-lg p-2" />
+            </div>
+            <div className="p-6 border-t border-gray-100 bg-white rounded-b-2xl flex justify-end gap-3">
+              <Button variant="outline" onClick={() => setShowUploadDialog(false)}>Cancel</Button>
+              <Button variant="primary" onClick={handleFileUpload} disabled={!agreementFile}>Upload</Button>
+            </div>
+          </div>
         </div>
       )}
 
@@ -632,79 +691,16 @@ export function Dashboard2({ selectedCompany, selectedCountry }: DashboardProps)
         isOpen={previewOpen} 
         onClose={() => setPreviewOpen(false)}
         title={selectedClient ? `RAS Agreement - ${selectedClient.name}` : 'Agreement Preview'}
+        downloadUrl={selectedClient?.company_agreement ? `/${selectedClient.company_agreement}` : file}
+        clientName={selectedClient?.name}
       >
 
         <iframe
-              src={file}
+              src={selectedClient?.company_agreement ? `/${selectedClient.company_agreement}` : file}
               title="Resume Preview"
               className="w-full h-[90vh]"
             />
-        {/* <div className="bg-white  max-w-4xl mx-auto shadow-sm h-[90vh] border border-gray-100 overflow-hidden  relative">
-           <div className="absolute top-0 right-0 p-8 opacity-[0.03]">
-              <FileCheck className="h-48 w-48" />
-           </div>
-
-           <div className="flex justify-between items-start mb-12 border-b-2 border-gray-900 pb-8">
-              <div>
-                 <h1 className="text-2xl font-serif font-bold text-gray-900 mb-2">SERVICE AGREEMENT</h1>
-                 <p className="text-gray-500 uppercase tracking-widest text-xs font-semibold">Ref: RAS-{new Date().getFullYear()}-{selectedClient?.id}005</p>
-              </div>
-              <div className="text-right">
-                 <div className="text-xl font-bold text-indigo-900">RecruitPro</div>
-                 <div className="text-xs text-gray-400">Excellence in Hiring</div>
-              </div>
-           </div>
-
-           <div className="space-y-8 font-serif text-gray-800 leading-relaxed max-w-2xl mx-auto">
-              <p className="text-lg">
-                 <strong>THIS AGREEMENT</strong> is made effective as of {new Date().toLocaleDateString()} between:
-              </p>
-              
-              <div className="bg-gray-50 p-6 rounded-xl border border-gray-100 text-sm grid grid-cols-2 gap-8">
-                  <div>
-                      <h5 className="font-bold text-gray-900 uppercase text-xs mb-2">Provider</h5>
-                      <p>RecruitPro Inc.</p>
-                      <p>123 Business Avenue</p>
-                      <p>New York, NY 10001</p>
-                  </div>
-                  <div>
-                      <h5 className="font-bold text-gray-900 uppercase text-xs mb-2">Client</h5>
-                      <p>{selectedClient?.name}</p>
-                      <p>{selectedClient?.location}</p>
-                  </div>
-              </div>
-
-              <div>
-                  <h4 className="font-bold uppercase text-sm border-b border-gray-200 pb-2 mb-3">1. Engagement</h4>
-                  <p className="text-sm text-gray-600">
-                     Client hereby engages Agency to provide recruitment and staffing services on a non-exclusive basis. 
-                     Agency shall use commercially reasonable efforts to present qualified candidates.
-                  </p>
-              </div>
-
-              <div>
-                  <h4 className="font-bold uppercase text-sm border-b border-gray-200 pb-2 mb-3">2. Compensation</h4>
-                  <p className="text-sm text-gray-600">
-                     For each Candidate employed by Client, a placement fee of <strong>20%</strong> of the Candidate's 
-                     First Year Annual Base Salary shall be payable.
-                  </p>
-              </div>
-              
-              <div className="pt-12 flex justify-between gap-12">
-                 <div className="flex-1">
-                    <div className="h-16 border-b border-gray-300 mb-2 relative">
-                        <span className="absolute bottom-2 font-handwriting text-2xl text-blue-800">Sarah Jenkins</span>
-                    </div>
-                    <p className="text-xs uppercase font-bold text-gray-400">RecruitPro Inc.</p>
-                 </div>
-                 <div className="flex-1">
-                    <div className="h-16 border-b border-gray-300 mb-2"></div>
-                    <p className="text-xs uppercase font-bold text-gray-400">{selectedClient?.name}</p>
-                 </div>
-              </div>
-           </div>
-          
-        </div> */}
+        
       </Modal>
     </div>
   );

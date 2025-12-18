@@ -20,7 +20,7 @@ def send_requisition_created_email(req_id: int, position: str, created_by: str):
 
     Please review the details in the RMM portal and approve .
     """
-    print(message)
+    print('requisiotn creating mail',message)
     send_email_requisition_created(recipient, subject, message)
     return True
 

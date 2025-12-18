@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Query
 from sqlalchemy.orm import Session
 from typing import List,Optional
 from . import schemas, crud,models
@@ -13,16 +13,19 @@ router = APIRouter()
 def read_candidates(
     skip: int = 0,
     limit: int = 100,
+    company_id: Optional[int] = Query(None),
     db: Session = Depends(get_db),
     user:User = Depends(get_current_user)
 ):
     query = db.query(models.Candidate)
+    is_acme_user = user.company_rel.name.lower() == "acme global hub"
 
-    # 🏢 Company-based filtering
-    if user.company_rel.name.lower() != "acme global hub":
+    if is_acme_user:
+        if company_id:
+            query = query.filter(models.Candidate.company_id == company_id)
+    else:
         query = query.filter(
-            models.Candidate.company_id == user.company_rel.id,
-            models.Candidate.status == "approved"
+            models.Candidate.company_id == user.company_id
         )
 
     # 🟢 If the user's role is recruiter, fetch only their candidates

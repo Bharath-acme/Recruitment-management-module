@@ -12,7 +12,7 @@ In production, run Alembic migrations separately (recommended):
 Do NOT run RUN_CREATE_ALL=true in production.
 """
 import os
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, Query, File, UploadFile
 from fastapi.security import OAuth2PasswordBearer
 from fastapi.staticfiles import StaticFiles
 from starlette.responses import FileResponse, HTMLResponse
@@ -110,7 +110,7 @@ def login(data: LoginRequest, db: Session = Depends(get_db)):
     all_companies_list = []
     
     # 🌟 NEW LOGIC: Check if the user is from 'Acme Global'
-    if company_name.lower() == "acme global": # Case-insensitive check
+    if company_name.lower() == "acme global hub": # Case-insensitive check
         # Fetch all companies and convert them to a simple list of dicts
         # Assumes the Company model is available via models.Company
         all_companies = db.query(models.Company).all()
@@ -122,7 +122,8 @@ def login(data: LoginRequest, db: Session = Depends(get_db)):
                 "name": c.name,
                 "country": c.country,
                 "size": c.size,
-                "description": c.description,
+                "client_type": c.client_type,
+                "company_agreement": c.company_agreement
             }
             for c in all_companies
         ]
@@ -166,18 +167,53 @@ def get_companies(
     companies = db.query(models.Company).all()
     return companies
 
-@app.get("/recruiter_team", response_model=List[schemas.RecruiterBase])
+@app.get("/recruiter_team", response_model=List[schemas.RecruiterOut])
 def get_team_members(current_user=Depends(get_current_user), db: Session = Depends(get_db)):
     if current_user.role.lower() not in ["hiring_manager", "admin"]:
         raise HTTPException(status_code=403, detail="Not authorized to view team members")
-    return db.query(models.User.id, models.User.name).filter(models.User.role == "recruiter").all()
+    return db.query(models.User).filter(models.User.role == "recruiter").all()
 
 
-@app.get("/hiring_managers", response_model=List[schemas.RecruiterBase])
+@app.get("/hiring_managers", response_model=List[schemas.RecruiterOut])
 def get_hiring_managers(current_user=Depends(get_current_user), db: Session = Depends(get_db)):
     if current_user.role.lower() != "admin":
         raise HTTPException(status_code=403, detail="Not authorized to view hiring managers")
-    return db.query(models.User.id, models.User.name).filter(models.User.role == "hiring_manager").all()
+    return db.query(models.User).filter(models.User.role == "hiring_manager").all()
+
+@app.get("/interviewers", response_model=List[schemas.RecruiterOut])
+def get_interviewers(current_user=Depends(get_current_user), db: Session = Depends(get_db)):
+    if current_user.role.lower() not in ["admin", "recruiter", "hiring_manager"]:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    return db.query(models.User).filter(models.User.role == "interviewer").all()
+
+@app.put("/companies/{company_id}/agreement")
+async def upload_company_agreement(
+    company_id: int,
+    agreement: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    # Authorization check
+    if not current_user.role.lower() in ["admin"]:
+        raise HTTPException(status_code=403, detail="Not authorized")
+
+    # Get company
+    company = db.query(models.Company).filter(models.Company.id == company_id).first()
+    if not company:
+        raise HTTPException(status_code=404, detail="Company not found")
+
+    # Save the file
+    file_location = f"uploads/agreement_{company_id}_{agreement.filename}"
+    with open(file_location, "wb+") as file_object:
+        file_object.write(agreement.file.read())
+
+    # Update company record
+    company.company_agreement = file_location
+    db.commit()
+    db.refresh(company)
+
+    return {"info": f"File '{agreement.filename}' uploaded and linked to {company.name}", "file_path": file_location}
+
 
 @app.websocket("/ws/notifications/{user_id}")
 async def websocket_endpoint(websocket: WebSocket, user_id: int):
@@ -190,42 +226,53 @@ async def websocket_endpoint(websocket: WebSocket, user_id: int):
 
 
 @app.get("/summary")
-def get_dashboard_summary(db: Session = Depends(get_db)):
-    # 1️⃣ Counts
-    open_positions = db.query(Requisitions).filter(Requisitions.status == "open").count()
-    active_candidates = db.query(Candidate).filter(Candidate.status == "active").count()
-    scheduled_interviews = db.query(Interview).filter(Interview.status == "Scheduled").count()
+def get_dashboard_summary(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+    company_id: int = Query(None)
+):
+    target_company_id = None
+    # Use a safer way to access company name
+    is_acme_user = current_user.company_rel and current_user.company_rel.name.lower() == 'acme global hub'
 
-    # 2️⃣ Recent Requisitions (latest 5)
-    recent_requisitions = (
-        db.query(Requisitions)
-        .order_by(Requisitions.created_date.desc())
-        .limit(5)
-        .all()
-    )
+    if is_acme_user:
+        if company_id:
+            target_company_id = company_id
+        # If company_id is not provided for ACME user, target_company_id remains None,
+        # which will result in global counts (no company filter applied).
+    else:
+        # For non-ACME users, filter by their own company
+        target_company_id = current_user.company_id
 
-    # 3️⃣ Upcoming Interviews (next 7 days)
+    # Base queries
+    open_positions_query = db.query(Requisitions).filter(Requisitions.status == "open")
+    active_candidates_query = db.query(Candidate).filter(Candidate.status == "new")
+    scheduled_interviews_query = db.query(Interview).filter(Interview.status == "Scheduled")
+    recent_requisitions_query = db.query(Requisitions).order_by(Requisitions.created_date.desc())
     today = datetime.utcnow()
-    upcoming_interviews = (
-        db.query(Interview)
-        .filter(
+    upcoming_interviews_query = db.query(Interview).filter(
             Interview.status == "Scheduled",
-            Interview.datetime >= today,
-            Interview.datetime <= today + timedelta(days=7),
-        )
-        .order_by(Interview.datetime.asc())
-        .limit(5)
-        .all()
-    )
+            Interview.scheduled_at >= today,
+            Interview.scheduled_at <= today + timedelta(days=7),
+        ).order_by(Interview.scheduled_at.asc())
+    pending_approvals_query = db.query(Requisitions).filter(Requisitions.approval_status == "pending").order_by(Requisitions.created_date.desc())
 
-    # 4️⃣ Pending Approvals
-    pending_approvals = (
-        db.query(Requisitions)
-        .filter(Requisitions.approval_status == "pending")
-        .order_by(Requisitions.created_date.desc())
-        .limit(5)
-        .all()
-    )
+
+    if target_company_id:
+        open_positions_query = open_positions_query.filter(Requisitions.company_id == target_company_id)
+        active_candidates_query = active_candidates_query.filter(Candidate.company_id == target_company_id)
+        scheduled_interviews_query = scheduled_interviews_query.filter(Interview.company_id == target_company_id)
+        recent_requisitions_query = recent_requisitions_query.filter(Requisitions.company_id == target_company_id)
+        upcoming_interviews_query = upcoming_interviews_query.filter(Interview.company_id == target_company_id)
+        pending_approvals_query = pending_approvals_query.filter(Requisitions.company_id == target_company_id)
+
+    # Execute queries
+    open_positions = open_positions_query.count()
+    active_candidates = active_candidates_query.count()
+    scheduled_interviews = scheduled_interviews_query.count()
+    recent_requisitions = recent_requisitions_query.limit(5).all()
+    upcoming_interviews = upcoming_interviews_query.limit(5).all()
+    pending_approvals = pending_approvals_query.limit(5).all()
 
     return {
         "summary": {

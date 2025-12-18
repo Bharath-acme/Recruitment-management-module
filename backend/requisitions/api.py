@@ -65,9 +65,16 @@ def read_requisitions(
     skip: int = 0,
     limit: int = 10,
     approval_status: str = Query("approved"),
+    company_id: Optional[int] = Query(None),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
     ):
+
+    req_company_id = company_id
+
+    if current_user.company_rel.name.lower() != 'acme global hub':
+        req_company_id = current_user.company_id
+        
     db_reqs = crud.get_requisitions(
         db=db,
         skip=skip,
@@ -75,9 +82,7 @@ def read_requisitions(
         role=current_user.role,
         user_id=current_user.id,
         approval_status=approval_status,
-        
-        # 🔥 Always pass server-trusted values
-        company_id=current_user.company_rel.id,
+        company_id=req_company_id,
         company_name=current_user.company_rel.name,
     )
 

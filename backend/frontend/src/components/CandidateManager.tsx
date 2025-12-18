@@ -61,7 +61,7 @@ export function CandidateManager({ selectedCompany, selectedCountry }: Candidate
   const [activeStage, setActiveStage] = useState<string>('all'); // default is "all"
   const [showAddDialog, setShowAddDialog] = useState(false);
 
-  const { user } = useAuth();
+  const { user, allCompanies } = useAuth();
   const navigate = useNavigate();
   const token = localStorage.getItem('token');
 
@@ -73,7 +73,26 @@ export function CandidateManager({ selectedCompany, selectedCountry }: Candidate
   const loadCandidates = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/candidates`, {
+        const isAcmeUser = user?.company?.name?.toLowerCase() === 'acme global hub';
+        let companyIdToFilter;
+
+        if (isAcmeUser) {
+            if (selectedCompany) {
+                const company = allCompanies.find(c => c.name === selectedCompany);
+                if (company) {
+                    companyIdToFilter = company.id;
+                }
+            }
+        } else {
+            companyIdToFilter = user?.company?.id;
+        }
+
+        const url = new URL(`${API_BASE_URL}/candidates`);
+        if (companyIdToFilter) {
+            url.searchParams.append("company_id", companyIdToFilter.toString());
+        }
+
+      const response = await fetch(url.toString(), {
         headers: {
           authorization: `Bearer ${token}`,
         },

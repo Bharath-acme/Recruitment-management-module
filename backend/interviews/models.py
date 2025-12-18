@@ -7,6 +7,14 @@ import uuid
 import enum
 
 
+interview_interviewers = Table(
+    "interview_interviewers",
+    Base.metadata,
+    Column("interview_id", String(100), ForeignKey("interviews.id", ondelete="CASCADE"), primary_key=True),
+    Column("user_id", Integer, ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
+)
+
+
 class Interview(Base):
     __tablename__ = "interviews"
 
@@ -19,21 +27,29 @@ class Interview(Base):
 
     interview_type = Column(String(100), nullable=False)   # e.g., technical, behavioral
     mode = Column(String(100), nullable=False)            # video, in-person
-    datetime = Column(DateTime, nullable=False)
+    scheduled_at = Column(DateTime, nullable=False)
     duration = Column(Integer, default=60)
     location = Column(String(100), nullable=True)
     meeting_link = Column(String(100), nullable=True)
-    interviewers = Column(Text, nullable=True)       # comma-separated string
+    # interviewers = Column(Text, nullable=True)  
+    
+    interviewers = relationship(
+        "User",
+        secondary=interview_interviewers,
+        back_populates="interviews"
+    )
+         # comma-separated string
     status = Column(String(100), default="scheduled")
     feedback = Column(Text, nullable=True)
     score = Column(Integer, nullable=True)
     notes = Column(Text, nullable=True)
-    # created_date = Column(DateTime, default=datetime.utcnow)
+    created_date = Column(DateTime, default=datetime.utcnow)
     company_id = Column(Integer, ForeignKey("companies.id"))
     company = relationship("Company",back_populates="interviews")
     # Relationships
     requisition = relationship("Requisitions", back_populates="interviews")
     scorecard = relationship("Scorecard", back_populates="interview", uselist=False)
+    
 
 
 

@@ -2,6 +2,7 @@ from sqlalchemy import Column, Integer, String, DateTime, Table, ForeignKey,Text
 from sqlalchemy.orm import relationship
 from app.database import Base
 from datetime import datetime
+from interviews.models import interview_interviewers
 
 requisition_recruiter = Table(
     "requisition_recruiter",
@@ -42,6 +43,7 @@ class Company(Base):
     requistions= relationship("Requisitions",back_populates="company")
     candidates = relationship("Candidate",back_populates="company")
     interviews = relationship("Interview",back_populates="company")
+    invoices = relationship("Invoice", back_populates="company")
 
 class User(Base):
     __tablename__ = "users"
@@ -50,6 +52,7 @@ class User(Base):
     email = Column(String(100), unique=True, index=True, nullable=False)
     role = Column(String(100), nullable=False)
     hashed_password = Column(String(100), nullable=False)
+   
     
     # The Link
     company_id = Column(Integer, ForeignKey("companies.id"), nullable=False)
@@ -61,6 +64,11 @@ class User(Base):
     notifications = relationship("Notification", back_populates="user", cascade="all, delete")
     created_requisitions = relationship("Requisitions",foreign_keys="[Requisitions.created_by]",back_populates="created_by_user")
     hiring_man = relationship("Requisitions",foreign_keys="[Requisitions.hiring_manager_id]", back_populates="hiringManager")
+    interviews = relationship(
+        "Interview",
+        secondary=interview_interviewers,
+        back_populates="interviewers"
+    )
 
 # class PasswordResetToken(Base):
 #     __tablename__ = "password_reset_tokens"

@@ -5,7 +5,7 @@ import {
   DialogTrigger,
   DialogContent,
 } from "../ui/dialog";
-import InvoiceForm from "./InvoiceForm";
+import InvoiceUploadForm from "./InvoiceForm2";
 import { fetchInvoices } from "./api";
 import { Link } from "react-router-dom";
 import { Card, CardContent } from "../ui/card";
@@ -18,7 +18,45 @@ import {
   TableCell,
 } from "../ui/table";
 import { SideDrawer,FullscreenModal } from "./InvoiceDialog";
+import { X, Download, FileCheck } from "lucide-react";
 
+export const Modal = ({ isOpen, onClose, title, children, downloadUrl, clientName }: any) => {
+  if (!isOpen) return null;
+
+  const handleDownload = () => {
+    if (!downloadUrl) return;
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.setAttribute('download', (clientName || 'invoice') + '.pdf');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col animate-in zoom-in-95 duration-200 ring-1 ring-white/20">
+        <div className="flex items-center justify-between p-6 border-b border-gray-100">
+          <h3 className="text-xl font-bold text-gray-900">{title}</h3>
+          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+            <X className="h-5 w-5 text-gray-500" />
+          </button>
+        </div>
+        <div className="overflow-y-auto p-0 bg-gray-50 flex-1">
+          {children}
+        </div>
+        <div className="p-6 border-t border-gray-100 bg-white rounded-b-2xl flex justify-end gap-3">
+          <Button variant="outline" onClick={onClose}>Close</Button>
+          <Button variant="primary" onClick={handleDownload}>
+            <Download className="h-4 w-4 mr-2" />
+            Download PDF
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export interface InvoiceItem {
   description: string;
@@ -41,11 +79,17 @@ export interface Invoice {
   pdf_url: string;
   created_at: string;
   invoice_number:string;
+  company: {
+      id: number;
+      name: string;
+  }
 }
 
 export default function InvoiceManagement() {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [open, setOpen] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
 
   const loadInvoices = async () => {
     try {
@@ -54,6 +98,11 @@ export default function InvoiceManagement() {
     } catch (err) {
       console.error("Failed to load invoices", err);
     }
+  };
+
+  const handlePreview = (invoice: Invoice) => {
+    setSelectedInvoice(invoice);
+    setPreviewOpen(true);
   };
 
   useEffect(() => {
@@ -66,21 +115,7 @@ export default function InvoiceManagement() {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Invoice Management</h1>
         
-        {/* <Button onClick={() => setOpen(true)}>
-                 
-                  Raise Invoice
-                </Button>
-
-       <SideDrawer open={open} onClose={() => setOpen(false)}>
-        <InvoiceForm
-          onSuccess={() => {
-            setOpen(false);
-            loadInvoices();
-          }}
-        />
-      </SideDrawer> */}
-
-        {/* <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog open={open} onOpenChange={setOpen}>
               <DialogTrigger asChild>
                 <Button>
                  
@@ -89,23 +124,20 @@ export default function InvoiceManagement() {
               </DialogTrigger>
 
               <DialogContent className="w-full max-w-[95vw] lg:max-w-[85vw] xl:max-w-7xl h-[90vh] overflow-y-auto flex flex-col">
-                <InvoiceForm
+                <InvoiceUploadForm
                   onSuccess={() => {
                     setOpen(false);
                     loadInvoices();
-                    
                   }}
                 />
               </DialogContent>
-            </Dialog> */}
+            </Dialog>
       </div>
 
-      {/* Responsive Table */}
        <Card>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <Table className="w-full border-separate border-spacing-y-3">
-              {/* Header */}
               <TableHeader className="bg-blue-100 rounded-lg shadow-sm">
                 <TableRow>
                   <TableHead className="border-l rounded-l-lg">Invoice ID</TableHead>
@@ -116,11 +148,10 @@ export default function InvoiceManagement() {
                 </TableRow>
               </TableHeader>
 
-              {/* Body */}
               <TableBody>
                 {invoices.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={4} className="py-6 text-center text-gray-500">
+                    <TableCell colSpan={5} className="py-6 text-center text-gray-500">
                       No invoices found
                     </TableCell>
                   </TableRow>
@@ -138,10 +169,7 @@ export default function InvoiceManagement() {
                         ₹ {inv.total_amount}
                       </TableCell>
                       <TableCell className="text-sm">
-                         {inv.client_address && inv.client_address.length > 40 
-                          ? inv.client_address.slice(0, 40) + "..." 
-                          : inv.client_address}
-
+                         {inv.company?.name}
                       </TableCell>
 
                       <TableCell className="text-sm">
@@ -149,12 +177,7 @@ export default function InvoiceManagement() {
                       </TableCell>
 
                       <TableCell className="rounded-r-lg">
-                        <Link
-                          to={`/invoices/${inv.id}`}
-                          className="text-blue-600 underline"
-                        >
-                          View Details
-                        </Link>
+                        <Button onClick={() => handlePreview(inv)}>Preview</Button>
                       </TableCell>
                     </TableRow>
                   ))
@@ -164,41 +187,19 @@ export default function InvoiceManagement() {
           </div>
         </CardContent>
       </Card>
-
-      {/* Mobile View – Card List */}
-      {/* <div className="space-y-4 md:hidden">
-        {invoices.map((inv) => (
-          <div
-            key={inv.id}
-            className="border p-4 rounded-lg shadow-sm bg-white"
-          >
-            <div className="font-semibold">
-              Invoice #{inv.id}
-            </div>
-
-            <div className="text-sm text-gray-600 mt-1">
-              Amount: ₹ {inv.total_amount}
-            </div>
-
-            <div className="text-sm text-gray-500">
-              {new Date(inv.created_at).toLocaleString()}
-            </div>
-
-            <Link
-              to={`/invoices/${inv.id}`}
-              className="text-blue-600 underline text-sm mt-2 block"
-            >
-              View Details
-            </Link>
-          </div>
-        ))}
-
-        {invoices.length === 0 && (
-          <p className="text-center text-gray-500">
-            No invoices found.
-          </p>
-        )}
-      </div> */}
+      <Modal 
+        isOpen={previewOpen} 
+        onClose={() => setPreviewOpen(false)}
+        title={selectedInvoice ? `Invoice - ${selectedInvoice.invoice_number}` : 'Invoice Preview'}
+        downloadUrl={selectedInvoice?.pdf_url}
+        clientName={selectedInvoice?.company?.name}
+      >
+        <iframe
+            src={selectedInvoice?.pdf_url}
+            title="Invoice Preview"
+            className="w-full h-[90vh]"
+        />
+      </Modal>
     </div>
   );
 }

@@ -3,6 +3,7 @@ from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime, Tex
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from app.database import Base
+from app.models import Company
 
 class Invoice(Base):
     __tablename__ = "invoices"
@@ -11,6 +12,7 @@ class Invoice(Base):
 
     # single combined client address block
     client_address = Column(Text, nullable=True)
+    client_company = Column(ForeignKey("companies.id"), nullable=True)
 
     # invoice meta
     envelope_id = Column(String(200), nullable=True)
@@ -34,6 +36,7 @@ class Invoice(Base):
         lazy="joined",
         cascade="all, delete-orphan"
     )
+    company = relationship("Company", back_populates="invoices")
 
 
 class InvoiceItem(Base):

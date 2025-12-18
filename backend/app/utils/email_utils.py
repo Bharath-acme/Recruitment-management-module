@@ -2,7 +2,7 @@ import requests
 import os
 from app.utils.graph_auth import get_graph_token
 
-MAIL_SENDER = "b.kumar@aiatacme.com"
+MAIL_SENDER = "support@acmeglobal.tech"
 GRAPH_URL = "https://graph.microsoft.com/v1.0/users/{sender}/sendMail"
 
 def send_email_requisition_created(to_emails, subject, body):

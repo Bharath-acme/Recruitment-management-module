@@ -2,6 +2,7 @@
 from pydantic import BaseModel
 from typing import List, Optional
 from datetime import datetime
+from app.schemas import CompanyBase
 
 class InvoiceItemCreate(BaseModel):
     description: str
@@ -52,6 +53,7 @@ class InvoiceOut(BaseModel):
     total_amount: Optional[float]
     pdf_url: Optional[str]
     created_at: datetime
+    company: Optional[CompanyBase] = None
     items: List[InvoiceItemOut]
 
     class Config:

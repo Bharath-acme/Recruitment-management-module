@@ -6,6 +6,25 @@ from candidates.schemas import CandidateMini
 from requisitions.schemas import RequisitionMini    
 
 
+
+class FreeBusyRequest(BaseModel):
+    start: datetime
+    end: datetime
+
+class BusySlot(BaseModel):
+    start: datetime
+    end: datetime
+
+class CreateInterviewWithEvent(BaseModel):
+    candidate_id: str
+    requisition_id: int
+    interview_type: str
+    mode: str
+    start: datetime
+    end: datetime
+    interviewers: List[str]
+
+
 class CalendarRequest(BaseModel):
     recruiter_email: str
     start: str
@@ -32,7 +51,7 @@ class InterviewBase(BaseModel):
     requisition_id: int
     interview_type: str
     mode: str
-    datetime: datetime
+    scheduled_at: datetime
     duration: int = 60
     location: Optional[str] = None
     meeting_link: Optional[str] = None

@@ -51,8 +51,14 @@ def create_interview(db: Session, interview: schemas.InterviewCreate):
         "requisition": requisition_dict
     }
 
-def get_interviews(db: Session):
-    interviews = db.query(models.Interview).all()
+def get_interviews(db: Session, company_id: Optional[int] = None, status: Optional[str] = None):
+    query = db.query(models.Interview)
+    if company_id:
+        query = query.filter(models.Interview.company_id == company_id)
+    if status:
+        query = query.filter(models.Interview.status == status)
+    
+    interviews = query.all()
     result = []
     for interview in interviews:
         # Ensure interviewers is a list
