@@ -2,7 +2,13 @@ const API = import.meta.env.VITE_API_BASE_URL;
 
 
 export const fetchInvoices = async () => {
-  const res = await fetch(`${API}/invoices`);
+  const token = localStorage.getItem('token');
+  const res = await fetch(`${API}/invoices/get-invoices`, {
+    headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+    }
+  });
   return res.json();
 };
 

@@ -19,6 +19,7 @@ import {
 } from "../ui/table";
 import { SideDrawer,FullscreenModal } from "./InvoiceDialog";
 import { X, Download, FileCheck } from "lucide-react";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export const Modal = ({ isOpen, onClose, title, children, downloadUrl, clientName }: any) => {
   if (!isOpen) return null;
@@ -93,7 +94,7 @@ export default function InvoiceManagement() {
 
   const loadInvoices = async () => {
     try {
-      const data = await fetchInvoices();
+      const data = await fetchInvoices(`${API_BASE_URL}/invoices/upload`);
       setInvoices(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("Failed to load invoices", err);
@@ -119,7 +120,7 @@ export default function InvoiceManagement() {
               <DialogTrigger asChild>
                 <Button>
                  
-                  Raise Invoice
+                  Upload Invoice
                 </Button>
               </DialogTrigger>
 
@@ -138,10 +139,10 @@ export default function InvoiceManagement() {
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <Table className="w-full border-separate border-spacing-y-3">
-              <TableHeader className="bg-blue-100 rounded-lg shadow-sm">
-                <TableRow>
-                  <TableHead className="border-l rounded-l-lg">Invoice ID</TableHead>
-                  <TableHead>Amount</TableHead>
+              <TableHeader className="w-[90vw] bg-blue-100 rounded-lg shadow-sm ">
+                <TableRow className="w-[90vw] bg-blue-100 rounded-lg shadow-sm ">
+                  {/* <TableHead className="border-l rounded-l-lg">Invoice ID</TableHead>
+                  <TableHead>Amount</TableHead> */}
                   <TableHead>Client</TableHead>
                   <TableHead>Created</TableHead>
                   <TableHead className="rounded-r-lg">Action</TableHead>
@@ -161,13 +162,13 @@ export default function InvoiceManagement() {
                       key={inv.id}
                       className="border border-gray-200 rounded-lg shadow-sm transition-all duration-200 hover:shadow-lg hover:bg-blue-50 hover:-translate-y-[2px]"
                     >
-                      <TableCell className="border-l-[5px] border-blue-700 pl-4 rounded-l-lg">
+                      {/* <TableCell className="border-l-[5px] border-blue-700 pl-4 rounded-l-lg">
                         {inv.invoice_number}
                       </TableCell>
 
                       <TableCell className="font-medium">
                         ₹ {inv.total_amount}
-                      </TableCell>
+                      </TableCell> */}
                       <TableCell className="text-sm">
                          {inv.company?.name}
                       </TableCell>
@@ -195,7 +196,7 @@ export default function InvoiceManagement() {
         clientName={selectedInvoice?.company?.name}
       >
         <iframe
-            src={selectedInvoice?.pdf_url}
+            src={selectedInvoice?.pdf_url ? `${API_BASE_URL}/${selectedInvoice.pdf_url}` : '/placeholder-invoice.pdf'}
             title="Invoice Preview"
             className="w-full h-[90vh]"
         />
